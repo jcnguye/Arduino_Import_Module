@@ -1,6 +1,30 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
+
+/**
+     * Returns an iterable object containing the absolute name of all files in a given directory,
+	 * including files in subfolders. 
+     * @param directoryPath - the absolute path to the directory
+	 * @returns Iterable object with the absolute name of all files in a directory
+     */
+function* getAllFilePaths(directoryPath: string): Iterable<string> {
+    const files = fs.readdirSync(directoryPath);
+
+    for (const file of files) {
+        const filePath = path.join(directoryPath, file);
+        const stats = fs.statSync(filePath);
+
+        if (stats.isFile()) {
+            yield filePath; 
+        } else if (stats.isDirectory()) {
+            yield* getAllFilePaths(filePath);
+        }
+    }
+}
+
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -17,6 +41,10 @@ export function activate(context: vscode.ExtensionContext) {
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
 		vscode.window.showInformationMessage('Hello World from Arduino_Mod!');
+		let dirPath: string = 'C:\Users\rsbre\Documents\Swim Team';
+		for (const filePath of getAllFilePaths(dirPath)) {
+			console.log(filePath);
+		}
 	});
 
 	context.subscriptions.push(disposable);
