@@ -9,3 +9,12 @@ C++ tool tail in order to optimize for source level debugging or production leve
 After the plug in has created the CMake version of the Arduino project into the target directory so
 specified the module will then compile the project to the resulting artifact specified by the user, be it a
 HEX or ELF file.
+
+
+## Building
+1. Install npm
+2. Run `npm install -g yo generator-code typescript`
+3. Within arduino-mod/, run `tsc --watch`
+4. Open the project in VSCode
+5. Press F5 to open a new VSCode instance with the extension running.
+6. Type "> hello world" into the search bar at the top of the new VSCode window. (this should be changed to an appropriate command for building Arduino projects)
