@@ -40,12 +40,28 @@ export function activate(context: vscode.ExtensionContext) {
 	let disposable = vscode.commands.registerCommand('arduino-mod.helloWorld', () => {
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from Arduino_Mod!');
-
+		console.log('Congratulations!');
+		
+		
+		// open the file dialog so that the user can select a .ino file
+		vscode.window.showOpenDialog({
+			canSelectFiles: true,
+			filters: {
+				'Arduino Sketch': ['ino']
+			}
+		}).then(file => {
+			if(file) {
+				vscode.window.showInformationMessage('I have your file: ' + file.toString());
+			} else {
+				vscode.window.showInformationMessage('No file was selected! Re-run the command to try again.');
+			}
+		})		
+		
 	});
 
 	context.subscriptions.push(disposable);
 }
+
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
