@@ -37,29 +37,40 @@ export function activate(context: vscode.ExtensionContext) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('arduino-mod.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		console.log('Congratulations!');
-		
-		
-		// open the file dialog so that the user can select a .ino file
-		vscode.window.showOpenDialog({
-			canSelectFiles: true,
-			filters: {
-				'Arduino Sketch': ['ino']
-			}
-		}).then(file => {
-			if(file) {
-				vscode.window.showInformationMessage('I have your file: ' + file.toString());
-			} else {
-				vscode.window.showInformationMessage('No file was selected! Re-run the command to try again.');
-			}
-		})		
-		
-	});
+	let disposable = vscode.commands.registerCommand('arduino-mod.helloWorld', copyFiles);
 
 	context.subscriptions.push(disposable);
+}
+
+
+
+function copyFiles() {
+	// open the file dialog so that the user can select a .ino file
+	var inoFile: vscode.Uri
+	vscode.window.showOpenDialog({
+		canSelectFiles: true,
+		openLabel: "Open sketch",
+		filters: {
+			'Arduino Sketch': ['ino']
+		}
+	}).then(file => {
+		if(file) {
+			inoFile = file[0]
+			vscode.window.showInformationMessage('I have your file: ' + inoFile.toString());
+			// ask user to select a save destination folder
+			vscode.window.showSaveDialog({
+				saveLabel: "Create project folder here"
+			}).then(folder => {
+				if(folder) {
+					vscode.window.showInformationMessage('File ' + inoFile.toString() + " is being saved at " + folder.toString());
+				} else {
+					vscode.window.showInformationMessage('No save folder was selected. Re-run the command to try again.');
+				}
+			})
+		} else {
+			vscode.window.showInformationMessage('No file was selected! Re-run the command to try again.');
+		}
+	})
 }
 
 
