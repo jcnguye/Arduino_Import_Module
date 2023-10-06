@@ -25,6 +25,21 @@ function* getAllFilePaths(directoryPath: string): Iterable<string> {
     }
 }
 
+function copyFile(sourcePath: string, destinationDirectory: string, newFileName?: string) {
+	var fileName;
+	if (newFileName) {
+		fileName = newFileName;
+	} else {
+		fileName = path.basename(sourcePath);
+	}
+	const destinationPath = path.join(destinationDirectory, fileName);
+	const input = fs.createReadStream(sourcePath);
+	const output = fs.createWriteStream(destinationPath);
+	input.pipe(output);
+	input.close();
+	output.close();
+}
+
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
