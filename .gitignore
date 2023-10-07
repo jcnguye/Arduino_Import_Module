@@ -1,0 +1,9 @@
+# IDE Files
+*.code-workspace
+
+# Compilation Files
+*.js
+arduino-mod/node_modules/.bin/*
+
+# External Library Files
+arduino-mod/node_modules/*
