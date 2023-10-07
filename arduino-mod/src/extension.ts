@@ -25,6 +25,34 @@ function* getAllFilePaths(directoryPath: string): Iterable<string> {
     }
 }
 
+/**
+ * Copies a file into a given directory location.
+ * @param sourcePath Path to the file to be copied
+ * @param destinationDirectory Path to the directory the file should be copied into
+ * @param newFileName Optional. Rename the copy of the file. Can be used to rename .ino to .cpp, but doesn't change the 
+ * contents of the file. 
+ */
+function copyFile(sourcePath: string, destinationDirectory: string, newFileName?: string) {
+	var fileName;
+	if (newFileName) {
+		fileName = newFileName;
+	} else {
+		fileName = path.basename(sourcePath);
+	}
+	const destinationPath = path.join(destinationDirectory, fileName);
+	const input = fs.createReadStream(sourcePath);
+	const output = fs.createWriteStream(destinationPath);
+	//verify read & write streams
+	input.on('error', (err) => {
+		console.error('Error reading file: ', sourcePath);
+	});
+	output.on('error', (err) => {
+		console.error('Error writing to file: ', destinationPath);
+	});
+	//copy file
+	input.pipe(output);
+}
+
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -41,7 +69,6 @@ export function activate(context: vscode.ExtensionContext) {
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
 		vscode.window.showInformationMessage('Hello World from Arduino_Mod!');
-
 	});
 
 	context.subscriptions.push(disposable);
