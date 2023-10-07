@@ -3,6 +3,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as readline from 'readline';
 
 /**
      * Returns an iterable object containing the absolute name of all files in a given directory,
@@ -23,6 +24,55 @@ function* getAllFilePaths(directoryPath: string): Iterable<string> {
             yield* getAllFilePaths(filePath);
         }
     }
+}
+
+/**
+ * This function scans a file's include statements to retrive
+ * the name of all the required libraries. 
+ * 
+ * Note that reading a file is an asyncronous process, 
+ * meaning the function that calls it must be asynchronous.
+ * 
+ * @param filepath : .ino or .c sketch document
+ * @returns Promise String
+ */
+function getAllLibraries(filepath: string): Promise<string[]> {
+    return new Promise<string[]>((resolve, reject) => {
+        let libraries: string[] = [];
+
+        const fileStream = fs.createReadStream(filepath);
+
+        const rl = readline.createInterface({
+            input: fileStream,
+            crlfDelay: Infinity,
+        });
+
+        //regex for #include <X.h>
+        const regex = /#include <([^>]+\.h)>/g
+
+        //iterating line-by-line through filestream
+        rl.on('line', (line) => {
+            const matches = line.match(regex);
+
+            if(matches) {
+                libraries.push(line.substring(10, line.length - 3));
+            }
+            else if(line.includes("void setup()")) {
+                rl.close();
+            }
+            
+        });
+
+        //retrieve promised array of strings
+        rl.on('close', () => {
+            resolve(libraries);
+        });
+
+        rl.on('error', (err) => {
+            reject(err);
+        });
+
+    });
 }
 
 
