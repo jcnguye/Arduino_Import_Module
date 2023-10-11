@@ -4,6 +4,7 @@
 # Compilation Files
 *.js
 arduino-mod/node_modules/.bin/*
+arduino-mod/out/*
 
 # External Library Files
 arduino-mod/node_modules/*
