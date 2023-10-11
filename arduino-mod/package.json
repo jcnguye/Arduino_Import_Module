@@ -16,6 +16,10 @@
       {
         "command": "arduino-mod.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "arduino-mod.libraryCopier",
+        "title": "Library Copier"
       }
     ]
   },

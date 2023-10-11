@@ -94,7 +94,15 @@ export function activate(context: vscode.ExtensionContext) {
 
 	});
 
+    /**
+     * Function to test library copying
+     */
+    let libraries = vscode.commands.registerCommand('arduino-mod.libraryCopier', () => {
+        console.log("testing");
+    });
+
 	context.subscriptions.push(disposable);
+    context.subscriptions.push(libraries);
 }
 
 // This method is called when your extension is deactivated
