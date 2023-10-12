@@ -69,6 +69,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
 		vscode.window.showInformationMessage('Hello World from Arduino_Mod!');
+		MainPanel.createOrShow(context.extensionUri);
 	});
 
 	context.subscriptions.push(disposable);
@@ -76,3 +77,39 @@ export function activate(context: vscode.ExtensionContext) {
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
+
+class MainPanel {
+	
+    public static currentPanel: MainPanel | undefined;
+    public static viewType = 'Arduino Import Module';
+    private panel: vscode.WebviewPanel;
+    private extensionUri: vscode.Uri;
+
+    private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
+        this.panel = panel;
+        this.extensionUri = extensionUri;
+        this.panel.webview.html = this.getWebviewContent();
+
+        this.panel.onDidDispose(() => {
+            MainPanel.currentPanel = undefined;
+        });
+    }
+
+    public static createOrShow(extensionUri: vscode.Uri) {
+        const column = vscode.window.activeTextEditor
+            ? vscode.window.activeTextEditor.viewColumn
+            : undefined;
+
+        if (MainPanel.currentPanel) {
+            MainPanel.currentPanel.panel.reveal(column);
+        } else {
+            const panel = vscode.window.createWebviewPanel(MainPanel.viewType, 'Arduino Import Module', column || vscode.ViewColumn.One, {enableScripts: true,});
+        	MainPanel.currentPanel = new MainPanel(panel, extensionUri);
+        }
+    }
+        
+    private getWebviewContent() {
+		//TODO  
+		return 'TODO';
+	}
+}
