@@ -73,7 +73,8 @@ function getAllLibraries(filepath: string): Promise<string[]> {
         });
 
     });
- 
+}
+
  /* Copies a file into a given directory location.
  * @param sourcePath Path to the file to be copied
  * @param destinationDirectory Path to the directory the file should be copied into
@@ -101,6 +102,26 @@ function copyFile(sourcePath: string, destinationDirectory: string, newFileName?
 	input.pipe(output);
 }
 
+async function copyLibraries() {
+    const new_location = "C:\\Users\\JScotty\\Downloads\\test"
+    const iterable = getAllFilePaths("C:\\Users\\JScotty\\AppData\\Local\\Arduino15\\libraries");
+    // C:\Users\JScotty\AppData
+    var array = [];
+    for await(const scanned of iterable) {
+        let directories = scanned.split('\\');
+        let file_type = directories[directories.length - 1].split('.');
+        // console.log(directories[7]);
+        if(file_type.length >= 1) {
+            if(file_type[1] == 'cpp' || (file_type[1] == 'c' || (file_type[1] == 'h' || (file_type[1] == 'hpp') {
+                // console.log(scanned);
+                copyFile(scanned,new_location);
+            } else {
+                // console.log(file_type)
+            }
+        }
+    }
+}
+
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -123,7 +144,9 @@ export function activate(context: vscode.ExtensionContext) {
      * Function to test library copying
      */
     let libraries = vscode.commands.registerCommand('arduino-mod.libraryCopier', () => {
-        console.log("testing");
+        console.log("Starting 'Copying Libraries' Command")
+        copyLibraries();
+        console.log("Finished 'Copying LIbraries' Command")
     });
 
 	context.subscriptions.push(disposable);
