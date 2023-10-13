@@ -102,21 +102,37 @@ function copyFile(sourcePath: string, destinationDirectory: string, newFileName?
 	input.pipe(output);
 }
 
-async function copyLibraries() {
-    const new_location = "C:\\Users\\JScotty\\Downloads\\test"
-    const iterable = getAllFilePaths("C:\\Users\\JScotty\\AppData\\Local\\Arduino15\\libraries");
-    // C:\Users\JScotty\AppData
-    var array = [];
+/**
+ * This function scans the the Arduino/libraries folder for any source files that
+ * are imported within the main sketch file.
+ * 
+ * Note that this function assumes that the directory it is copying files
+ * to already exists.
+ * 
+ * @param newDirectory : Directory to copy files to
+ * @param sketchFile : .ino file with "#includes <lib.h>"
+ */
+async function copyLibraries(newDirectory: string, sketchFile: string) {
+    //getting file paths
+    const localAppData = process.env.LOCALAPPDATA;
+    const libraryFilePath = path.join(localAppData, "Arduino15", "libraries");
+    let libraries = undefined;
+    try {
+        libraries = await getAllLibraries(sketchFile);
+    } catch (error) {
+        console.error(error);
+        return;
+    }
+
+    const iterable = getAllFilePaths(libraryFilePath);
+    
+    //copying files to new directory if their directory name matches .ino file
     for await(const scanned of iterable) {
         let directories = scanned.split('\\');
         let file_type = directories[directories.length - 1].split('.');
-        // console.log(directories[7]);
-        if(file_type.length >= 1) {
+        if(file_type.length >= 1 && libraries.includes(directories[7])) {
             if(file_type[1] == 'cpp' || (file_type[1] == 'c' || (file_type[1] == 'h' || (file_type[1] == 'hpp') {
-                // console.log(scanned);
-                copyFile(scanned,new_location);
-            } else {
-                // console.log(file_type)
+                copyFile(scanned,newDirectory);
             }
         }
     }
@@ -141,11 +157,26 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
     /**
-     * Function to test library copying
+     * Function to test library copying. The exact location to "example.ino" 
+     * will likely need to be updated to your exact filepath.
      */
     let libraries = vscode.commands.registerCommand('arduino-mod.libraryCopier', () => {
+        //copying to download folder for example
+        const userProfile = process.env.USERPROFILE;
+        const downloadPath = path.join(userProfile, 'Downloads','Arduino')
+        const sketchPath = "example.ino"
+
+        //making Arduino folder in download folder
+        if (!fs.existsSync(downloadPath)) {
+            fs.mkdirSync(downloadPath);
+        }
+        
+        
+        console.log("Copying library files to ", downloadPath)
         console.log("Starting 'Copying Libraries' Command")
-        copyLibraries();
+
+        copyLibraries(downloadPath, sketchPath);
+
         console.log("Finished 'Copying LIbraries' Command")
     });
 
