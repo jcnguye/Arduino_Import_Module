@@ -58,58 +58,100 @@ function copyFile(sourcePath: string, destinationDirectory: string, newFileName?
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "arduino-mod" is now active!');
-
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('arduino-mod.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from Arduino_Mod!');
-		MainPanel.createOrShow(context.extensionUri);
-	});
-
-	context.subscriptions.push(disposable);
+	const arduinoImportTreeDataProvider = new ArduinoImportTreeDataProvider();
+    vscode.window.registerTreeDataProvider('arduinoImportTree', arduinoImportTreeDataProvider);
+    vscode.commands.registerCommand('arduinoImportTree.selectSketchFile', () => {
+        selectSketchFile();
+    });
+    vscode.commands.registerCommand('arduinoImportTree.selectDestinationDirectory', () => {
+        selectDestinationDirectory();
+    });
+    vscode.commands.registerCommand('arduinoImportTree.selectBoard', () => {
+        selectBoard();
+    });
 }
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
 
-class MainPanel {
-	
-    public static currentPanel: MainPanel | undefined;
-    public static viewType = 'Arduino Import Module';
-    private panel: vscode.WebviewPanel;
-    private extensionUri: vscode.Uri;
-
-    private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
-        this.panel = panel;
-        this.extensionUri = extensionUri;
-        this.panel.webview.html = this.getWebviewContent();
-
-        this.panel.onDidDispose(() => {
-            MainPanel.currentPanel = undefined;
-        });
+class ArduinoImportTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
+    getTreeItem(element: TreeItem): vscode.TreeItem {
+        return element;
     }
-
-    public static createOrShow(extensionUri: vscode.Uri) {
-        const column = vscode.window.activeTextEditor
-            ? vscode.window.activeTextEditor.viewColumn
-            : undefined;
-
-        if (MainPanel.currentPanel) {
-            MainPanel.currentPanel.panel.reveal(column);
+  
+    getChildren(element?: TreeItem): Thenable<TreeItem[]> {
+        if (element) {
+            return Promise.resolve([]);
         } else {
-            const panel = vscode.window.createWebviewPanel(MainPanel.viewType, 'Arduino Import Module', column || vscode.ViewColumn.One, {enableScripts: true,});
-        	MainPanel.currentPanel = new MainPanel(panel, extensionUri);
+            return Promise.resolve([
+                new TreeItem("Select Arduino Sketch File", vscode.TreeItemCollapsibleState.None, {
+                    command: 'arduinoImportTree.selectSketchFile',
+                    title: 'Select Arduino Sketch File'
+                }),
+                new TreeItem("Select Destination Directory", vscode.TreeItemCollapsibleState.None, {
+                    command: 'arduinoImportTree.selectDestinationDirectory',
+                    title: 'Select Destination Directory'
+                }),
+                new TreeItem("Select Arduino Board", vscode.TreeItemCollapsibleState.None, {
+                    command: 'arduinoImportTree.selectBoard',
+                    title: 'Select Arduino Board'
+                }),
+            ]);
         }
     }
+}
+
+class TreeItem extends vscode.TreeItem {
+    constructor(
+        label: string,
+        collapsibleState: vscode.TreeItemCollapsibleState,
+        command?: vscode.Command
+    ) 
+    {
+        super(label, collapsibleState);
+        if (command) {
+            this.command = command;
+        }
+    }
+}
         
-    private getWebviewContent() {
-		//TODO  
-		return 'TODO';
-	}
+async function selectSketchFile() {
+    const sketchFile = await vscode.window.showOpenDialog({
+        canSelectFiles: true,
+        canSelectFolders: false,
+        canSelectMany: false,
+        filters: {
+            'arduinoSketch': ['ino']
+        },
+        openLabel: 'Select Arduino Sketch File',
+    });
+
+    if (sketchFile && sketchFile[0]) {
+        vscode.window.showInformationMessage(`Selected file: ${sketchFile[0].fsPath}`);
+    }
+}
+
+async function selectDestinationDirectory() {
+    const destDir = await vscode.window.showOpenDialog({
+        canSelectFiles: false,
+        canSelectFolders: true,
+        canSelectMany: false,
+        openLabel: 'Select Destination Directory',
+    });
+    
+    if (destDir && destDir[0]) {
+        vscode.window.showInformationMessage(`Selected file: ${destDir[0].fsPath}`);
+    }
+}
+
+async function selectBoard() {
+    const board = await vscode.window.showQuickPick([
+         "UNO", "NANO", "Mega or Mega2560", "Pro or Pro Mini" //TODO - UPdate this
+    ], {
+        placeHolder: "Select Arduino Board",
+    });
+
+    if (board) {
+        vscode.window.showInformationMessage(`Selected option: ${board}`);
+    }
 }
