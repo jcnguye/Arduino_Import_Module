@@ -1,9 +1,10 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import * as fs from 'fs';
+
 import * as path from 'path';
 import * as readline from 'readline';
+import * as fs from 'fs';
 
 /**
      * Returns an iterable object containing the absolute name of all files in a given directory,
@@ -48,7 +49,7 @@ function getAllLibraries(filepath: string): Promise<string[]> {
         });
 
         //regex for #include <X.h>
-        const regex = /#include <([^>]+\.h)>/g
+        const regex = /#include <([^>]+\.h)>/gl
 
         //iterating line-by-line through filestream
         rl.on('line', (line) => {
@@ -115,7 +116,7 @@ function copyFile(sourcePath: string, destinationDirectory: string, newFileName?
 async function copyLibraries(newDirectory: string, sketchFile: string) {
     //getting file paths
     const localAppData = process.env.LOCALAPPDATA;
-    const libraryFilePath = path.join(localAppData, "Arduino15", "libraries");
+    const libraryFilePath = path.join(localAppData!, "Arduino15", "libraries");
     let libraries = undefined;
     try {
         libraries = await getAllLibraries(sketchFile);
@@ -131,7 +132,7 @@ async function copyLibraries(newDirectory: string, sketchFile: string) {
         let directories = scanned.split('\\');
         let file_type = directories[directories.length - 1].split('.');
         if(file_type.length >= 1 && libraries.includes(directories[7])) {
-            if(file_type[1] == 'cpp' || (file_type[1] == 'c' || (file_type[1] == 'h' || (file_type[1] == 'hpp') {
+            if(file_type[1] === 'cpp' || (file_type[1] === 'c' || (file_type[1] === 'h' || (file_type[1] === 'hpp')))) {
                 copyFile(scanned,newDirectory);
             }
         }
@@ -163,8 +164,8 @@ export function activate(context: vscode.ExtensionContext) {
     let libraries = vscode.commands.registerCommand('arduino-mod.libraryCopier', () => {
         //copying to download folder for example
         const userProfile = process.env.USERPROFILE;
-        const downloadPath = path.join(userProfile, 'Downloads','Arduino')
-        const sketchPath = "example.ino"
+        const downloadPath = path.join(userProfile!, 'Downloads','Arduino');
+        const sketchPath = "example.ino";
 
         //making Arduino folder in download folder
         if (!fs.existsSync(downloadPath)) {
@@ -172,12 +173,12 @@ export function activate(context: vscode.ExtensionContext) {
         }
         
         
-        console.log("Copying library files to ", downloadPath)
-        console.log("Starting 'Copying Libraries' Command")
+        console.log("Copying library files to ", downloadPath);
+        console.log("Starting 'Copying Libraries' Command");
 
         copyLibraries(downloadPath, sketchPath);
 
-        console.log("Finished 'Copying LIbraries' Command")
+        console.log("Finished 'Copying LIbraries' Command");
     });
 
 	context.subscriptions.push(disposable);
