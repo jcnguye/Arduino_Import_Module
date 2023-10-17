@@ -28,6 +28,10 @@ export class UI implements vscode.TreeDataProvider<UIItem> {
                     command: 'arduinoImportTree.selectBoard',
                     title: 'Select Arduino Board'
                 }),
+                new UIItem("Select Main Menu", vscode.TreeItemCollapsibleState.None, {
+                    command: 'arduinoImportTree.mainMenu',
+                    title: 'Arduino Main Menu'
+                })
             ]);
         }
     } 

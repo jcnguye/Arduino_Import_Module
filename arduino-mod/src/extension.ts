@@ -70,6 +70,9 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('arduinoImportTree.selectBoard', () => {
         ui.selectBoard();
     });
+    vscode.commands.registerCommand('arduinoImportTree.mainMenu', () => {
+       console.log("display something")
+    });
 }
 
 // This method is called when your extension is deactivated
