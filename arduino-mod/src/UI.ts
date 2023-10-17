@@ -3,9 +3,46 @@ import * as boardsInfo from "./boardsInfo";
 import { UIItem } from "./UIItem";
 
 export class UI implements vscode.TreeDataProvider<UIItem> {
-    sketchFile: string = "";
-    destinationDirectory: string = "";
-    selectedBoard: string = "";
+    private sketchFile: string = "";
+    private destinationDirectory: string = "";
+    private selectedBoard: string = "";
+    private boardOptions: string[] = [];
+    private selectedOption: string = "";
+
+    private uiItems: UIItem[] = [
+        new UIItem("Select Arduino Sketch File", vscode.TreeItemCollapsibleState.None, {
+            command: 'arduinoImportTree.selectSketchFile',
+            title: 'Select Arduino Sketch File'
+        }),
+        new UIItem("Select Destination Directory", vscode.TreeItemCollapsibleState.None, {
+            command: 'arduinoImportTree.selectDestinationDirectory',
+            title: 'Select Destination Directory'
+        }),
+        new UIItem("Select Arduino Board", vscode.TreeItemCollapsibleState.None, {
+            command: 'arduinoImportTree.selectBoard',
+            title: 'Select Arduino Board'
+        }),
+        new UIItem("Select Board Options", vscode.TreeItemCollapsibleState.None, {
+            command: 'arduinoImportTree.selectBoardOpt',
+            title: 'Select Board Options'
+        }),
+    ];
+
+    getSketchFile() {
+        return this.sketchFile;
+    }
+
+    getDestinationDirectory(){
+        return this.destinationDirectory;
+    }
+
+    getSelectedBoard(){
+        return this.selectBoard;
+    }
+
+    getSelectedOption(){
+        return this.selectedOption;
+    }
 
     getTreeItem(element: UIItem): vscode.TreeItem {
         return element;
@@ -15,20 +52,7 @@ export class UI implements vscode.TreeDataProvider<UIItem> {
         if (element) {
             return Promise.resolve([]);
         } else {
-            return Promise.resolve([
-                new UIItem("Select Arduino Sketch File", vscode.TreeItemCollapsibleState.None, {
-                    command: 'arduinoImportTree.selectSketchFile',
-                    title: 'Select Arduino Sketch File'
-                }),
-                new UIItem("Select Destination Directory", vscode.TreeItemCollapsibleState.None, {
-                    command: 'arduinoImportTree.selectDestinationDirectory',
-                    title: 'Select Destination Directory'
-                }),
-                new UIItem("Select Arduino Board", vscode.TreeItemCollapsibleState.None, {
-                    command: 'arduinoImportTree.selectBoard',
-                    title: 'Select Arduino Board'
-                }),
-            ]);
+            return Promise.resolve(this.uiItems);
         }
     } 
     
@@ -72,7 +96,24 @@ export class UI implements vscode.TreeDataProvider<UIItem> {
       
         if (board) {
             this.selectedBoard = board; 
-            vscode.window.showInformationMessage(`Selected option: ${this.selectedBoard}`);
+            this.boardOptions = boardsInfo.getBoardOptions(this.selectedBoard);
+            vscode.window.showInformationMessage(`Selected board: ${this.selectedBoard}`);
+        }
+    }
+
+    async selectBoardOpt() {
+        if (this.selectedBoard === "") {
+            vscode.window.showInformationMessage("Please select a board first.");
+        } else {
+            if (this.boardOptions.length === 0) {
+                vscode.window.showInformationMessage("There are no supported options for the selected board.");
+            } else {
+                let opt = await vscode.window.showQuickPick(this.boardOptions);
+                if (opt) {
+                    this.selectedOption = opt; 
+                    vscode.window.showInformationMessage(`Selected option: ${this.selectedOption}`);
+                }
+            } 
         }
     }
 }
