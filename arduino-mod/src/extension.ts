@@ -49,7 +49,7 @@ function getAllLibraries(filepath: string): Promise<string[]> {
         });
 
         //regex for #include <X.h>
-        const regex = /#include <([^>]+\.h)>/gl
+        const regex = /#include <([^>]+\.h)>/g
 
         //iterating line-by-line through filestream
         rl.on('line', (line) => {
