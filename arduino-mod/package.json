@@ -40,6 +40,10 @@
       {
         "command": "arduino-mod.libraryCopier",
         "title": "Library Copier"
+      },
+      {
+        "command": "arduino-mod.compilerFlags",
+        "title": "Get Compiler Flags"
       }
     ]
   },
