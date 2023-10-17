@@ -3,8 +3,9 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as importproj from './importproj';
 
+
+import * as importproj from './importproj';
 /**
      * Returns an iterable object containing the absolute name of all files in a given directory,
 	 * including files in subfolders. 
@@ -71,13 +72,13 @@ export function activate(context: vscode.ExtensionContext) {
 		// Display a message box to the user
 		vscode.window.showInformationMessage('Hello World from Arduino_Mod!');
 		
-		//* testing for the library copier
+		/* testing for the library copier
 		if(process.platform == "win32") {
 			importproj.librariesCopy("%HOMEPATH%/test")
 		} else {
 			importproj.librariesCopy("~/test")
 		}
-		
+		*/
 		
 	});
 
