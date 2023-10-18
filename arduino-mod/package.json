@@ -12,14 +12,30 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+    "views": {
+      "explorer": [
+        {
+          "id": "arduinoImportTree",
+          "name": "Arduino Import"
+        }
+      ]   
+    },
     "commands": [
       {
-        "command": "arduino-mod.helloWorld",
-        "title": "Hello World"
+          "command": "arduinoImportTree.selectSketchFile",
+          "title": "Select Arduino Sketch"
       },
       {
-        "command": "arduino-mod.libraryCopier",
-        "title": "Library Copier"
+        "command": "arduinoImportTree.selectDestinationDirectory",
+        "title": "Select Destination Directory"
+      },
+      {
+        "command": "arduinoImportTree.selectBoard",
+        "title": "Select Arduino Board"
+      },
+      {
+        "command": "arduinoImportTree.selectBoardOpt",
+        "title": "Select Board Options"
       },
       {
         "command": "arduino-mod.compilerFlags",

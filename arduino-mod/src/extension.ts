@@ -1,10 +1,11 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-
 import * as path from 'path';
+import { UI } from "./UI";
 import * as readline from 'readline';
 import * as fs from 'fs';
+
 
 /**
  * Gets the compiler flags out of the platform.txt file
@@ -193,51 +194,45 @@ async function copyLibraries(newDirectory: string, sketchFile: string) {
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "arduino-mod" is now active!');
-
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('arduino-mod.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from Arduino_Mod!');
-	});
-
-    /**
-     * Function to test library copying. The exact location to "example.ino" 
-     * will likely need to be updated to your exact filepath.
-     */
-    let libraries = vscode.commands.registerCommand('arduino-mod.libraryCopier', () => {
-        //copying to download folder for example
-        const userProfile = process.env.USERPROFILE;
-        const downloadPath = path.join(userProfile!, 'Downloads','Arduino');
-        const sketchPath = "example.ino";
-
-        //making Arduino folder in download folder
-        if (!fs.existsSync(downloadPath)) {
-            fs.mkdirSync(downloadPath);
-        }
-        
-        
-        console.log("Copying library files to ", downloadPath);
-        console.log("Starting 'Copying Libraries' Command");
-
-        copyLibraries(downloadPath, sketchPath);
-
-        console.log("Finished 'Copying LIbraries' Command");
+	const ui = new UI();
+    vscode.window.registerTreeDataProvider('arduinoImportTree', ui);
+    vscode.commands.registerCommand('arduinoImportTree.selectSketchFile', () => {
+        ui.selectSketchFile();
+    });
+    vscode.commands.registerCommand('arduinoImportTree.selectDestinationDirectory', () => {
+        ui.selectDestinationDirectory();
+    });
+    vscode.commands.registerCommand('arduinoImportTree.selectBoard', () => {
+        ui.selectBoard();
+    });
+    vscode.commands.registerCommand('arduinoImportTree.selectBoardOpt', () => {
+        ui.selectBoardOpt();
     });
 
+    
+    
     let flags = vscode.commands.registerCommand('arduino-mod.compilerFlags', () => {
         getCompileFlags();
-    })
-
-	context.subscriptions.push(disposable);
-    context.subscriptions.push(libraries);
+    });
     context.subscriptions.push(flags);
+}
+
+export function startImport(sketchPath: string, destDir: string, board: string, boardOption: string) {
+    vscode.window.showInformationMessage("Starting import.");
+    //rename .ino as .cpp and copy it to the destination directory
+    const file = path.basename(sketchPath);
+    const cFile = file.replace(/\.ino$/, '.cpp');
+    console.log("Starting to copy sketch file....");
+    copyFile(sketchPath, destDir, cFile);
+
+    //create lib folder in destination directory and copy all librarires included in sketch file
+    const libPath = path.join(destDir, 'lib');
+    if (!fs.existsSync(libPath)) {
+        fs.mkdirSync(libPath);
+    }
+    console.log("Starting to copy libraries...");
+    copyLibraries(libPath, sketchPath);
+    vscode.window.showInformationMessage("Import complete!");
 }
 
 // This method is called when your extension is deactivated
