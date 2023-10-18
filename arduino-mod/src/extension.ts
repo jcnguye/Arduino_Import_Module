@@ -209,36 +209,30 @@ export function activate(context: vscode.ExtensionContext) {
         ui.selectBoardOpt();
     });
 
-    /**
-     * Function to test library copying. The exact location to "example.ino" 
-     * will likely need to be updated to your exact filepath.
-     */
-    let libraries = vscode.commands.registerCommand('arduino-mod.libraryCopier', () => {
-        //copying to download folder for example
-        const userProfile = process.env.USERPROFILE;
-        const downloadPath = path.join(userProfile!, 'Downloads','Arduino');
-        const sketchPath = "example.ino";
-
-        //making Arduino folder in download folder
-        if (!fs.existsSync(downloadPath)) {
-            fs.mkdirSync(downloadPath);
-        }
-        
-        
-        console.log("Copying library files to ", downloadPath);
-        console.log("Starting 'Copying Libraries' Command");
-
-        copyLibraries(downloadPath, sketchPath);
-
-        console.log("Finished 'Copying LIbraries' Command");
-    });
-
+    
+    
     let flags = vscode.commands.registerCommand('arduino-mod.compilerFlags', () => {
         getCompileFlags();
     });
-
-    context.subscriptions.push(libraries);
     context.subscriptions.push(flags);
+}
+
+export function startImport(sketchPath: string, destDir: string, board: string, boardOption: string) {
+    vscode.window.showInformationMessage("Starting import.");
+    //rename .ino as .cpp and copy it to the destination directory
+    const file = path.basename(sketchPath);
+    const cFile = file.replace(/\.ino$/, '.cpp');
+    console.log("Starting to copy sketch file....");
+    copyFile(sketchPath, destDir, cFile);
+
+    //create lib folder in destination directory and copy all librarires included in sketch file
+    const libPath = path.join(destDir, 'lib');
+    if (!fs.existsSync(libPath)) {
+        fs.mkdirSync(libPath);
+    }
+    console.log("Starting to copy libraries...");
+    copyLibraries(libPath, sketchPath);
+    vscode.window.showInformationMessage("Import complete!");
 }
 
 // This method is called when your extension is deactivated

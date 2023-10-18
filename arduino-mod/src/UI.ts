@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as boardsInfo from "./boardsInfo";
 import { UIItem } from "./UIItem";
+import * as ex from "./extension";
 
 export class UI implements vscode.TreeDataProvider<UIItem> {
     private sketchFile: string = "";
@@ -70,6 +71,7 @@ export class UI implements vscode.TreeDataProvider<UIItem> {
         if (sketchFile && sketchFile[0]) {
             this.sketchFile = sketchFile[0].fsPath;
             vscode.window.showInformationMessage(`Selected file: ${this.sketchFile}`);
+            this.allSelectionsMade();
         }
       }
       
@@ -84,6 +86,7 @@ export class UI implements vscode.TreeDataProvider<UIItem> {
         if (destDir && destDir[0]) {
             this.destinationDirectory = destDir[0].fsPath;
             vscode.window.showInformationMessage(`Selected file: ${this.destinationDirectory}`);
+            this.allSelectionsMade();
         }
     }
       
@@ -97,7 +100,11 @@ export class UI implements vscode.TreeDataProvider<UIItem> {
         if (board) {
             this.selectedBoard = board; 
             this.boardOptions = boardsInfo.getBoardOptions(this.selectedBoard);
+            if (this.boardOptions.length === 0) {
+                this.selectedOption = 'None';
+            }
             vscode.window.showInformationMessage(`Selected board: ${this.selectedBoard}`);
+            this.allSelectionsMade();
         }
     }
 
@@ -112,8 +119,15 @@ export class UI implements vscode.TreeDataProvider<UIItem> {
                 if (opt) {
                     this.selectedOption = opt; 
                     vscode.window.showInformationMessage(`Selected option: ${this.selectedOption}`);
+                    this.allSelectionsMade();
                 }
             } 
+        }
+    }
+
+    private allSelectionsMade() {
+        if (this.sketchFile.length > 0 && this.destinationDirectory.length > 0 && this.selectedBoard.length > 0 && this.selectedOption.length > 0) {
+            ex.startImport(this.sketchFile, this.destinationDirectory, this.selectedBoard, this.selectedOption);
         }
     }
 }
