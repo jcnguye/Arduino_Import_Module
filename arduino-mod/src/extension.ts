@@ -5,6 +5,7 @@ import * as path from 'path';
 import { UI } from "./UI";
 import * as readline from 'readline';
 import * as fs from 'fs';
+import { MainPanel } from "./panels/MainPanel";
 
 
 /**
@@ -215,6 +216,14 @@ export function activate(context: vscode.ExtensionContext) {
         getCompileFlags();
     });
     context.subscriptions.push(flags);
+
+    //added for webview
+    const arduinoImportCommand = vscode.commands.registerCommand("arduino-mod.arduinoImport", () => {
+        MainPanel.render(context.extensionUri);
+      });
+    
+      // Add command to the extension context
+      context.subscriptions.push(arduinoImportCommand);
 }
 
 export function startImport(sketchPath: string, destDir: string, board: string, boardOption: string) {
