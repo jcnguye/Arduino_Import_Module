@@ -48,7 +48,7 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run package",
+    "vscode:prepublish": "npm run compile",
     "compile": "node ./esbuild.js",
     "package": "NODE_ENV=production node ./esbuild.js",
     "watch": "node ./esbuild.js --watch",
@@ -71,6 +71,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "vscode": "^1.1.37",
     "@vscode/webview-ui-toolkit": "^1.2.2"
   }
 }

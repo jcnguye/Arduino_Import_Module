@@ -1,4 +1,4 @@
-import { provideVSCodeDesignSystem, vsCodeButton, Button } from "@vscode/webview-ui-toolkit";
+import { provideVSCodeDesignSystem, vsCodeButton, Button, Dropdown, vsCodeDropdown, vsCodeOption } from "@vscode/webview-ui-toolkit";
 
 // In order to use the Webview UI Toolkit web components they
 // must be registered with the browser (i.e. webview) using the
@@ -18,7 +18,11 @@ import { provideVSCodeDesignSystem, vsCodeButton, Button } from "@vscode/webview
 //
 // provideVSCodeDesignSystem().register(allComponents);
 // 
-provideVSCodeDesignSystem().register(vsCodeButton());
+provideVSCodeDesignSystem().register(
+  vsCodeButton(),
+  vsCodeDropdown(),
+  vsCodeOption()
+);
 
 // Get access to the VS Code API from within the webview context
 
@@ -39,12 +43,15 @@ function main() {
 
   const sketchButton = document.getElementById("sketchFile") as Button;
   sketchButton?.addEventListener("click", handleSketchClick);
+
+  const boardDropdown = document.getElementById("board") as Dropdown;
 }
 
-function handleSketchClick(){
+async function handleSketchClick(){
+  const boardDropdown = document.getElementById("board") as Dropdown; //TESTING - DELETE
   vscode.postMessage({
     command: "hello",
-    text: "Testing, testing, 1 2 3...",
+    text: boardDropdown.value,
   });
 }
 

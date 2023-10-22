@@ -100,7 +100,6 @@ export class MainPanel {
    */
   private _getWebviewContent(webview: Webview, extensionUri: Uri) {
     const webviewUri = getUri(webview, extensionUri, ["out", "webview.js"]);
-    //const webviewUri = getUri(webview, extensionUri, ["out", "webview", "main.js"]);
     const nonce = getNonce();
 
     // Tip: Install the es6-string-html VS Code extension to enable code highlighting below
@@ -117,6 +116,10 @@ export class MainPanel {
           <h1>Arduino Import Module</h1>
 					<vscode-button id="howdy">Howdy!</vscode-button>
           <vscode-button id="sketchFile">Select Sketch</vscode-button>
+          <vscode-dropdown id="board">
+              <vscode-option value="Uno">Uno</vscode-option>
+              <vscode-option value="Nano">Nano</vscode-option>
+            </vscode-dropdown>
 					<script type="module" nonce="${nonce}" src="${webviewUri}"></script>
         </body>
       </html>
