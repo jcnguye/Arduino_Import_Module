@@ -127,6 +127,46 @@ function getAllLibraries(filepath: string): Promise<string[]> {
     });
 }
 
+function parseBoards(filepath: string) {
+    // return new Promise<string[]>((resolve, reject) => {
+        let libraries: string[] = [];
+
+        const fileStream = fs.createReadStream(filepath);
+
+        const rl = readline.createInterface({
+            input: fileStream,
+            crlfDelay: Infinity,
+        });
+
+        const regex = /[^#]*=/
+
+        //iterating line-by-line through filestream
+        rl.on('line', (line) => {
+            const matches = line.match(regex);
+
+            if(matches) {
+                // console.log(line);
+                var temp = line;
+                var key = temp.split('=');
+
+                // console.log(key[1]);
+                // var flags = []
+                
+                const subKeys = /{*}/
+                const flags = /-/
+                const option = /^[^\s]/
+
+                if(!key[1].includes(' ')) {
+                    console.log(key[1]);
+                } else if(key[1].includes('-') && !key[1].includes('{')) {
+                    console.log(key[1])
+                } else if(key[1].includes('{') && !key[1].includes('-')) {
+                    
+                }
+            
+        });
+}
+
  /* Copies a file into a given directory location.
  * @param sourcePath Path to the file to be copied
  * @param destinationDirectory Path to the directory the file should be copied into
@@ -212,7 +252,13 @@ export function activate(context: vscode.ExtensionContext) {
     
     
     let flags = vscode.commands.registerCommand('arduino-mod.compilerFlags', () => {
-        getCompileFlags();
+        // getCompileFlags();
+        try {
+            console.log("Starting parsing")
+            parseBoards("C:\\Users\\JScotty\\AppData\\Local\\Arduino15\\packages\\DxCore\\hardware\\megaavr\\1.5.10\\boards.txt")
+        } catch(error) {
+            console.log(error);
+        }
     });
     context.subscriptions.push(flags);
 }
