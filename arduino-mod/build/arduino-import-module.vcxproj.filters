@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\sophi\OneDrive\Documents\StudentFolder\Fall 2023\Capstone\Arduino_Import_Module\arduino-mod\src\temp_cpp_file.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\sophi\OneDrive\Documents\StudentFolder\Fall 2023\Capstone\Arduino_Import_Module\arduino-mod\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{C39039C4-DB34-3B30-ADC3-1FE3D681BD9C}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
