@@ -10,19 +10,42 @@ import * as path from 'path';
  */
 export function librariesCopy(dest: string) {
 	// path info: https://support.arduino.cc/hc/en-us/articles/360018448279-Open-the-Arduino15-folder
-	let srcPath = "/Arduino15/packages/DxCore/hardware/megaavr/*/libraries/" // using * because Arduino IDE will only install one version at a time.
+	// 1.5.10 must be changed if there is an update to the package
+	let srcPath = "/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/libraries/"
 	dest = dest + "/core/libraries"
-	let runCmd = "mkdir -p " + dest + " && cp -r"
+	shellCopy(srcPath, dest)
+}
+
+
+/**
+ * This copies the compiler folder to the project core directory.
+ * @param dest the user's project directory (/core/libraries will be added)
+ */
+export function compilerCopy(dest: string) {
+	// 7.3.0-atmel3.6.1-azduino7 must be changed if there is an update to the compiler
+	let srcPath = "/Arduino15/packages/DxCore/tools/avr-gcc/7.3.0-atmel3.6.1-azduino7/"
+	dest = dest + "/core/compiler"
+	shellCopy(srcPath, dest)
+}
+
+
+/**
+ * This function invokes a shell to copy an entire directory from within the Arduino15 folder.
+ * @param from the folder to copy
+ * @param to the folder to copy to
+ */
+function shellCopy(from: string, to: string) {
+	let runCmd = "mkdir -p " + to + " && cp -r"
 	if(process.platform == "win32") {
-		srcPath = "." + srcPath
 		runCmd = "cd %LocalAppData% && ROBOCOPY /CREATE /E"
-		srcPath = srcPath.replace("*", "1.5.10") // for some reason windows doesn't like this, so we have to hardcode the path in anyways
+		from = "." + from
 	} else if(process.platform == "darwin") {
-		srcPath = "~/Library" + srcPath
+		from = "~/Library" + from
 	} else if(process.platform == "linux") {
-		srcPath = "~" + srcPath.replace("Arduino15", ".arduino15")
+		from = "~" + from.replace("Arduino15", ".arduino15")
 	}
-	const command = runCmd + " " + srcPath + " " + dest
+	const command = runCmd + " " + from + " " + to
+	console.log("copy command being run: " + command)
 	const { exec } = require('child_process');
 	exec(command, (error: string, stdout: string, stderr: string) => {
 		if(error && process.platform != "win32") {
@@ -37,4 +60,5 @@ export function librariesCopy(dest: string) {
 			console.log("copy command err: " + stderr)
 		}
 	})
+	
 }
