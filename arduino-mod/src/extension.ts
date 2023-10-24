@@ -57,6 +57,8 @@ async function parsePlatform(filePath:string) {
     return flagArr;
 }
 
+
+import * as importproj from './importproj';
 /**
      * Returns an iterable object containing the absolute name of all files in a given directory,
 	 * including files in subfolders. 
@@ -208,9 +210,6 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('arduinoImportTree.selectBoardOpt', () => {
         ui.selectBoardOpt();
     });
-
-    
-    
     let flags = vscode.commands.registerCommand('arduino-mod.compilerFlags', () => {
         getCompileFlags();
     });
