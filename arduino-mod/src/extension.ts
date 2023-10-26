@@ -59,18 +59,36 @@ function copyFile(sourcePath: string, destinationDirectory: string, newFileName?
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
-	const ui = new UI();
-    vscode.window.registerTreeDataProvider('arduinoImportTree', ui);
-    vscode.commands.registerCommand('arduinoImportTree.selectSketchFile', () => {
-        ui.selectSketchFile();
-    });
-    vscode.commands.registerCommand('arduinoImportTree.selectDestinationDirectory', () => {
-        ui.selectDestinationDirectory();
-    });
-    vscode.commands.registerCommand('arduinoImportTree.selectBoard', () => {
-        ui.selectBoard();
-    });
+    context.subscriptions.push(
+        vscode.commands.registerCommand('arduinoMenu.start', () => {
+          // Create and show panel
+          const panel = vscode.window.createWebviewPanel(
+            'arduinoMenu',
+            'Arduino Menu',
+            vscode.ViewColumn.One,
+            {}
+          );
+    
+          // And set its HTML content
+          panel.webview.html = getWebviewContent();
+        })
+      );
 }
 
+function getWebviewContent() {
+    return `<!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <script src="src\GUI\script.js.js"></script>
+      <title>Arduino Menu</title>
+  </head>
+  <body>
+      <img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="300" />
+      <h1 class = "target">test</h1>
+  </body>
+  </html>`;
+  }
 // This method is called when your extension is deactivated
 export function deactivate() {}

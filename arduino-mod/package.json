@@ -32,6 +32,11 @@
       {
         "command": "arduinoImportTree.selectBoard",
         "title": "Select Arduino Board"
+      },
+      {
+        "command": "arduinoMenu.start",
+        "title": "Start Arduino session",
+        "category": "Arduino Menu"
       }
     ]
   },
