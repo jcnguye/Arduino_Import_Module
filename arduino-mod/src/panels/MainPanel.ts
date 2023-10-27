@@ -62,6 +62,7 @@ export class MainPanel {
           enableScripts: true,
           // Restrict the webview to only load resources from the `out` directory
           localResourceRoots: [Uri.joinPath(extensionUri, "out")],
+          enableCommandUris: true,
         }
       );
 
@@ -103,6 +104,7 @@ export class MainPanel {
     const nonce = getNonce();
 
     // Tip: Install the es6-string-html VS Code extension to enable code highlighting below
+    //test
     return /*html*/ `
       <!DOCTYPE html>
       <html lang="en">
@@ -115,11 +117,18 @@ export class MainPanel {
         <body>
           <h1>Arduino Import Module</h1>
 					<vscode-button id="howdy">Howdy!</vscode-button>
-          <vscode-button id="sketchFile">Select Sketch</vscode-button>
-          <vscode-dropdown id="board">
+          <h2>Select a File</h2>
+          <input type="file" id="sketchFile">
+          
+          <section class="component-example">
+            <p>Select Board</p>
+            <vscode-dropdown id="board">
               <vscode-option value="Uno">Uno</vscode-option>
               <vscode-option value="Nano">Nano</vscode-option>
             </vscode-dropdown>
+          </section>
+          <br>
+          <vscode-button id="import">Import</vscode-button>
 					<script type="module" nonce="${nonce}" src="${webviewUri}"></script>
         </body>
       </html>
@@ -134,7 +143,7 @@ export class MainPanel {
    */
   private _setWebviewMessageListener(webview: Webview) {
     webview.onDidReceiveMessage(
-      (message: any) => {
+      async (message: any) => {
         const command = message.command;
         const text = message.text;
 
@@ -143,6 +152,7 @@ export class MainPanel {
             // Code that should run in response to the hello message command
             window.showInformationMessage(text);
             return;
+          
           // Add more switch case statements here as more webview message commands
           // are created within the webview context (i.e. inside src/webview/main.ts)
         }

@@ -26,7 +26,7 @@ provideVSCodeDesignSystem().register(
 
 // Get access to the VS Code API from within the webview context
 
-const vscode = acquireVsCodeApi();
+const vscodeApi = acquireVsCodeApi();
 
 // Just like a regular webpage we need to wait for the webview
 // DOM to load before we can reference any of the HTML elements
@@ -42,16 +42,29 @@ function main() {
   howdyButton?.addEventListener("click", handleHowdyClick);
 
   const sketchButton = document.getElementById("sketchFile") as Button;
-  sketchButton?.addEventListener("click", handleSketchClick);
+  sketchButton?.addEventListener("change", handleSketchClick);
+
+  const importButton = document.getElementById("import") as Button;
+  importButton?.addEventListener("click", handleImportClick);
 
   const boardDropdown = document.getElementById("board") as Dropdown;
 }
 
-async function handleSketchClick(){
-  const boardDropdown = document.getElementById("board") as Dropdown; //TESTING - DELETE
-  vscode.postMessage({
+async function handleImportClick(){
+  const sketchFile = document.getElementById("import") as Button;
+  vscodeApi.postMessage({
     command: "hello",
-    text: boardDropdown.value,
+    text: "Testing", sketchFile, //boardDropdown.value,
+  });
+
+}
+
+async function handleSketchClick(e){
+  const boardDropdown = document.getElementById("board") as Dropdown; //TESTING - DELETE
+  const selectedFile = e.target.files[0];
+  vscodeApi.postMessage({
+    command: "hello",
+    text: selectedFile, //boardDropdown.value,
   });
 }
 
@@ -88,7 +101,7 @@ function handleHowdyClick() {
   //  random: ["arbitrary", "data"],
   // }
   //
-  vscode.postMessage({
+  vscodeApi.postMessage({
     command: "hello",
     text: "Hey there partner! 🤠",
   });
