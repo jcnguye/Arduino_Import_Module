@@ -1,24 +1,22 @@
 import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vscode";
 import { getUri } from "../utilities/getUri";
 import { getNonce } from "../utilities/getNonce";
+import * as ex from "../extension";
 
-/**
- * This class manages the state and behavior of HelloWorld webview panels.
- *
- * It contains all the data and methods for:
- *
- * - Creating and rendering HelloWorld webview panels
- * - Properly cleaning up and disposing of webview resources when the panel is closed
- * - Setting the HTML (and by proxy CSS/JavaScript) content of the webview panel
- * - Setting message listeners so data can be passed between the webview and extension
- */
 export class MainPanel {
   public static currentPanel: MainPanel | undefined;
   private readonly _panel: WebviewPanel;
   private _disposables: Disposable[] = [];
 
+  private sketchFile: string = "";
+  private destinationDirectory: string = "";
+  private selectedBoard: string = "";
+  private boardOptions: string[] = [];
+  private selectedOption: string = "";
+  private readyForImport: boolean = false;
+
   /**
-   * The HelloWorldPanel class private constructor (called only from the render method).
+   * The MainPanel class private constructor (called only from the render method).
    *
    * @param panel A reference to the webview panel
    * @param extensionUri The URI of the directory containing the extension
@@ -61,7 +59,7 @@ export class MainPanel {
           // Enable JavaScript in the webview
           enableScripts: true,
           // Restrict the webview to only load resources from the `out` directory
-          localResourceRoots: [Uri.joinPath(extensionUri, "out")],
+          //localResourceRoots: [Uri.joinPath(extensionUri, "out")],
           enableCommandUris: true,
         }
       );
@@ -102,6 +100,7 @@ export class MainPanel {
   private _getWebviewContent(webview: Webview, extensionUri: Uri) {
     const webviewUri = getUri(webview, extensionUri, ["out", "webview.js"]);
     const nonce = getNonce();
+    const importContent = this.getImportContent();
 
     // Tip: Install the es6-string-html VS Code extension to enable code highlighting below
     //test
@@ -116,19 +115,24 @@ export class MainPanel {
         </head>
         <body>
           <h1>Arduino Import Module</h1>
-					<vscode-button id="howdy">Howdy!</vscode-button>
-          <h2>Select a File</h2>
-          <input type="file" id="sketchFile">
-          
-          <section class="component-example">
-            <p>Select Board</p>
-            <vscode-dropdown id="board">
-              <vscode-option value="Uno">Uno</vscode-option>
-              <vscode-option value="Nano">Nano</vscode-option>
-            </vscode-dropdown>
+          <section class="component-row">
+            <vscode-button id="sketchFile">Select Arduino Sketch</vscode-button>
           </section>
           <br>
-          <vscode-button id="import">Import</vscode-button>
+          <section class="component-row">
+            <vscode-button id="destDir">Select Destination Directory</vscode-button>
+          </section>
+          <br> 
+          <vscode-dropdown id="board">
+            <vscode-option value="">Select Arduino Board</vscode-option>
+            <vscode-option value="UNO">Uno</vscode-option>
+            <vscode-option value="NANO">Nano</vscode-option>
+            <vscode-option value="MEGA">Mega or Mega2560</vscode-option>
+            <vscode-option value="PRO">Pro or Pro Mini</vscode-option>
+          </vscode-dropdown>
+          <br>
+          <br>
+          ${importContent}
 					<script type="module" nonce="${nonce}" src="${webviewUri}"></script>
         </body>
       </html>
@@ -148,10 +152,39 @@ export class MainPanel {
         const text = message.text;
 
         switch (command) {
-          case "hello":
-            // Code that should run in response to the hello message command
-            window.showInformationMessage(text);
+          case "board":
+            this.selectedBoard = text;
+            window.showInformationMessage(`Selected board: ${this.selectedBoard}`);
             return;
+          case "directory":
+            const destDir = await window.showOpenDialog({
+              canSelectFiles: false,
+              canSelectFolders: true,
+              canSelectMany: false,
+              openLabel: 'Select Destination Directory',
+            });
+            
+            if (destDir && destDir[0]) {
+              this.destinationDirectory = destDir[0].fsPath;
+              window.showInformationMessage(`Selected file: ${this.destinationDirectory}`);
+            }
+            return;
+          case "sketch":
+            const sketchFile = await window.showOpenDialog({
+              canSelectFiles: true,
+              canSelectFolders: false,
+              canSelectMany: false,
+              filters: {
+                  'arduinoSketch': ['ino']
+              },
+              openLabel: 'Select Arduino Sketch File',
+            });
+        
+            if (sketchFile && sketchFile[0]) {
+              this.sketchFile = sketchFile[0].fsPath;
+              window.showInformationMessage(`Selected file: ${this.sketchFile}`);
+              this.allSelectionsMade();
+            }
           
           // Add more switch case statements here as more webview message commands
           // are created within the webview context (i.e. inside src/webview/main.ts)
@@ -161,4 +194,19 @@ export class MainPanel {
       this._disposables
     );
   }
+
+  private getImportContent() {
+    if (this.readyForImport){
+      return '<vscode-button id="import">Import</vscode-button>';
+    } else {
+      return '<vscode-button disabled id="import">Import</vscode-button>';
+    }
+  }
+
+  private allSelectionsMade() {
+    if (this.sketchFile.length > 0 && this.destinationDirectory.length > 0 && this.selectedBoard.length > 0 && this.selectedOption.length > 0) {
+      this.readyForImport = true;
+        //ex.startImport(this.sketchFile, this.destinationDirectory, this.selectedBoard, this.selectedOption);
+    }
+}
 }
