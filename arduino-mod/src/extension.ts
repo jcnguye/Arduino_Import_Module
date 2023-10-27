@@ -127,10 +127,16 @@ function getAllLibraries(filepath: string): Promise<string[]> {
     });
 }
 
-function parseBoards(filepath: string) {
-    // return new Promise<string[]>((resolve, reject) => {
-        let libraries: string[] = [];
-
+/**
+ * Parses the passed in boards.txt file and creates a map of
+ * the setting name and associated value(s)
+ * 
+ * @param filepath to boards.txt
+ * @returns hashmap of options and values
+ */
+function parseBoards(filepath: string): Promise<Map<string, string>>{
+    return new Promise((resolve, reject) => {
+        const map = new Map();
         const fileStream = fs.createReadStream(filepath);
 
         const rl = readline.createInterface({
@@ -139,32 +145,47 @@ function parseBoards(filepath: string) {
         });
 
         const regex = /[^#]*=/
-
-        //iterating line-by-line through filestream
+       
         rl.on('line', (line) => {
+            // console.log(line)
             const matches = line.match(regex);
 
-            if(matches) {
-                // console.log(line);
-                var temp = line;
-                var key = temp.split('=');
-
-                // console.log(key[1]);
-                // var flags = []
+            if(matches && !line.includes("menu")) {
+                var str = line;
+                var mapValues = str.split('=');
                 
                 const subKeys = /{*}/
                 const flags = /-/
                 const option = /^[^\s]/
-
-                if(!key[1].includes(' ')) {
-                    console.log(key[1]);
-                } else if(key[1].includes('-') && !key[1].includes('{')) {
-                    console.log(key[1])
-                } else if(key[1].includes('{') && !key[1].includes('-')) {
-                    
+                if(!mapValues[1].includes(' ')) {
+                    map.set(mapValues[0],mapValues[1])
+                } else if(mapValues[1].includes('{') || mapValues[1].includes('-')) {
+                    map.set(mapValues[0],mapValues[1])
+                } else {
+                    console.log(mapValues[1]);
                 }
+            }
             
         });
+
+        rl.on('close', () => {
+            resolve(map);
+          });
+
+    });
+}
+
+async function hashing() {
+    try {
+        const map = await parseBoards("C:\\Users\\jscot\\AppData\\Local\\Arduino15\\packages\\DxCore\\hardware\\megaavr\\1.5.11\\boards.txt");
+        console.log("testing");
+    
+        map.forEach((value, key) => {
+          console.log(`Key: ${key}, Value: ${value}`);
+        });
+      } catch (error) {
+        console.error("An error occurred:", error);
+      }
 }
 
  /* Copies a file into a given directory location.
@@ -255,7 +276,8 @@ export function activate(context: vscode.ExtensionContext) {
         // getCompileFlags();
         try {
             console.log("Starting parsing")
-            parseBoards("C:\\Users\\JScotty\\AppData\\Local\\Arduino15\\packages\\DxCore\\hardware\\megaavr\\1.5.10\\boards.txt")
+            hashing();
+            
         } catch(error) {
             console.log(error);
         }
