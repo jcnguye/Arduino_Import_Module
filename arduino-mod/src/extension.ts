@@ -57,6 +57,8 @@ async function parsePlatform(filePath:string) {
     return flagArr;
 }
 
+
+import * as importproj from './importproj';
 /**
      * Returns an iterable object containing the absolute name of all files in a given directory,
 	 * including files in subfolders. 
