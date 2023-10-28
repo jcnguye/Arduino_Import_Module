@@ -15,7 +15,7 @@ export function getBoardOptions(board: string): string[] {
         result.push("ATMega2560");
         result.push("ATMega1280");
     }
-    else if (board === MEGA) {
+    else if (board === PRO) {
         result.push("ATmega328P (5V, 16 MHz)");
         result.push("ATmega328P (3.3V, 8 MHz)");
     }

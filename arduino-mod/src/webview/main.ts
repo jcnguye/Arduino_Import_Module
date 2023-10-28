@@ -1,9 +1,11 @@
-import { provideVSCodeDesignSystem, vsCodeButton, Button, Dropdown, vsCodeDropdown, vsCodeOption } from "@vscode/webview-ui-toolkit";
+import { provideVSCodeDesignSystem, vsCodeButton, Button, Dropdown, vsCodeDropdown, Radio, vsCodeRadio, RadioGroup, vsCodeRadioGroup, vsCodeOption } from "@vscode/webview-ui-toolkit";
 
 provideVSCodeDesignSystem().register(
   vsCodeButton(),
   vsCodeDropdown(),
-  vsCodeOption()
+  vsCodeOption(),
+  vsCodeRadio(),
+  vsCodeRadioGroup()
 );
 
 // Get access to the VS Code API from within the webview context
@@ -21,13 +23,17 @@ function main() {
   sketchButton?.addEventListener("click", handleSketchClick);
 
   const boardDropdown = document.getElementById("board") as Dropdown;
-  boardDropdown?.addEventListener("change", handleBoardSelection);
+  boardDropdown?.addEventListener("change", handleBoardChange);
+
+  const boardOptGroup = document.getElementById("boardOpt") as RadioGroup;
+  boardOptGroup?.addEventListener("change", handleBoardOptChange);
 
   const importButton = document.getElementById("import") as Button;
   importButton?.addEventListener("click", handleImportClick);
 
   const directoryButton = document.getElementById("destDir") as Button;
   directoryButton?.addEventListener("click", handleDirectoryClick);
+
 }
 
 function handleSketchClick(){
@@ -44,17 +50,25 @@ function handleDirectoryClick(){
 
 function handleImportClick(){
   vscodeApi.postMessage({
-    command: "info", //TODO - change this
-    text: "", //TODO 
+    command: "import", 
   });
 }
 
-function handleBoardSelection(){
+function handleBoardChange(){
   const boardDropdown = document.getElementById("board") as Dropdown;
   boardDropdown.value;
   vscodeApi.postMessage({
     command: "board",
     text: boardDropdown.value, 
+  });
+}
+
+function handleBoardOptChange(){
+  const boardOptGroup = document.getElementById("boardOpt") as RadioGroup;
+  boardOptGroup.value;
+  vscodeApi.postMessage({
+    command: "boardOpt",
+    text: boardOptGroup.value, 
   });
 }
 
