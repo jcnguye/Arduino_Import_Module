@@ -134,7 +134,7 @@ function getAllLibraries(filepath: string): Promise<string[]> {
  * @param filepath to boards.txt
  * @returns hashmap of options and values
  */
-function parseBoards(filepath: string): Promise<Map<string, string>>{
+function parseBoards(filepath: string, boardName: string): Promise<Map<string, string>>{
     return new Promise((resolve, reject) => {
         const map = new Map();
         const fileStream = fs.createReadStream(filepath);
@@ -150,20 +150,25 @@ function parseBoards(filepath: string): Promise<Map<string, string>>{
             // console.log(line)
             const matches = line.match(regex);
 
-            if(matches && !line.includes("menu")) {
+            if(matches) {
                 var str = line;
                 var mapValues = str.split('=');
                 
-                const subKeys = /{*}/
-                const flags = /-/
-                const option = /^[^\s]/
-                if(!mapValues[1].includes(' ')) {
-                    map.set(mapValues[0],mapValues[1])
-                } else if(mapValues[1].includes('{') || mapValues[1].includes('-')) {
-                    map.set(mapValues[0],mapValues[1])
-                } else {
-                    console.log(mapValues[1]);
+                // const subKeys = /{*}/
+                // const flags = /-/
+                // const option = /^[^\s]/
+                if(mapValues[0].includes(boardName)) {
+                    map.set(mapValues[0],mapValues[1]);
                 }
+                
+
+                // if(!mapValues[1].includes(' ')) {
+                //     map.set(mapValues[0],mapValues[1])
+                // } else if(mapValues[1].includes('{') || mapValues[1].includes('-')) {
+                //     map.set(mapValues[0],mapValues[1])
+                // } else {
+                //     console.log(mapValues[1], "\t:", mapValues[1]);
+                // }
             }
             
         });
@@ -175,17 +180,59 @@ function parseBoards(filepath: string): Promise<Map<string, string>>{
     });
 }
 
-async function hashing() {
+async function hashing(version: string) {
     try {
-        const map = await parseBoards("C:\\Users\\jscot\\AppData\\Local\\Arduino15\\packages\\DxCore\\hardware\\megaavr\\1.5.11\\boards.txt");
-        console.log("testing");
+        const localAppData = process.env.LOCALAPPDATA;
+        const libraryFilePath = path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version,"boards.txt");
+        const map = await parseBoards(libraryFilePath, "avrdd");
+        // console.log("testing");
+
+        // const regex = /{([^{}]*)}/g;
+        const regex = /{([^}]+)}/g;
+        // const regex = /{([^{}}]*)}/g;
+        // const regex = /\{[+]\}/g;
+        let temp;
     
         map.forEach((value, key) => {
-          console.log(`Key: ${key}, Value: ${value}`);
+            let matches = value.match(regex);
+            if(matches) {
+                console.log(matches);
+            } else {
+                console.log(`Key: ${key}, Value: ${value}`);
+            }
+
+
+
+            let options = []
+            // match = []
+            // if(value.includes('{')) {
+            //     console.log(`Key: ${key}, Value: ${value}`);
+
+            // }
+            // if(value.match(regex)) {
+            //     // console.log(`Key: ${key}, Value: ${value}`);
+            //     var empty = value.match(regex);
+            //     console.log("tester: ", empty);
+            // } else {
+            //     console.log(`Key: ${key}, Value: ${value}`); 
+            // }
+
+            // while( (temp = regex.exec(value)) !== null) {
+            //     // console.log(temp);
+            //     options.push(temp[0]);
+            //     console.log("index: ", temp);
+            // }
+            
+            // var test = value.match(regex);
+            // console.log("test: ", test);
+
+            // console.log(options);
+
+            // console.log(regex.exec(value));
         });
-      } catch (error) {
+    } catch (error) {
         console.error("An error occurred:", error);
-      }
+    }
 }
 
  /* Copies a file into a given directory location.
@@ -276,7 +323,7 @@ export function activate(context: vscode.ExtensionContext) {
         // getCompileFlags();
         try {
             console.log("Starting parsing")
-            hashing();
+            hashing("1.5.11");
             
         } catch(error) {
             console.log(error);
