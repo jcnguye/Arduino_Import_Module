@@ -2,9 +2,9 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { UI } from "./UI";
 import * as readline from 'readline';
 import * as fs from 'fs';
+import { MainPanel } from "./panels/MainPanel";
 
 
 /**
@@ -196,20 +196,15 @@ async function copyLibraries(newDirectory: string, sketchFile: string) {
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-	const ui = new UI();
-    vscode.window.registerTreeDataProvider('arduinoImportTree', ui);
-    vscode.commands.registerCommand('arduinoImportTree.selectSketchFile', () => {
-        ui.selectSketchFile();
-    });
-    vscode.commands.registerCommand('arduinoImportTree.selectDestinationDirectory', () => {
-        ui.selectDestinationDirectory();
-    });
-    vscode.commands.registerCommand('arduinoImportTree.selectBoard', () => {
-        ui.selectBoard();
-    });
-    vscode.commands.registerCommand('arduinoImportTree.selectBoardOpt', () => {
-        ui.selectBoardOpt();
-    });
+     
+     const arduinoImportCommand = vscode.commands.registerCommand("arduino-mod.arduinoImport", () => {
+        MainPanel.render(context.extensionUri);
+      });
+    context.subscriptions.push(arduinoImportCommand);
+
+
+    
+    
     let flags = vscode.commands.registerCommand('arduino-mod.compilerFlags', () => {
         getCompileFlags();
     });
