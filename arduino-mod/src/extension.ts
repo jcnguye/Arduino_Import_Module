@@ -186,7 +186,9 @@ async function copyLibraries(newDirectory: string, sketchFile: string) {
         let file_type = directories[directories.length - 1].split('.');
         if(file_type.length >= 1 && libraries.includes(directories[7])) {
             if(file_type[1] === 'cpp' || (file_type[1] === 'c' || (file_type[1] === 'h' || (file_type[1] === 'hpp')))) {
-                copyFile(scanned,newDirectory);
+                // creates new folder for each library
+                fs.mkdirSync(newDirectory+"\\"+file_type[0]);
+                copyFile(scanned, newDirectory+"\\"+file_type[0]);
             }
         }
     }
