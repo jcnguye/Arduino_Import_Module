@@ -20,7 +20,7 @@ async function getCompileFlags() {
         // make sure file is valid
         var flagArr = await parsePlatform(filePath);
         var flagStr = "";
-        for (var i = 0; i < flagArr.length; i++) flagStr += flagArr[i] + ',\n';
+        for (var i = 0; i < flagArr.length; i++) {flagStr += flagArr[i] + ',\n';}
         vscode.window.showInformationMessage(flagStr, {modal: true});
     } else {
         vscode.window.showInformationMessage("Not a valid path or directory does not contain platform.txt file.");
@@ -102,7 +102,7 @@ function getAllLibraries(filepath: string): Promise<string[]> {
         });
 
         //regex for #include <X.h>
-        const regex = /#include <([^>]+\.h)>/g
+        const regex = /#include <([^>]+\.h)>/g;
 
         //iterating line-by-line through filestream
         rl.on('line', (line) => {
@@ -183,6 +183,7 @@ async function copyLibraries(newDirectory: string, sketchFile: string) {
     //copying files to new directory if their directory name matches .ino file
     for await(const scanned of iterable) {
         let directories = scanned.split('\\');
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         let file_type = directories[directories.length - 1].split('.');
         if(file_type.length >= 1 && libraries.includes(directories[7])) {
             if(file_type[1] === 'cpp' || (file_type[1] === 'c' || (file_type[1] === 'h' || (file_type[1] === 'hpp')))) {
