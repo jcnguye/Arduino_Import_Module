@@ -34,6 +34,46 @@ function main() {
   const directoryButton = document.getElementById("destDir") as Button;
   directoryButton?.addEventListener("click", handleDirectoryClick);
 
+  setVSCodeMessageListener();
+}
+
+function setVSCodeMessageListener() {
+  window.addEventListener("message", (event) => {
+    const command = event.data.command;
+
+    switch (command) {
+      case "sketchPath":
+        const sketchPath = document.getElementById("sketchPath");
+        if (sketchPath){
+          sketchPath.textContent = 'Selected sketch: ' + event.data.message;
+        } 
+        break;
+      case "dirPath":
+        const dirPath = document.getElementById("dirPath");
+        if (dirPath){
+          dirPath.textContent = 'Selected directory: ' + event.data.message;
+        } 
+        break;
+      case "showOptions":
+        const options = document.getElementById("options");
+        if (options){
+          options.classList.remove("hidden");
+        } 
+        break;
+      
+    }
+  });
+}
+
+function displayLoadingState() {
+  const loading = document.getElementById("loading");
+  const icon = document.getElementById("icon");
+  const summary = document.getElementById("summary");
+  if (loading && icon && summary) {
+    loading.classList.remove("hidden");
+    icon.classList.add("hidden");
+    summary.textContent = "Getting weather...";
+  }
 }
 
 function handleSketchClick(){
