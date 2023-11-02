@@ -109,8 +109,7 @@ export class MainPanel {
     const webviewUri = getUri(webview, this.extensionUri, ["out", "webview.js"]);
     const stylesUri = getUri(webview, this.extensionUri, ["out", "styles.css"]);
     const nonce = getNonce();
-    const fileContent = this.getFileContent();
-    const dirContent = this.getDirContent();
+    const boardContent = this.getBoardContent();
     const boardOptionsContent = this.getBoardOptionsContent();
     const importContent = this.getImportContent();
 
@@ -123,7 +122,6 @@ export class MainPanel {
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
 					<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
-          <link rel="stylesheet" href="${stylesUri}">
           <title>Arduino Import Module</title>
         </head>
         <body>
@@ -137,27 +135,51 @@ export class MainPanel {
             <vscode-button id="destDir">Select Destination Directory</vscode-button>
             <p id="dirPath"></p>
           </section>
-          <br> 
+          <p>Select Arduino Board</p> 
           <vscode-dropdown id="board">
-            <span class="hidden"></span>
-            <vscode-option value="">Select Arduino Board</vscode-option>
-            <vscode-option value="${boardsInfo.UNO}">${boardsInfo.UNO}</vscode-option>
-            <vscode-option value="${boardsInfo.NANO}">${boardsInfo.NANO}</vscode-option>
-            <vscode-option value="${boardsInfo.MEGA}">${boardsInfo.MEGA}</vscode-option>
-            <vscode-option value="${boardsInfo.PRO}">${boardsInfo.PRO}</vscode-option>
+            ${boardContent}
           </vscode-dropdown>
           <br>
           <br>
-          <section id="options" class="hidden">
-            <p>Board Options</p>
-            ${boardOptionsContent}
-          </section>
+          ${boardOptionsContent}
           <br>
           ${importContent}
 					<script type="module" nonce="${nonce}" src="${webviewUri}"></script>
         </body>
       </html>
     `;
+  }
+
+  private getBoardContent(){
+    let result = `<vscode-option value="${this.selectedBoard}">${this.selectedBoard}</vscode-option>`;
+    for (const board of boardsInfo.getAllBoards()) {
+      if (board !== this.selectedBoard){
+        result = result + `<vscode-option value="${board}">${board}</vscode-option>`;
+      }
+    }
+    return result;
+  }
+
+  private getBoardOptionsContent(){
+    let result = '';
+    if (this.selectedBoard.length > 0) {
+      this.boardOptions = boardsInfo.getBoardOptions(this.selectedBoard);
+      if (this.boardOptions.length > 0 ) {
+        result = `<vscode-radio-group id="boardOpt" orientation="vertical"><label slot="label">Select Board Option</label>`;
+        for (const opt of this.boardOptions) {
+          result = result + `<vscode-radio value="${opt}">${opt}</vscode-radio>`;
+        }
+        result = result + `</vscode-radio-group>`;
+      }
+    }
+    return result;
+  }
+
+  private getImportContent(){
+    if (this.readyForImport) {
+      return '<vscode-button id="import">Import</vscode-button>';
+    }
+    return '<vscode-button disabled id="import">Import</vscode-button>';  
   }
 
   /**
@@ -175,12 +197,8 @@ export class MainPanel {
         switch (command) {
           case "board":
             this.selectedBoard = text;
-            window.showInformationMessage("Board selected");
-            webview.postMessage({
-              command: "showOptions",
-            });
             this.allSelectionsMade();
-            //this.refresh();
+            this.refresh();
             return;
           case "boardOpt":
             this.selectedOption = text;
@@ -200,7 +218,6 @@ export class MainPanel {
                 message: this.destinationDirectory,
               });
               this.allSelectionsMade();
-              //this.refresh();
             }
             return;
           case "sketch":
@@ -221,7 +238,6 @@ export class MainPanel {
                 message: this.sketchFile,
               });
               this.allSelectionsMade();
-              //this.refresh();
             }
             return;
           case "import":
@@ -233,44 +249,6 @@ export class MainPanel {
     );
   }
 
-  private getBoardOptionsContent(){
-    let result = '';
-    if (this.selectedBoard.length > 0) {
-      this.boardOptions = boardsInfo.getBoardOptions(this.selectedBoard);
-      if (this.boardOptions.length > 0 ) {
-        result = `<vscode-radio-group id="boardOpt" orientation="vertical"><label slot="label">Select Board Option</label>`;
-        for (const opt of this.boardOptions) {
-          result = result + `<vscode-radio value="${opt}">${opt}</vscode-radio>`;
-        }
-        result = result + `</vscode-radio-group>`;
-      }
-    }
-    return result;
-  }
-
-  private getFileContent(){
-    let result = '';
-    if (this.sketchFile.length > 0) {
-      result = `<p>Selected sketch file: ${this.sketchFile} </p>`;
-    }
-    return result;
-  }
-
-  private getDirContent(){
-    let result = '';
-    if (this.destinationDirectory.length > 0) {
-      result = `<p>Selected directory: ${this.destinationDirectory} </p>`;
-    }
-    return result;
-  }
-
-  private getImportContent(){
-    if (this.readyForImport) {
-      return '<vscode-button id="import">Import</vscode-button>';
-    }
-    return '<vscode-button disabled id="import">Import</vscode-button>';  
-  }
-
   private allSelectionsMade() {
     if (this.sketchFile.length > 0 && this.destinationDirectory.length > 0 && this.selectedBoard.length > 0) {
       if (this.boardOptions.length > 0 && this.selectedOption.length > 0) {
@@ -280,5 +258,5 @@ export class MainPanel {
       }
       this.refresh();
     }
-}
+  }
 }

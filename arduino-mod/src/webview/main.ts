@@ -53,27 +53,9 @@ function setVSCodeMessageListener() {
         if (dirPath){
           dirPath.textContent = 'Selected directory: ' + event.data.message;
         } 
-        break;
-      case "showOptions":
-        const options = document.getElementById("options");
-        if (options){
-          options.classList.remove("hidden");
-        } 
-        break;
-      
+        break;      
     }
   });
-}
-
-function displayLoadingState() {
-  const loading = document.getElementById("loading");
-  const icon = document.getElementById("icon");
-  const summary = document.getElementById("summary");
-  if (loading && icon && summary) {
-    loading.classList.remove("hidden");
-    icon.classList.add("hidden");
-    summary.textContent = "Getting weather...";
-  }
 }
 
 function handleSketchClick(){
@@ -96,10 +78,10 @@ function handleImportClick(){
 
 function handleBoardChange(){
   const boardDropdown = document.getElementById("board") as Dropdown;
-  boardDropdown.value;
+  this.selectedBoard = boardDropdown.value;
   vscodeApi.postMessage({
     command: "board",
-    text: boardDropdown.value, 
+    text: this.selectedBoard, 
   });
 }
 
