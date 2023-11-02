@@ -2,6 +2,27 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 
+/*
+ * This function deletes all cmake-related files in the project directory.
+ */
+export function resetCmakeFiles(projDir: string) {
+	if (fs.existsSync(projDir + "/CMakeLists.txt")) {
+		fs.unlinkSync(projDir + "/CMakeLists.txt")
+	}
+	if (fs.existsSync(projDir + "/Makefile")) {
+		fs.unlinkSync(projDir + "/Makefile")
+	}
+	if (fs.existsSync(projDir + "/cmake_install.cmake")) {
+		fs.unlinkSync(projDir + "/cmake_install.cmake")
+	}
+	if (fs.existsSync(projDir + "/CMakeCache.txt")) {
+		fs.unlinkSync(projDir + "/CMakeCache.txt")
+	}
+	if (fs.existsSync(projDir + "/CMakeFiles")) {
+		fs.rmSync(projDir + "/CMakeFiles", { recursive: true, force: true })
+	}
+}
+
 
 /*
  * This function makes a basic cmake file skeleton.
