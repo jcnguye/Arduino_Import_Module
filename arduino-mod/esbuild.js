@@ -30,6 +30,7 @@ const webviewConfig = {
   format: "esm",
   entryPoints: ["./src/webview/main.ts"],
   outfile: "./out/webview.js",
+  plugins: [],
 };
 
 // This watch config adheres to the conventions of the esbuild-problem-matchers
