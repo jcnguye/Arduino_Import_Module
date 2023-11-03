@@ -165,7 +165,7 @@ export function activate(context: vscode.ExtensionContext) {
         // getCompileFlags();
         try {
             console.log("Starting parsing")
-            parser.hashing("1.5.10");
+            parser.hashing("1.5.11");
             
         } catch(error) {
             console.log(error);

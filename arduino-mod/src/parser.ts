@@ -125,14 +125,16 @@ export async function hashing(version: string) {
 
         let variables: string[] = [];   //{variable}, without {}
         let standAloneFlags = [];       //-flag
-        let flagAndVariables = [];      //mmcu={variable}, with {}
+        let flagAndVariables: string[] = [];      //mmcu={variable}, with {}
+        const complexVariables = new Map<string, string>();
 
         //iterating through paltform.txt for variables
         for(let i = 0; i < optionArray.length; i++) {
             let str = optionArray[i];
             //checking for complex variables
-            if(str.includes("=") && str.includes("{") {
+            if(str.includes("=") && str.includes("{")) {
                 flagAndVariables.push(optionArray[i]);
+                // complexVariables.set()
             }
             //filtering for relevant simple variables
             if(str.includes("{") && !str.includes("source_file") && !str.includes("includes") && 
@@ -142,8 +144,8 @@ export async function hashing(version: string) {
         }
 
         //DEBUG
-        console.log(variables);
-        console.log(flagAndVariables);
+        // console.log(variables);
+        // console.log(flagAndVariables);
         // console.log(options);
 
         //reiterating through platform.txt for variables contained both in recipe and platform.txt
@@ -168,6 +170,8 @@ export async function hashing(version: string) {
                         const match = opt.match(/{(.*?)}/);
                         flagAndVariables.push(opt);
                         variables.push(match[1]);
+                        if(match[1] != null)
+                            complexVariables.set(match[1],opt));
                     } else if(opt != "") {
                         //simple variables
                         variables.push(opt.substring(1,opt.length-1));
@@ -181,6 +185,12 @@ export async function hashing(version: string) {
         console.log(variables);
         console.log(standAloneFlags);
         console.log(flagAndVariables)
+
+        let indexRemove: string[] = [];
+        let additionalVariables: string[] = [];
+        let fPlusVariablesToRemove: string[] = [];
+        
+
     
         //iterating through boards.txt for variable values and new variables within platform.txt variables
         map.forEach((value, key) => {
@@ -193,16 +203,58 @@ export async function hashing(version: string) {
                 } else if(key.includes("wiremode")) {
 
                 } else if(key.includes("millistimer")) {
+                    if(key.includes("tcb2")) {
+                        for(let x =0; x < flagAndVariables.length; x++) {
+                            if(flagAndVariables[x].includes(value)) {
+                                // console.log("terstingasfgsd");
+                                // const match = flagAndVariables[i].match(/{(.*?)}/);
 
+                                
+
+                                // additionalVariables.push(match[1]);
+                                // fPlusVariablesToRemove.push(flagAndVariables[i]);
+
+                                // console.log("flag: " + flag);
+                                console.log(flagAndVariables[x] + " " + value);
+                            }
+                        }
+                    }
                 } else if(key.includes("clocksource")) {
+                    
 
                 } else if(key.includes(variables[i]) && !key.includes("oldversion")) {
-                    // console.log(key + ":   " + value);
-                    if(!value.includes(" ")) {
-                        if()
-                         
-                    } else if(value.includes("{")) {
+                    if(value.includes("-") && !value.includes("{")) {
+                        indexRemove.push(key);
+                        // variables.splice(i,1);
+                        standAloneFlags.push(value);
+                        
+                    } else if(value.includes("{") && value.includes(" ")) {
+                        let vars = value.split(" ");
+                        for(let x = 0; x < vars.length; x++) {
 
+                            console.log(vars[x]);
+                            additionalVariables.push(vars[x].substring(1,vars.length-1))
+                            // variables.push(vars[x].substring(1,vars.length-1));
+                        }
+                    } else if(!value.includes(" ") && !value.includes("{") && value !== "") {
+                        console.log("potential match: " + value);
+
+                        for(let x =0; x < flagAndVariables.length; x++) {
+                            if(flagAndVariables[i].includes(value)) {
+                                console.log("terstingasfgsd");
+                                const match = flagAndVariables[i].match(/{(.*?)}/);
+
+                                
+
+                                additionalVariables.push(match[1]);
+                                fPlusVariablesToRemove.push(flagAndVariables[i]);
+
+                                console.log("flag: " + flag);
+                            }
+                        }
+                        // for(let x = 0; x < flagAndVariables.length; x++) {
+                        //     if(flagAndVariables
+                        // }
                     }
                 }
                 
@@ -212,11 +264,60 @@ export async function hashing(version: string) {
             //TODO: replace variables names in complex variables with their values and add to flag array
         });
 
+        for(let i = 0; i < indexRemove.length; i++) {
+            let index = variables.indexOf(indexRemove[i]);
+            if(index != -1) {
+                variables.splice(index,1);
+            } else {
+                console.log("error");
+            }
+        }
+
+        for(let i =0; i < additionalVariables.length; i++) {
+            variables.push(additionalVariables[i]);
+        }
+
+        for(let i = 0; i < fPlusVariablesToRemove.length; i++) {
+            let index = flagAndVariables.indexOf(fPlusVariablesToRemove[i]);
+            
+            if(index != -1) {
+                variables.splice(index, 1);
+            } else {
+                console.log("error");
+            }
+        }
+
+        additionalVariables = [];
+        indexRemove = [];
+
+
+        console.log("\n\n");
+        console.log("variables: " + variables);
+        console.log(standAloneFlags);
+        console.log(flagAndVariables)
+
         //TODO: reiterate through map for newly found variable values
     } catch (error) {
         console.error("An error occurred:", error);
     }
 }
 
+
+function getFlag(flagAndVariable: string, value: string): string {
+    let leftBracket = flagAndVariable.indexOf("{");
+    let rightBracket = flagAndVariable.indexOf("}");
+
+    if(leftBracket == -1 || rightBracket == -1) {
+        return "";
+    }
+
+    let flag = flagAndVariable.substring(0,leftBracket - 1) + value;
+
+    if(rightBracket != (flagAndVariable.length - 1)) {
+        flag += flagAndVariable.substring(leftBracket+1,flagAndVariable.length-1);
+    }
+
+    return flag;
+}
 
 
