@@ -4,61 +4,10 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as readline from 'readline';
 import * as fs from 'fs';
+import * as parser from './parser'
 import { MainPanel } from "./panels/MainPanel";
-
-
-/**
- * Gets the compiler flags out of the platform.txt file
- */
-async function getCompileFlags() {
-    // get platform.txt file to parse
-    const filePath = await vscode.window.showInputBox({
-        placeHolder: "Compiler Flags",
-        prompt: "Enter path to 'platform.txt' file",
-    });
-    if (filePath){
-        // make sure file is valid
-        var flagArr = await parsePlatform(filePath);
-        var flagStr = "";
-        for (var i = 0; i < flagArr.length; i++) {flagStr += flagArr[i] + ',\n';}
-        vscode.window.showInformationMessage(flagStr, {modal: true});
-    } else {
-        vscode.window.showInformationMessage("Not a valid path or directory does not contain platform.txt file.");
-    }
-}
-/**
- * Parses the platform.txt file and pulls out all the compiler flags
- * @param filePath - directory to platform.txt file
- * @returns Array of all the compiler flags
- */
-async function parsePlatform(filePath:string) {
-    var flagArr: string[] = [];
-    try {
-        ////// separate text file into readable lines
-        const lines: string[] = [];
-        const fileStream = fs.createReadStream(path.join(filePath, 'platform.txt'));
-        const rl = readline.createInterface({
-            input: fileStream,
-            crlfDelay: Infinity,
-        });
-        for await (const line of rl) {
-            lines.push(line);
-        }
-        ////// get all the compiler flag lines
-        for (var i = 0; i < lines.length; i++) {
-            var line = lines[i].substring(0, lines[i].indexOf('='));
-            if (line.includes("compiler.") && line.includes(".flags")) {
-                flagArr.push(lines[i]);
-            }
-        }
-    } catch (error) {
-        flagArr = ["Error occurred while reading the file."];
-    }
-    return flagArr;
-}
-
-
 import * as importproj from './importproj';
+
 /**
      * Returns an iterable object containing the absolute name of all files in a given directory,
 	 * including files in subfolders. 
@@ -195,6 +144,12 @@ async function copyLibraries(newDirectory: string, sketchFile: string) {
     }
 }
 
+async function printFlags() {
+    let str = await parser.getAllFlags("1.5.11","avrdd");
+
+    console.log(str);
+}
+
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -215,7 +170,7 @@ export function activate(context: vscode.ExtensionContext) {
     
     
     let flags = vscode.commands.registerCommand('arduino-mod.compilerFlags', () => {
-        getCompileFlags();
+        printFlags();
     });
     context.subscriptions.push(flags);
 }
