@@ -79,7 +79,7 @@ function parseBoards(filepath: string, boardName: string): Promise<Map<string, s
 /**
  * Gets the compiler flags out of the platform.txt file
  */
-async function getCompileFlags() {
+export async function getCompileFlags() {
     // get platform.txt file to parse
     const filePath = await vscode.window.showInputBox({
         placeHolder: "Compiler Flags",
@@ -96,13 +96,25 @@ async function getCompileFlags() {
     }
 }
 
-export async function hashing(version: string) {
+
+/**
+ * Gets all flags for specified platform by matching key-value pairs in board.txt and 
+ * platform.txt
+ * 
+ * @param version specific version of dxcore installed, e.g. "1.5.11"
+ * @param platform specific platform, e.g. "avrdd"
+ * @returns string of all flags, e.g. "-Wall -fpermissive"
+ */
+export async function getAllFlags(version: string, platform: string): Promise<string> {
     try {
-        //calling boards.txt and platform.txt parser functions
+        const hardCodedFlags = "-DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L";
+
+        //getting map for boards.txt
         const localAppData = process.env.LOCALAPPDATA;
         const libraryFilePath = path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version,"boards.txt");
-        const map = await parseBoards(libraryFilePath, "avrdd");
+        const map = await parseBoards(libraryFilePath, platform);
 
+        //getting array of platform.txt
         let platform_folder = path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version);
         let array = await parsePlatform(platform_folder);
 
@@ -117,38 +129,31 @@ export async function hashing(version: string) {
                 // console.log(array[i]);
                 break;
             }
-        } 
+        }
         
         //getting all flags and variables from line
         let optionString = array[cppPatternIndex].substring(recipe.length+1,array[cppPatternIndex].length);
         let optionArray = optionString.split(" ");
 
         let variables: string[] = [];   //{variable}, without {}
-        let standAloneFlags = [];       //-flag
+        let standAloneFlags = [];       //eg. -flag
         let flagAndVariables: string[] = [];      //mmcu={variable}, with {}
-        const complexVariables = new Map<string, string>();
 
-        //iterating through paltform.txt for variables
+        //iterating through paltform.txt array for variables
         for(let i = 0; i < optionArray.length; i++) {
             let str = optionArray[i];
-            //checking for complex variables
+            
             if(str.includes("=") && str.includes("{")) {
                 flagAndVariables.push(optionArray[i]);
-                // complexVariables.set()
             }
             //filtering for relevant simple variables
             if(str.includes("{") && !str.includes("source_file") && !str.includes("includes") && 
-                !str.includes("source_files") && !str.includes("object_file") && !str.includes("core.path")) {
+                !str.includes("source_files") && !str.includes("object_file") && !str.includes("core.path") && !str.includes("compiler.path")) {
                 variables.push(optionArray[i].substring(1,optionArray[i].length-1))
             }
         }
 
-        //DEBUG
-        // console.log(variables);
-        // console.log(flagAndVariables);
-        // console.log(options);
-
-        //reiterating through platform.txt for variables contained both in recipe and platform.txt
+        //reiterating through platform.txt for variables defined in platform.txt
         for(let i = 0; i < array.length; i++) {
             let equalIndex = array[i].indexOf("=");
 
@@ -160,18 +165,23 @@ export async function hashing(version: string) {
                 
                 let parsedOptions = options.split(" ");
                 
-                for(let i = 0; i < parsedOptions.length; i++) {
-                    let opt = parsedOptions[i];
-                    //flags
+                for(let x = 0; x < parsedOptions.length; x++) {
+                    let opt = parsedOptions[x];
+                    
+                    //standalone flag
                     if(!opt.includes("{") && opt.includes("-")) {
                         standAloneFlags.push(opt);
+                    //new flagAndVariable
                     } else if(opt.indexOf("{") != 0 && opt != "") {
-                        //copmlex variables
-                        const match = opt.match(/{(.*?)}/);
-                        flagAndVariables.push(opt);
-                        variables.push(match[1]);
-                        if(match[1] != null)
-                            complexVariables.set(match[1],opt));
+                        if(!opt.includes("runtime.ide") && !opt.includes("versionnum") && !opt.includes("build.arch")) {
+                            const match = opt.match(/{(.*?)}/);
+                            flagAndVariables.push(opt);
+                        
+                            if(match[1] != null) {
+                                variables.push(match[1]);
+                            }   
+                        }
+                    //new variable
                     } else if(opt != "") {
                         //simple variables
                         variables.push(opt.substring(1,opt.length-1));
@@ -180,88 +190,117 @@ export async function hashing(version: string) {
             }
         }
 
-        //DEBUG
-        console.log("\n\n");
-        console.log(variables);
-        console.log(standAloneFlags);
-        console.log(flagAndVariables)
-
         let indexRemove: string[] = [];
         let additionalVariables: string[] = [];
         let fPlusVariablesToRemove: string[] = [];
         
 
     
-        //iterating through boards.txt for variable values and new variables within platform.txt variables
+        //iterating through boards.txt for key-variable pairs
         map.forEach((value, key) => {
-            let splitIndex = -1;
-            for(let i = 0; i < variables.length; i++) {
-                if(key.includes("build.flmapopts")) {
+            //ignoring irrelevant entries
+            if(key.includes("avrddopti") || !key.includes(platform)) {
 
-                } else if(key.includes("build.attachmode")) {
+            //selecting default value for millistimer
+            } else if(key.includes("millistimer")) {
+                if(key.includes("tcb2")) {
+                    for(let x =0; x < flagAndVariables.length; x++) {
+                        if(flagAndVariables[x].includes("millistimer")) {
 
-                } else if(key.includes("wiremode")) {
-
-                } else if(key.includes("millistimer")) {
-                    if(key.includes("tcb2")) {
-                        for(let x =0; x < flagAndVariables.length; x++) {
-                            if(flagAndVariables[x].includes(value)) {
-                                // console.log("terstingasfgsd");
-                                // const match = flagAndVariables[i].match(/{(.*?)}/);
-
-                                
-
-                                // additionalVariables.push(match[1]);
-                                // fPlusVariablesToRemove.push(flagAndVariables[i]);
-
-                                // console.log("flag: " + flag);
-                                console.log(flagAndVariables[x] + " " + value);
-                            }
+                            const match = flagAndVariables[x].match(/{(.*?)}/);
+    
+                            indexRemove.push(match[1]);
+                            fPlusVariablesToRemove.push(flagAndVariables[x]);
+                            standAloneFlags.push(getFlag(flagAndVariables[x],value));
                         }
                     }
-                } else if(key.includes("clocksource")) {
-                    
+                } 
+            }
+            //selecting default value for flmapopts
+            else if(key.includes("build.flmapopts")) {
+                if(key.includes("lockdefault")) {
+                    indexRemove.push("build.flmapopts");
+                    standAloneFlags.push(value);               
+                }    
+            //selecting default value ofr attachmode     
+            } else if(key.includes("build.attachmode")) {
+                if(key.includes("allenabled")) {
+                    indexRemove.push("build.attachmode");
+                    standAloneFlags.push(value);
+                }    
+            //selecting default value for wiremode
+            } else if(key.includes("build.wiremode")) {
+                if(key.includes("mors")) {
+                    for(let x =0; x < flagAndVariables.length; x++) {
+                        if(flagAndVariables[x].includes("wiremode")) {
 
-                } else if(key.includes(variables[i]) && !key.includes("oldversion")) {
-                    if(value.includes("-") && !value.includes("{")) {
-                        indexRemove.push(key);
-                        // variables.splice(i,1);
-                        standAloneFlags.push(value);
-                        
-                    } else if(value.includes("{") && value.includes(" ")) {
-                        let vars = value.split(" ");
-                        for(let x = 0; x < vars.length; x++) {
-
-                            console.log(vars[x]);
-                            additionalVariables.push(vars[x].substring(1,vars.length-1))
-                            // variables.push(vars[x].substring(1,vars.length-1));
+                            const match = flagAndVariables[x].match(/{(.*?)}/);
+    
+                            indexRemove.push(match[1]);
+                            fPlusVariablesToRemove.push(flagAndVariables[x]);
+                            standAloneFlags.push(getFlag(flagAndVariables[x],value));
                         }
-                    } else if(!value.includes(" ") && !value.includes("{") && value !== "") {
-                        console.log("potential match: " + value);
-
-                        for(let x =0; x < flagAndVariables.length; x++) {
-                            if(flagAndVariables[i].includes(value)) {
-                                console.log("terstingasfgsd");
-                                const match = flagAndVariables[i].match(/{(.*?)}/);
-
-                                
-
-                                additionalVariables.push(match[1]);
-                                fPlusVariablesToRemove.push(flagAndVariables[i]);
-
-                                console.log("flag: " + flag);
-                            }
-                        }
-                        // for(let x = 0; x < flagAndVariables.length; x++) {
-                        //     if(flagAndVariables
-                        // }
                     }
                 }
-                
-            }
+            //selecting default mode for clocksource
+            } else if(key.includes("clocksource")) {
+                if(key.includes("24internal") && key.includes("avrdd")) {
+                    for(let x =0; x < flagAndVariables.length; x++) {
+                        if(flagAndVariables[x].includes("clocksource")) {
 
-            //TODO: add variable values to flags[] and remove simple variables from array
-            //TODO: replace variables names in complex variables with their values and add to flag array
+                            const match = flagAndVariables[x].match(/{(.*?)}/);
+    
+                            indexRemove.push(match[1]);
+                            fPlusVariablesToRemove.push(flagAndVariables[x]);
+                            standAloneFlags.push(getFlag(flagAndVariables[x],value));
+                        }
+                    }
+                } 
+            //selecting default value for build.mcu
+            } else if(key.includes("build.mcu")) {
+                if(key.includes("avr64dd32")) {
+                    for(let x =0; x < flagAndVariables.length; x++) {
+                        if(flagAndVariables[x].includes("mmcu")) {
+                            const match = flagAndVariables[x].match(/{(.*?)}/);
+
+
+                            indexRemove.push(match[1]);
+                            fPlusVariablesToRemove.push(flagAndVariables[x]);
+                            standAloneFlags.push(getFlag(flagAndVariables[x],value));
+                        }
+                    }
+                }
+            } else {
+                //searching for keys that satisfy flagAndVariables
+                for(let i = 0; i < flagAndVariables.length; i++) {
+                    const match = flagAndVariables[i].match(/{(.*?)}/);
+
+                    if(key.includes(match[1])) {
+                        let str = getFlag(flagAndVariables[i],value);
+
+                        if(!str.includes("{") && !str.includes(" ") && !str.includes("}")) {
+                            standAloneFlags.push(str);
+                        }
+                    }
+                }
+
+                //searching through for matches to variables
+                for(let i = 0; i < variables.length; i++) {
+                    if(key.includes(variables[i]) && !key.includes("oldversion")) {
+                        //standalone flag(s)
+                        if(value.includes("-") && !value.includes("{")) {
+                            indexRemove.push(key);
+                            standAloneFlags.push(value);
+                        //mutliple new variables
+                        } else if(value.includes("{") && value.includes(" ")) {
+                            let vars = value.split(" ");
+                            for(let x = 0; x < vars.length; x++) {
+                                additionalVariables.push(vars[x].substring(1,vars[x].length-1))
+                            }
+                        } 
+                    }
+                }
+            }
         });
 
         for(let i = 0; i < indexRemove.length; i++) {
@@ -269,7 +308,7 @@ export async function hashing(version: string) {
             if(index != -1) {
                 variables.splice(index,1);
             } else {
-                console.log("error");
+                // console.log("Could not remove " + indexRemove[i]);
             }
         }
 
@@ -281,37 +320,56 @@ export async function hashing(version: string) {
             let index = flagAndVariables.indexOf(fPlusVariablesToRemove[i]);
             
             if(index != -1) {
-                variables.splice(index, 1);
+                flagAndVariables.splice(index, 1);
             } else {
-                console.log("error");
+                // console.log("Couldn't remove " + flagAndVariables[i]);
             }
         }
 
         additionalVariables = [];
         indexRemove = [];
 
+        //DEBUG
+        // console.log("\n\n");
+        // console.log(variables);
+        // console.log(standAloneFlags);
+        // console.log(flagAndVariables)
 
-        console.log("\n\n");
-        console.log("variables: " + variables);
-        console.log(standAloneFlags);
-        console.log(flagAndVariables)
+        let str = "";
 
-        //TODO: reiterate through map for newly found variable values
+        for(let i = 0; i < standAloneFlags.length; i++) {
+            str += standAloneFlags[i] + " ";
+        }
+
+        str += hardCodedFlags;
+
+        console.log(str);
+
+        return str;
+
     } catch (error) {
         console.error("An error occurred:", error);
     }
+
+    return "";
 }
 
-
+/**
+ * Helper function that replaces variable within {} with key-pair value.
+ * 
+ * @param flagAndVariable e.g. "mmcu={build.version}"
+ * @param value value {} should be replaced with e.g. avr64
+ * @returns e.g. mmcu=avr64
+ */
 function getFlag(flagAndVariable: string, value: string): string {
     let leftBracket = flagAndVariable.indexOf("{");
     let rightBracket = flagAndVariable.indexOf("}");
 
     if(leftBracket == -1 || rightBracket == -1) {
-        return "";
+        return "err";
     }
 
-    let flag = flagAndVariable.substring(0,leftBracket - 1) + value;
+    let flag = flagAndVariable.substring(0,leftBracket) + value;
 
     if(rightBracket != (flagAndVariable.length - 1)) {
         flag += flagAndVariable.substring(leftBracket+1,flagAndVariable.length-1);

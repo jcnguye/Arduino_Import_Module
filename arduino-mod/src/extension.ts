@@ -162,14 +162,7 @@ export function activate(context: vscode.ExtensionContext) {
     
     
     let flags = vscode.commands.registerCommand('arduino-mod.compilerFlags', () => {
-        // getCompileFlags();
-        try {
-            console.log("Starting parsing")
-            parser.hashing("1.5.11");
-            
-        } catch(error) {
-            console.log(error);
-        }
+        parser.getCompileFlags();
     });
     context.subscriptions.push(flags);
 }
