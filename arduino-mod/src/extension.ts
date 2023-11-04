@@ -2,9 +2,9 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { UI } from "./UI";
 import * as readline from 'readline';
 import * as fs from 'fs';
+import { MainPanel } from "./panels/MainPanel";
 
 
 /**
@@ -20,7 +20,7 @@ async function getCompileFlags() {
         // make sure file is valid
         var flagArr = await parsePlatform(filePath);
         var flagStr = "";
-        for (var i = 0; i < flagArr.length; i++) flagStr += flagArr[i] + ',\n';
+        for (var i = 0; i < flagArr.length; i++) {flagStr += flagArr[i] + ',\n';}
         vscode.window.showInformationMessage(flagStr, {modal: true});
     } else {
         vscode.window.showInformationMessage("Not a valid path or directory does not contain platform.txt file.");
@@ -102,7 +102,7 @@ function getAllLibraries(filepath: string): Promise<string[]> {
         });
 
         //regex for #include <X.h>
-        const regex = /#include <([^>]+\.h)>/g
+        const regex = /#include <([^>]+\.h)>/g;
 
         //iterating line-by-line through filestream
         rl.on('line', (line) => {
@@ -183,10 +183,13 @@ async function copyLibraries(newDirectory: string, sketchFile: string) {
     //copying files to new directory if their directory name matches .ino file
     for await(const scanned of iterable) {
         let directories = scanned.split('\\');
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         let file_type = directories[directories.length - 1].split('.');
         if(file_type.length >= 1 && libraries.includes(directories[7])) {
             if(file_type[1] === 'cpp' || (file_type[1] === 'c' || (file_type[1] === 'h' || (file_type[1] === 'hpp')))) {
-                copyFile(scanned,newDirectory);
+                // creates new folder for each library
+                fs.mkdirSync(newDirectory+"\\"+file_type[0]);
+                copyFile(scanned, newDirectory+"\\"+file_type[0]);
             }
         }
     }
@@ -196,20 +199,15 @@ async function copyLibraries(newDirectory: string, sketchFile: string) {
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-	const ui = new UI();
-    vscode.window.registerTreeDataProvider('arduinoImportTree', ui);
-    vscode.commands.registerCommand('arduinoImportTree.selectSketchFile', () => {
-        ui.selectSketchFile();
-    });
-    vscode.commands.registerCommand('arduinoImportTree.selectDestinationDirectory', () => {
-        ui.selectDestinationDirectory();
-    });
-    vscode.commands.registerCommand('arduinoImportTree.selectBoard', () => {
-        ui.selectBoard();
-    });
-    vscode.commands.registerCommand('arduinoImportTree.selectBoardOpt', () => {
-        ui.selectBoardOpt();
-    });
+     
+     const arduinoImportCommand = vscode.commands.registerCommand("arduino-mod.arduinoImport", () => {
+        MainPanel.render(context.extensionUri);
+      });
+    context.subscriptions.push(arduinoImportCommand);
+
+
+    
+    
     let flags = vscode.commands.registerCommand('arduino-mod.compilerFlags', () => {
         getCompileFlags();
     });
