@@ -343,8 +343,6 @@ export async function getAllFlags(version: string, platform: string): Promise<st
 
         str += hardCodedFlags;
 
-        console.log(str);
-
         return str;
 
     } catch (error) {
