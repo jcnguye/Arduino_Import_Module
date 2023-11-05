@@ -105,10 +105,8 @@ export async function getCompileFlags() {
  * @param platform specific platform, e.g. "avrdd"
  * @returns string of all flags, e.g. "-Wall -fpermissive"
  */
-export async function getAllFlags(version: string, platform: string): Promise<string> {
+export async function getAllFlags(version: string, platform: string, hardCodedFlags: string): Promise<string> {
     try {
-        const hardCodedFlags = "-DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L";
-
         //getting map for boards.txt
         const localAppData = process.env.LOCALAPPDATA;
         const libraryFilePath = path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version,"boards.txt");

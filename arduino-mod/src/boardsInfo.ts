@@ -11,20 +11,55 @@ export function getAllBoards(): string[] {
     return result;
 }
 
-export function getBoardOptions(board: string): string[] {
-    const result: string[] = [];
-    if (board === NANO) {
-        result.push("ATmega328P or ATmega328P (Old Bootloader)");
-    }
-    else if (board === MEGA) {
-        result.push("ATMega2560");
-        result.push("ATMega1280");
-    }
-    else if (board === PRO) {
-        result.push("ATmega328P (5V, 16 MHz)");
-        result.push("ATmega328P (3.3V, 8 MHz)");
-    }
-    return result;
-
+export function getBoard(boardName: string): Board {
+    return new Board(boardName);
 }
 
+/**
+ * Board class that stores hardcoded data for each board
+ */
+export class Board {
+    boardName: string;
+    private hardCodedFlags: string = "";
+    private chipName: string = "";
+    allFlags: string = "";
+    options: string[] = [];
+
+
+    constructor(boardName: string) {
+        this.boardName = boardName;
+
+        if(boardName === NANO) {
+            this.hardCodedFlags = "-DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L";
+            this.chipName = "avrdd";
+            this.options.push("ATmega328P or ATmega328P (Old Bootloader)");
+        } else if (boardName === MEGA) {
+            this.options.push("ATMega2560");
+            this.options.push("ATMega1280");
+        } else if (boardName === PRO) {
+            this.options.push("ATmega328P (5V, 16 MHz)");
+            this.options.push("ATmega328P (3.3V, 8 MHz)");
+        }
+    }
+
+    getBoardName() {
+        return this.boardName;
+    }
+
+    getHardcodedFlags() {
+        return this.hardCodedFlags;
+    }
+
+    getChipName() {
+        return this.chipName;
+    }
+
+    setAllFlags(allFlags: string) {
+        this.allFlags = allFlags;
+    }
+
+    getAllFlags() {
+        return this.allFlags;
+    }
+
+}
