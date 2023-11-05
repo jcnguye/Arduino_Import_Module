@@ -6,8 +6,8 @@ import * as readline from 'readline';
 import * as fs from 'fs';
 import * as parser from './parser'
 import { MainPanel } from "./panels/MainPanel";
+import { Board } from './boardsInfo';
 import * as importproj from './importproj';
-
 /**
      * Returns an iterable object containing the absolute name of all files in a given directory,
 	 * including files in subfolders. 
@@ -144,8 +144,8 @@ async function copyLibraries(newDirectory: string, sketchFile: string) {
     }
 }
 
-async function printFlags() {
-    let str = await parser.getAllFlags("1.5.11","avrdd");
+async function printFlags(version: string, chipName: string, hardCodedFlags: string) {
+    let str = await parser.getAllFlags(version,chipName,hardCodedFlags);
 
     console.log(str);
 }
@@ -175,7 +175,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(flags);
 }
 
-export function startImport(sketchPath: string, destDir: string, board: string, boardOption: string) {
+export function startImport(sketchPath: string, destDir: string, board: Board) {
     vscode.window.showInformationMessage("Starting import.");
     //rename .ino as .cpp and copy it to the destination directory
     const file = path.basename(sketchPath);
@@ -191,6 +191,9 @@ export function startImport(sketchPath: string, destDir: string, board: string, 
     console.log("Starting to copy libraries...");
     copyLibraries(libPath, sketchPath);
     vscode.window.showInformationMessage("Import complete!");
+
+    //DEBUG
+    // printFlags("1.5.11",board.getChipName(),board.getHardcodedFlags());
 }
 
 // This method is called when your extension is deactivated
