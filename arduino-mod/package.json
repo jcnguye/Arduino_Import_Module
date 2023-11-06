@@ -20,6 +20,10 @@
       {
         "command": "arduino-mod.arduinoImport",
         "title": "Arduino Import Module"
+      },
+      {
+        "command": "arduino-mod.CMakeSetUp",
+        "title": "Set up Cmake file structure"
       }
     ]
   },
