@@ -2,6 +2,22 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 
+
+class Cmake {
+	private projDir: string;
+	private projName: string;
+	private srcName: string;
+	private flags: string;
+	
+	
+	constructor(){
+		this.projDir = "";
+		this.projName = "";
+		this.srcName = "";
+		this.flags = "";
+	}
+}
+
 /*
  * This function deletes all cmake-related files in the project directory.
  */
