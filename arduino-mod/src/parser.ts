@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as readline from 'readline';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Board } from './boardsInfo';
 
 /**
  * Parses the platform.txt file and pulls out all the compiler flags
@@ -107,10 +108,15 @@ export async function getCompileFlags() {
  * @param platform specific platform, e.g. "avrdd"
  * @returns string of all flags, e.g. "-Wall -fpermissive"
  */
-export async function getAllFlags(version: string, platform: string, hardCodedFlags: string): Promise<string> {
+export async function getAllFlags(board: Board): Promise<string> {
     try {
+        //initalize some variables
+        const platform = board.getChipName();
+        const hardCodedFlags = board.getHardcodedFlags();
+
         //getting map for boards.txt
         const localAppData = process.env.LOCALAPPDATA;
+        const version = getDXCoreVersion();
         const libraryFilePath = path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version,"boards.txt");
         const map = await parseBoards(libraryFilePath, platform);
 
@@ -374,6 +380,25 @@ function getFlag(flagAndVariable: string, value: string): string {
     }
 
     return flag;
+}
+
+/**
+ * Helper function that returns the version of DxCore installed. May not be fail-proof: uses
+ * the name of the folder in the DxCore/hardware/megaavr to determine the version.
+ * 
+ * @returns string with version of DxCore (ex. "1.5.11")
+ */
+export function getDXCoreVersion(): string {
+    let result = '';
+    const localAppData = process.env.LOCALAPPDATA;
+    if (localAppData) {
+        const versionFilePath = path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr");
+        const items = fs.readdirSync(versionFilePath);
+        const firstItem = items[0];
+        //const stats = fs.statSync(`${versionFilePath}/${firstItem}`);
+        result = firstItem;
+    }
+    return result;
 }
 
 

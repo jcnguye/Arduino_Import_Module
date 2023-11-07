@@ -146,8 +146,8 @@ async function copyLibraries(newDirectory: string, sketchFile: string) {
     }
 }
 
-async function printFlags(version: string, chipName: string, hardCodedFlags: string) {
-    let str = await parser.getAllFlags(version,chipName,hardCodedFlags);
+async function printFlags(board : Board) {
+    let str = await parser.getAllFlags(board);
 
     console.log(str);
 }
@@ -188,9 +188,12 @@ export function startImport(sketchPath: string, destDir: string, board: Board) {
     copyLibraries(libPath, sketchPath);
     vscode.window.showInformationMessage("Import complete!");
 
-    //DEBUG
-    printFlags("1.5.8",board.getChipName(),board.getHardcodedFlags());
+    //TODO - change usage so flags are added to CMAKE
+    printFlags(board);
+
 }
+
+
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
