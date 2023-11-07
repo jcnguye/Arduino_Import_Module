@@ -51,3 +51,9 @@ export function addLinkerFlags(projDir: string, projName: string, flags: string)
 	let cmakeSrc = "\ntarget_link_libraries(" + projName + " " + flags +")"
 	fs.appendFileSync(projDir + "/CMakeLists.txt", cmakeSrc);
 }
+
+// if this is the same command for all boards, then this should be un-exported and called internally after addLinkerFlags
+export function addHexBuilder(projDir: string, projName: string) {
+	let hex = "add_custom_command(TARGET " + projName + " POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O ihex -R .eeprom " + projName + " " + projName + ".hex)"
+	fs.appendFileSync(projDir + "/CMakeLists.txt", hex);
+}
