@@ -7,6 +7,7 @@ import * as fs from 'fs';
 import * as parser from './parser'
 import { MainPanel } from "./panels/MainPanel";
 import { Board } from './boardsInfo';
+import * as cmaker from './cmaker';
 import * as importproj from './importproj';
 /**
      * Returns an iterable object containing the absolute name of all files in a given directory,
