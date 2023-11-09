@@ -62,3 +62,26 @@ function shellCopy(from: string, to: string) {
 	})
 	
 }
+
+export function copyDirectory(src: string, dest: string): void {
+	// Create destination directory if it doesn't exist
+	if (!fs.existsSync(dest)) {
+	  fs.mkdirSync(dest);
+	}
+  
+	// Read the source directory
+	const files = fs.readdirSync(src);
+  
+	// Copy each file to the destination directory
+	files.forEach(file => {
+	  const srcPath = path.join(src, file);
+	  const destPath = path.join(dest, file);
+	  if (fs.lstatSync(srcPath).isDirectory()) {
+		// Recursively copy subdirectories
+		copyDirectory(srcPath, destPath);
+	  } else {
+		// Copy files
+		fs.copyFileSync(srcPath, destPath);
+	  }
+	});
+}

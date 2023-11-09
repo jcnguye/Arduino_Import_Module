@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import * as parser from './parser';
+import * as path from 'path';
 
 
 export const UNO = "UNO"; //none 
@@ -24,6 +26,7 @@ export class Board {
     private chipName: string = "";
     allFlags: string = "";
     options: string[] = [];
+    private pathToCore: string = "";
 
 
     constructor(boardName: string) {
@@ -33,6 +36,12 @@ export class Board {
             this.hardCodedFlags = "-DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L";
             this.chipName = "avrdd";
             this.options.push("ATmega328P or ATmega328P (Old Bootloader)");
+            
+            const localAppData = process.env.LOCALAPPDATA;
+            const version = parser.getDXCoreVersion();
+                if (localAppData) {
+                this.pathToCore = path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version,"cores","dxcore");
+                }
         } else if (boardName === MEGA) {
             this.options.push("ATMega2560");
             this.options.push("ATMega1280");
@@ -60,6 +69,10 @@ export class Board {
 
     getAllFlags() {
         return this.allFlags;
+    }
+
+    getPathToCore() {
+        return this.pathToCore;
     }
 
 }
