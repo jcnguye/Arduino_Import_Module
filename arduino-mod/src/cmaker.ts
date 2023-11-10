@@ -57,3 +57,19 @@ export function addHexBuilder(projDir: string, projName: string) {
 	let hex = "add_custom_command(TARGET " + projName + " POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O ihex -R .eeprom " + projName + " " + projName + ".hex)"
 	fs.appendFileSync(projDir + "/CMakeLists.txt", hex);
 }
+
+
+/*
+
+Listing out the order cmake needs to run things in:
+
+ - (other stuff)
+ Archiver:
+ - Archive all libraries to the core.a file
+ Linker:
+ - create .elf file, linking to core.a (already happens during the linker command)
+ - create bin
+ - create eeprom
+ - lst
+ - map
+*/
