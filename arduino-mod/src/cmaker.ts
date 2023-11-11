@@ -29,32 +29,32 @@ export function resetCmakeFiles(projDir: string) {
  * 
  */
 export function cmakeSkeleton(projDir: string, projName: string) {
-	let cmakeHeader = "cmake_minimum_required(VERSION 3.0)"
-	cmakeHeader = cmakeHeader + '\nset(CMAKE_C_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-gcc")'
-	cmakeHeader = cmakeHeader + '\nset(CMAKE_CXX_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-g++")'
-	cmakeHeader = cmakeHeader + "\nproject(" + projName + ")"
+	let cmakeHeader = "cmake_minimum_required(VERSION 3.0)\n"
+	cmakeHeader = cmakeHeader + 'set(CMAKE_C_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-gcc")\n'
+	cmakeHeader = cmakeHeader + 'set(CMAKE_CXX_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-g++")\n'
+	cmakeHeader = cmakeHeader + "project(" + projName + ")\n"
 	fs.writeFileSync(projDir + "/CMakeLists.txt", cmakeHeader);
 	// use fs.appendFileSync(projDir + "/CMakeLists.txt", data); for future appends
 }
 
 export function addSourceFile(projDir: string, projName: string, srcName: string) {
-	let cmakeSrc = "\nadd_executable(" + projName + " " + srcName +")"
+	let cmakeSrc = "add_executable(" + projName + " " + srcName +")\n"
 	fs.appendFileSync(projDir + "/CMakeLists.txt", cmakeSrc);
 }
 
 export function addCompilerFlags(projDir: string, projName: string, flags: string) {
-	let cmakeSrc = "\ntarget_compile_options(" + projName + " PRIVATE " + flags +")"
+	let cmakeSrc = "target_compile_options(" + projName + " PRIVATE " + flags +")\n"
 	fs.appendFileSync(projDir + "/CMakeLists.txt", cmakeSrc);
 }
 
 export function addLinkerFlags(projDir: string, projName: string, flags: string) {
-	let cmakeSrc = "\ntarget_link_libraries(" + projName + " " + flags +")"
+	let cmakeSrc = "target_link_libraries(" + projName + " " + flags +")\n"
 	fs.appendFileSync(projDir + "/CMakeLists.txt", cmakeSrc);
 }
 
 // if this is the same command for all boards, then this should be un-exported and called internally after addLinkerFlags
 export function addHexBuilder(projDir: string, projName: string) {
-	let hex = "add_custom_command(TARGET " + projName + " POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O ihex -R .eeprom " + projName + " " + projName + ".hex)"
+	let hex = "add_custom_command(TARGET " + projName + " POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O ihex -R .eeprom " + projName + " " + projName + ".hex)\n"
 	fs.appendFileSync(projDir + "/CMakeLists.txt", hex);
 }
 
