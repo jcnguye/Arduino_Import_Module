@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as readline from 'readline';
 import * as fs from 'fs';
 import { MainPanel } from "./panels/MainPanel";
-
+import * as cmaker from './cmaker';
 
 /**
  * Gets the compiler flags out of the platform.txt file
@@ -210,6 +210,8 @@ export function activate(context: vscode.ExtensionContext) {
         cmaker.addSourceFile("/Users/Cole/test", "testproj", "sketch.cpp");
         cmaker.addCompilerFlags("/Users/Cole/test", "testproj", '-c -g -Os -Wall -std=gnu++17 -fpermissive -Wno-sized-deallocation -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -MMD -flto -mrelax -mmcu=avr64dd32 -DF_CPU=24000000L -DCLOCK_SOURCE=0 -DTWI_MORS_SINGLE -DMILLIS_USE_TIMERB2 -DCORE_ATTACH_ALL -DLOCK_FLMAP -DFLMAPSECTION1 -DARDUINO=10607 -DARDUINO_avrdd -DARDUINO_ARCH_MEGAAVR -DDXCORE="1.5.10" -DDXCORE_MAJOR=1UL -DDXCORE_MINOR=5UL -DDXCORE_PATCH=10UL -DDXCORE_RELEASED=1 -DMVIO_ENABLED -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/cores/dxcore/api/deprecated -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/cores/dxcore -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/variants/32pin-ddseries');
         cmaker.addLinkerFlags("/Users/Cole/test", "testproj", '-Wall -Wextra -Os -g -flto -fuse-linker-plugin -mrelax -Wl,--gc-sections,--section-start=.text=0x0,--section-start=.FLMAP_SECTION1=0x8000,--section-start=.FLMAP_SECTION2=0x10000,--section-start=.FLMAP_SECTION3=0x18000 -mmcu=avr64dd32');
+        cmaker.addHexBuilder("/Users/Cole/test", "testproj")
+        cmaker.generateBinCmd("/Users/Cole/test", "testproj")
     });
 
     
