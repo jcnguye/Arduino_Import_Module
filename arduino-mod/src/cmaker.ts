@@ -58,6 +58,11 @@ export function addHexBuilder(projDir: string, projName: string) {
 	fs.appendFileSync(projDir + "/CMakeLists.txt", hex);
 }
 
+export function generateBinCmd(projDir: string, projName: string) {
+	let bin = "add_custom_command(TARGET " + projName + " POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O binary -R .eeprom " + projName + " " + projName + ".bin)\n"
+	fs.appendFileSync(projDir + "/CMakeLists.txt", bin);
+}
+
 
 /*
 
@@ -70,6 +75,7 @@ Listing out the order cmake needs to run things in:
  - create .elf file, linking to core.a (already happens during the linker command)
  - create bin
  - create eeprom
+ - create hex (addHexBuilder)
  - lst
  - map
 */
