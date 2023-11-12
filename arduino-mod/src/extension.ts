@@ -6,9 +6,9 @@ import * as readline from 'readline';
 import * as fs from 'fs';
 import * as parser from './parser'
 import { MainPanel } from "./panels/MainPanel";
-import {Cmaker} from './cmaker';
-import CmakerBuilder from "./cmakerBuilder";
-
+import { Board } from './boardsInfo';
+import CmakeBuilder from './cmakerBuilder';
+import Cmaker from './cmaker';
 
 /**
  * Gets the compiler flags out of the platform.txt file
@@ -61,13 +61,8 @@ async function parsePlatform(filePath:string) {
 }
 
 
-=======
-import { Board } from './boardsInfo';
-import * as cmaker from './cmaker';
->>>>>>> dev
-import * as importproj from './importproj';
-import CmakeBuilder from './cmakerBuilder';
-import { Board } from './boardsInfo';
+
+
 /**
      * Returns an iterable object containing the absolute name of all files in a given directory,
 	 * including files in subfolders. 
@@ -214,39 +209,32 @@ async function printFlags(version: string, chipName: string, hardCodedFlags: str
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-     
-     const arduinoImportCommand = vscode.commands.registerCommand("arduino-mod.arduinoImport", () => {
-        MainPanel.render(context.extensionUri);
-      });
-    context.subscriptions.push(arduinoImportCommand);
-
-	vscode.commands.registerCommand('arduino-mod.CMakeSetUp', () => {
-        const builder = new CmakeBuilder();
-        builder.setProjectDirectory("/Users/Cole/test");
-        builder.setProjectName("testproj");
-        builder.setCompilerFlag("-c -g -Os -Wall -std=gnu++17 -fpermissive -Wno-sized-deallocation -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -MMD -flto -mrelax -mmcu=avr64dd32 -DF_CPU=24000000L -DCLOCK_SOURCE=0 -DTWI_MORS_SINGLE -DMILLIS_USE_TIMERB2 -DCORE_ATTACH_ALL -DLOCK_FLMAP -DFLMAPSECTION1 -DARDUINO=10607 -DARDUINO_avrdd -DARDUINO_ARCH_MEGAAVR -DDXCORE="1.5.10" -DDXCORE_MAJOR=1UL -DDXCORE_MINOR=5UL -DDXCORE_PATCH=10UL -DDXCORE_RELEASED=1 -DMVIO_ENABLED -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/cores/dxcore/api/deprecated -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/cores/dxcore -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/variants/32pin-ddseries");
-        builder.setLinkFlags("-Wall -Wextra -Os -g -flto -fuse-linker-plugin -mrelax -Wl,--gc-sections,--section-start=.text=0x0,--section-start=.FLMAP_SECTION1=0x8000,--section-start=.FLMAP_SECTION2=0x10000,--section-start=.FLMAP_SECTION3=0x18000 -mmcu=avr64dd32 -o")
-        builder.runSetup;
-        const cmaker = builder.build;
-        vscode.window.showInformationMessage("Setting of Cmake file structure."); 
-
-	// vscode.commands.registerCommand('arduino-mod.test', () => {
-    //     cmaker.resetCmakeFiles("/Users/Cole/test")        
-    //     cmaker.cmakeSkeleton("/Users/Cole/test", "testproj");
-    //     cmaker.addSourceFile("/Users/Cole/test", "testproj", "sketch.cpp");
-    //     cmaker.addCompilerFlags("/Users/Cole/test", "testproj", '-c -g -Os -Wall -std=gnu++17 -fpermissive -Wno-sized-deallocation -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -MMD -flto -mrelax -mmcu=avr64dd32 -DF_CPU=24000000L -DCLOCK_SOURCE=0 -DTWI_MORS_SINGLE -DMILLIS_USE_TIMERB2 -DCORE_ATTACH_ALL -DLOCK_FLMAP -DFLMAPSECTION1 -DARDUINO=10607 -DARDUINO_avrdd -DARDUINO_ARCH_MEGAAVR -DDXCORE="1.5.10" -DDXCORE_MAJOR=1UL -DDXCORE_MINOR=5UL -DDXCORE_PATCH=10UL -DDXCORE_RELEASED=1 -DMVIO_ENABLED -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/cores/dxcore/api/deprecated -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/cores/dxcore -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/variants/32pin-ddseries');
-    //     cmaker.addLinkerFlags("/Users/Cole/test", "testproj", '-Wall -Wextra -Os -g -flto -fuse-linker-plugin -mrelax -Wl,--gc-sections,--section-start=.text=0x0,--section-start=.FLMAP_SECTION1=0x8000,--section-start=.FLMAP_SECTION2=0x10000,--section-start=.FLMAP_SECTION3=0x18000 -mmcu=avr64dd32');
-
-    // });
-
-    
-    
-    let flags = vscode.commands.registerCommand('arduino-mod.compilerFlags', () => {
-        printFlags();
+    const arduinoImportCommand = vscode.commands.registerCommand("arduino-mod.arduinoImport", () => {
+      MainPanel.render(context.extensionUri);
     });
-    context.subscriptions.push(flags);
-    }
-}
+    context.subscriptions.push(arduinoImportCommand);
+  
+    vscode.commands.registerCommand('arduino-mod.CMakeSetUp', () => {
+      const builder = new CmakeBuilder();
+      builder.setProjectDirectory("/Users/Cole/test");
+      builder.setProjectName("testproj");
+      builder.setCompilerFlag('-c -g -Os -Wall -std=gnu++17 -fpermissive -Wno-sized-deallocation -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -MMD -flto -mrelax -mmcu=avr64dd32 -DF_CPU=24000000L -DCLOCK_SOURCE=0 -DTWI_MORS_SINGLE -DMILLIS_USE_TIMERB2 -DCORE_ATTACH_ALL -DLOCK_FLMAP -DFLMAPSECTION1 -DARDUINO=10607 -DARDUINO_avrdd -DARDUINO_ARCH_MEGAAVR -DDXCORE="1.5.10" -DDXCORE_MAJOR=1UL -DDXCORE_MINOR=5UL -DDXCORE_PATCH=10UL -DDXCORE_RELEASED=1 -DMVIO_ENABLED -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/cores/dxcore/api/deprecated -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/cores/dxcore -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/variants/32pin-ddseries');
+      builder.setLinkFlags("-Wall -Wextra -Os -g -flto -fuse-linker-plugin -mrelax -Wl,--gc-sections,--section-start=.text=0x0,--section-start=.FLMAP_SECTION1=0x8000,--section-start=.FLMAP_SECTION2=0x10000,--section-start=.FLMAP_SECTION3=0x18000 -mmcu=avr64dd32 -o");
+      builder.runSetup();  
+      // this cmake is unused trying to figure out why I can't call runCmakeSetUp() from cmake, but it can call from the builder
+      const Cmake = builder.build;
+      vscode.window.showInformationMessage("Setting of Cmake file structure.");
+    });
+    
+    // vscode.commands.registerCommand('arduino-mod.test', () => {
+    //   cmaker.resetCmakeFiles("/Users/Cole/test");
+    //   cmaker.cmakeSkeleton("/Users/Cole/test", "testproj");
+    //   cmaker.addSourceFile("/Users/Cole/test", "testproj", "sketch.cpp");
+    //   cmaker.addCompilerFlags("/Users/Cole/test", "testproj", '-c -g -Os -Wall -std=gnu++17 -fpermissive -Wno-sized-deallocation -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -MMD -flto -mrelax -mmcu=avr64dd32 -DF_CPU=24000000L -DCLOCK_SOURCE=0 -DTWI_MORS_SINGLE -DMILLIS_USE_TIMERB2 -DCORE_ATTACH_ALL -DLOCK_FLMAP -DFLMAPSECTION1 -DARDUINO=10607 -DARDUINO_avrdd -DARDUINO_ARCH_MEGAAVR -DDXCORE="1.5.10" -DDXCORE_MAJOR=1UL -DDXCORE_MINOR=5UL -DDXCORE_PATCH=10UL -DDXCORE_RELEASED=1 -DMVIO_ENABLED -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/cores/dxcore/api/deprecated -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/cores/dxcore -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/variants/32pin-ddseries');
+    //   cmaker.addLinkerFlags("/Users/Cole/test", "testproj", '-Wall -Wextra -Os -g -flto -fuse-linker-plugin -mrelax -Wl,--gc-sections,--section-start=.text=0x0,--section-start=.FLMAP_SECTION1=0x8000,--section-start=.FLMAP_SECTION2=0x10000,--section-start=.FLMAP_SECTION3=0x18000 -mmcu=avr64dd32');
+    // });
+  }
+
 
 export function startImport(sketchPath: string, destDir: string, board: Board) {
     vscode.window.showInformationMessage("Starting import.");
