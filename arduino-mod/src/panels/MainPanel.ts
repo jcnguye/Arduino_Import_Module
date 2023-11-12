@@ -112,6 +112,8 @@ export class MainPanel {
     const webviewUri = getUri(webview, this.extensionUri, ["out", "webview.js"]);
     const stylesUri = getUri(webview, this.extensionUri, ["out", "styles.css"]);
     const nonce = getNonce();
+    const fileContent = this.getFileContent();
+    const dirContent = this.getDirContent();
     const boardContent = this.getBoardContent();
     const boardOptionsContent = this.getBoardOptionsContent();
     const importContent = this.getImportContent();
@@ -131,12 +133,12 @@ export class MainPanel {
           <h1>Arduino Import Module</h1>
           <section class="component-row">
             <vscode-button id="sketchFile">Select Arduino Sketch</vscode-button>
-            <p id="sketchPath"></p>    
+            ${fileContent}   
           </section>
           <br>
           <section>
             <vscode-button id="destDir">Select Destination Directory</vscode-button>
-            <p id="dirPath"></p>
+            ${dirContent}
           </section>
           <p>Select Arduino Board</p> 
           <vscode-dropdown id="board">
@@ -151,6 +153,22 @@ export class MainPanel {
         </body>
       </html>
     `;
+  }
+
+  private getFileContent(){	
+    let result = '';	
+    if (this.sketchFile.length > 0) {	
+      result = `<p>Selected sketch file: ${this.sketchFile} </p>`;	
+    }	
+    return result;	
+  }	
+
+  private getDirContent(){	
+    let result = '';	
+    if (this.destinationDirectory.length > 0) {	
+      result = `<p>Selected directory: ${this.destinationDirectory} </p>`;	
+    }	
+    return result;	
   }
 
   private getBoardContent(){
@@ -222,6 +240,7 @@ export class MainPanel {
                 message: this.destinationDirectory,
               });
               this.allSelectionsMade();
+              this.refresh();
             }
             return;
           case "sketch":
@@ -242,6 +261,7 @@ export class MainPanel {
                 message: this.sketchFile,
               });
               this.allSelectionsMade();
+              this.refresh();
             }
             return;
           case "import":
@@ -254,8 +274,8 @@ export class MainPanel {
   }
 
   private allSelectionsMade() {
-    if(this.board == undefined) {
-      if(this.selectedBoard == undefined) {
+    if(this.board === undefined) {
+      if(this.selectedBoard === undefined) {
         console.log("Undefined Selection");
       }
       this.board = new Board(this.selectedBoard);
