@@ -40,12 +40,6 @@ class CmakeBuilder implements cmakeBuild{
     setProjectDirectory(projDir:string):void {
         this.cmaker.projDir = projDir;
     }
-    runSetup(){
-        this.cmaker.runCmakeSetUp;
-    }
-
-   
-
 
 }
 export default CmakeBuilder;
