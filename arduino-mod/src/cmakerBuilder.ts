@@ -1,5 +1,6 @@
 
 import {Cmaker} from './cmaker';
+
 interface cmakeBuild{
     setProjectDirectory(projectDirectory:string):void;
     setProjectName(projectName:string):void;
@@ -17,29 +18,34 @@ class CmakeBuilder implements cmakeBuild{
     }
     
     setProjectName(projectName: string): void {
-        throw new Error('Method not implemented.');
+        this.cmaker.projName = projectName;
     }
 
     setSourceFile(sourceFile: string): void {
-        throw new Error('Method not implemented.');
+        this.cmaker.srcName = sourceFile;
     }
 
     setCompilerFlag(compilerFlags: string): void {
-        throw new Error('Method not implemented.');
+        this.cmaker.compilerflags = compilerFlags;
     }
 
     setLinkFlags(linkerFlags: string): void {
-        throw new Error('Method not implemented.');
+        this.cmaker.linkerflags = linkerFlags;
     }
 
     build(): Cmaker {
         return this.cmaker;
     }
 
-    public setProjectDirectory(projDir:string):void {
+    setProjectDirectory(projDir:string):void {
         this.cmaker.projDir = projDir;
     }
+    runSetup(){
+        this.cmaker.runCmakeSetUp;
+    }
 
+   
 
 
 }
+export default CmakeBuilder;
