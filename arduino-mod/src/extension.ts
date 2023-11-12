@@ -187,16 +187,22 @@ export function startImport(sketchPath: string, destDir: string, board: Board) {
     }
     console.log("Starting to copy libraries...");
     copyLibraries(libPath, sketchPath);
-    vscode.window.showInformationMessage("Library import complete!");
+    console.log("Library import complete");
 
     //create core folder in destination directory & copy appropriate code device library source files
     const corePath = path.join(destDir, 'core');
     if (!fs.existsSync(corePath)) {
         fs.mkdirSync(corePath);
     }
-    console.log("Starting to copy code device library files");
+    console.log("Starting to copy code device library files...");
     importproj.copyDirectory(board.getPathToCore(), corePath);
-    vscode.window.showInformationMessage("Core import complete!");
+    console.log("Core import complete");
+
+    //copy avr-gcc compiler 
+    importproj.copyAvrGcc(destDir);
+    console.log("Compiler copy complete");
+
+    vscode.window.showInformationMessage("Import complete!");
 
     //TODO - change usage so flags are added to CMAKE
     printFlags(board);
