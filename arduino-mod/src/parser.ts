@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as readline from 'readline';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Board } from './boardsInfo';
 
 /**
  * Parses the platform.txt file and pulls out all the compiler flags
@@ -51,7 +52,7 @@ function parseBoards(filepath: string, boardName: string): Promise<Map<string, s
             crlfDelay: Infinity,
         });
 
-        const regex = /[^#]*=/
+        const regex = /[^#]*=/;
        
         rl.on('line', (line) => {
         
@@ -89,7 +90,9 @@ export async function getCompileFlags() {
         // make sure file is valid
         var flagArr = await parsePlatform(filePath);
         var flagStr = "";
-        for (var i = 0; i < flagArr.length; i++) flagStr += flagArr[i] + ',\n';
+        for (var i = 0; i < flagArr.length; i++) {
+            flagStr += flagArr[i] + ',\n';
+        }
         vscode.window.showInformationMessage(flagStr, {modal: true});
     } else {
         vscode.window.showInformationMessage("Not a valid path or directory does not contain platform.txt file.");
@@ -105,16 +108,21 @@ export async function getCompileFlags() {
  * @param platform specific platform, e.g. "avrdd"
  * @returns string of all flags, e.g. "-Wall -fpermissive"
  */
-export async function getAllFlags(version: string, platform: string, hardCodedFlags: string): Promise<string> {
+export async function getAllFlags(board: Board): Promise<string> {
     try {
+        //initalize some variables
+        const platform = board.getChipName();
+        const hardCodedFlags = board.getHardcodedFlags();
+
         //getting map for boards.txt
         const localAppData = process.env.LOCALAPPDATA;
+        const version = getDXCoreVersion();
         const libraryFilePath = path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version,"boards.txt");
         const map = await parseBoards(libraryFilePath, platform);
 
         //getting array of platform.txt
-        let platform_folder = path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version);
-        let array = await parsePlatform(platform_folder);
+        let platformFolder = path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version);
+        let array = await parsePlatform(platformFolder);
 
         let cppPatternIndex = 0;
         let recipe = "recipe.cpp.o.pattern";
@@ -147,7 +155,7 @@ export async function getAllFlags(version: string, platform: string, hardCodedFl
             //filtering for relevant simple variables
             if(str.includes("{") && !str.includes("source_file") && !str.includes("includes") && 
                 !str.includes("source_files") && !str.includes("object_file") && !str.includes("core.path") && !str.includes("compiler.path")) {
-                variables.push(optionArray[i].substring(1,optionArray[i].length-1))
+                variables.push(optionArray[i].substring(1,optionArray[i].length-1));
             }
         }
 
@@ -159,7 +167,7 @@ export async function getAllFlags(version: string, platform: string, hardCodedFl
             let options = array[i].substring(equalIndex+1,array[i].length);
 
             let index = variables.indexOf(value);
-            if(index != -1) {
+            if(index !== -1) {
                 
                 let parsedOptions = options.split(" ");
                 
@@ -170,17 +178,17 @@ export async function getAllFlags(version: string, platform: string, hardCodedFl
                     if(!opt.includes("{") && opt.includes("-")) {
                         standAloneFlags.push(opt);
                     //new flagAndVariable
-                    } else if(opt.indexOf("{") != 0 && opt != "") {
+                    } else if(opt.indexOf("{") !== 0 && opt !== "") {
                         if(!opt.includes("runtime.ide") && !opt.includes("versionnum") && !opt.includes("build.arch")) {
                             const match = opt.match(/{(.*?)}/);
                             flagAndVariables.push(opt);
                         
-                            if(match[1] != null) {
+                            if(match[1] !== null) {
                                 variables.push(match[1]);
                             }   
                         }
                     //new variable
-                    } else if(opt != "") {
+                    } else if(opt !== "") {
                         //simple variables
                         variables.push(opt.substring(1,opt.length-1));
                     }
@@ -293,7 +301,7 @@ export async function getAllFlags(version: string, platform: string, hardCodedFl
                         } else if(value.includes("{") && value.includes(" ")) {
                             let vars = value.split(" ");
                             for(let x = 0; x < vars.length; x++) {
-                                additionalVariables.push(vars[x].substring(1,vars[x].length-1))
+                                additionalVariables.push(vars[x].substring(1,vars[x].length-1));
                             }
                         } 
                     }
@@ -303,7 +311,7 @@ export async function getAllFlags(version: string, platform: string, hardCodedFl
 
         for(let i = 0; i < indexRemove.length; i++) {
             let index = variables.indexOf(indexRemove[i]);
-            if(index != -1) {
+            if(index !== -1) {
                 variables.splice(index,1);
             } else {
                 // console.log("Could not remove " + indexRemove[i]);
@@ -317,7 +325,7 @@ export async function getAllFlags(version: string, platform: string, hardCodedFl
         for(let i = 0; i < fPlusVariablesToRemove.length; i++) {
             let index = flagAndVariables.indexOf(fPlusVariablesToRemove[i]);
             
-            if(index != -1) {
+            if(index !== -1) {
                 flagAndVariables.splice(index, 1);
             } else {
                 // console.log("Couldn't remove " + flagAndVariables[i]);
@@ -361,17 +369,36 @@ function getFlag(flagAndVariable: string, value: string): string {
     let leftBracket = flagAndVariable.indexOf("{");
     let rightBracket = flagAndVariable.indexOf("}");
 
-    if(leftBracket == -1 || rightBracket == -1) {
+    if(leftBracket === -1 || rightBracket === -1) {
         return "err";
     }
 
     let flag = flagAndVariable.substring(0,leftBracket) + value;
 
-    if(rightBracket != (flagAndVariable.length - 1)) {
+    if(rightBracket !== (flagAndVariable.length - 1)) {
         flag += flagAndVariable.substring(leftBracket+1,flagAndVariable.length-1);
     }
 
     return flag;
+}
+
+/**
+ * Helper function that returns the version of DxCore installed. May not be fail-proof: uses
+ * the name of the folder in the DxCore/hardware/megaavr to determine the version.
+ * 
+ * @returns string with version of DxCore (ex. "1.5.11")
+ */
+export function getDXCoreVersion(): string {
+    let result = '';
+    const localAppData = process.env.LOCALAPPDATA;
+    if (localAppData) {
+        const versionFilePath = path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr");
+        const items = fs.readdirSync(versionFilePath);
+        const firstItem = items[0];
+        //const stats = fs.statSync(`${versionFilePath}/${firstItem}`);
+        result = firstItem;
+    }
+    return result;
 }
 
 
