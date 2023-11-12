@@ -16,20 +16,20 @@ export class Cmaker {
 		this.compilerflags = "";
 		this.linkerflags = "";
 	}
-	public setProjectDirectory(){
-		this.projDir = "C:\Users\nguye\Desktop\SER\SER2023_SPRING\SER_CAP\Arduino_Import_Module\arduino-mod";
+	public setProjectDirectory(ProjectDirectory:string){
+		this.projDir = ProjectDirectory;
 	}
-	public setProjectName(){
-		this.projName = "testproj"
+	public setProjectName(ProjectName:string){
+		this.projName = ProjectName;
 	}
-	public setSourceName(){
-		this.srcFileName = "sketch.cpp"
+	public setSourceName(SourceFileName:string){
+		this.srcFileName = SourceFileName;
 	}
-	public setCompilerFlags(){
-		this.compilerflags = '-c -g -Os -Wall -std=gnu++17 -fpermissive -Wno-sized-deallocation -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -MMD -flto -mrelax -mmcu=avr64dd32 -DF_CPU=24000000L -DCLOCK_SOURCE=0 -DTWI_MORS_SINGLE -DMILLIS_USE_TIMERB2 -DCORE_ATTACH_ALL -DLOCK_FLMAP -DFLMAPSECTION1 -DARDUINO=10607 -DARDUINO_avrdd -DARDUINO_ARCH_MEGAAVR -DDXCORE="1.5.10" -DDXCORE_MAJOR=1UL -DDXCORE_MINOR=5UL -DDXCORE_PATCH=10UL -DDXCORE_RELEASED=1 -DMVIO_ENABLED -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/cores/dxcore/api/deprecated -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/cores/dxcore -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/variants/32pin-ddseries'
+	public setCompilerFlags(CompileFlag:string){
+		this.compilerflags = CompileFlag;
 	}
-	public setLinkerFlags(){
-		this.linkerflags = '-Wall -Wextra -Os -g -flto -fuse-linker-plugin -mrelax -Wl,--gc-sections,--section-start=.text=0x0,--section-start=.FLMAP_SECTION1=0x8000,--section-start=.FLMAP_SECTION2=0x10000,--section-start=.FLMAP_SECTION3=0x18000 -mmcu=avr64dd32'
+	public setLinkerFlags(linkerFlags:string){
+		this.linkerflags = linkerFlags;
 	}
 
 
