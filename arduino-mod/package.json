@@ -14,12 +14,12 @@
   "contributes": {
     "commands": [
       {
-        "command": "arduino-mod.compilerFlags",
-        "title": "Get Compiler Flags"
-      },
-      {
         "command": "arduino-mod.arduinoImport",
         "title": "Arduino Import Module"
+      },
+      {
+        "command": "arduino-mod.CMakeSetUp",
+        "title": "Set up Cmake file structure"
       }
     ]
   },

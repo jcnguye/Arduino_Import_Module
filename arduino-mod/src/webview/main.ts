@@ -34,28 +34,6 @@ function main() {
   const directoryButton = document.getElementById("destDir") as Button;
   directoryButton?.addEventListener("click", handleDirectoryClick);
 
-  setVSCodeMessageListener();
-}
-
-function setVSCodeMessageListener() {
-  window.addEventListener("message", (event) => {
-    const command = event.data.command;
-
-    switch (command) {
-      case "sketchPath":
-        const sketchPath = document.getElementById("sketchPath");
-        if (sketchPath){
-          sketchPath.textContent = 'Selected sketch: ' + event.data.message;
-        } 
-        break;
-      case "dirPath":
-        const dirPath = document.getElementById("dirPath");
-        if (dirPath){
-          dirPath.textContent = 'Selected directory: ' + event.data.message;
-        } 
-        break;      
-    }
-  });
 }
 
 function handleSketchClick(){

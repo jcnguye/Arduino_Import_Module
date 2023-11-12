@@ -3,6 +3,7 @@ import { getUri } from "../utilities/getUri";
 import { getNonce } from "../utilities/getNonce";
 import * as ex from "../extension";
 import * as boardsInfo from "../boardsInfo";
+import { Board } from "../boardsInfo";
 
 export class MainPanel {
   public static currentPanel: MainPanel | undefined;
@@ -15,7 +16,7 @@ export class MainPanel {
   private selectedBoard: string = "";
   private selectedOption: string = "";
 
-  private boardOptions: string[] = [];
+  private board: Board;
   private readyForImport: boolean = false;
 
   /**
@@ -45,7 +46,7 @@ export class MainPanel {
    *
    * @param extensionUri The URI of the directory containing the extension.
    */
-  public static render(extensionUri: Uri) {
+  public static render(extensionUri: Uri): MainPanel {
     if (MainPanel.currentPanel) {
       // If the webview panel already exists reveal it
       MainPanel.currentPanel._panel.reveal(ViewColumn.One);
@@ -70,6 +71,8 @@ export class MainPanel {
 
       MainPanel.currentPanel = new MainPanel(panel, extensionUri);
     }
+
+    return MainPanel.currentPanel;
   }
 
   /**
@@ -109,6 +112,8 @@ export class MainPanel {
     const webviewUri = getUri(webview, this.extensionUri, ["out", "webview.js"]);
     const stylesUri = getUri(webview, this.extensionUri, ["out", "styles.css"]);
     const nonce = getNonce();
+    const fileContent = this.getFileContent();
+    const dirContent = this.getDirContent();
     const boardContent = this.getBoardContent();
     const boardOptionsContent = this.getBoardOptionsContent();
     const importContent = this.getImportContent();
@@ -128,12 +133,12 @@ export class MainPanel {
           <h1>Arduino Import Module</h1>
           <section class="component-row">
             <vscode-button id="sketchFile">Select Arduino Sketch</vscode-button>
-            <p id="sketchPath"></p>    
+            ${fileContent}   
           </section>
           <br>
           <section>
             <vscode-button id="destDir">Select Destination Directory</vscode-button>
-            <p id="dirPath"></p>
+            ${dirContent}
           </section>
           <p>Select Arduino Board</p> 
           <vscode-dropdown id="board">
@@ -150,6 +155,22 @@ export class MainPanel {
     `;
   }
 
+  private getFileContent(){	
+    let result = '';	
+    if (this.sketchFile.length > 0) {	
+      result = `<p>Selected sketch file: ${this.sketchFile} </p>`;	
+    }	
+    return result;	
+  }	
+
+  private getDirContent(){	
+    let result = '';	
+    if (this.destinationDirectory.length > 0) {	
+      result = `<p>Selected directory: ${this.destinationDirectory} </p>`;	
+    }	
+    return result;	
+  }
+
   private getBoardContent(){
     let result = `<vscode-option value="${this.selectedBoard}">${this.selectedBoard}</vscode-option>`;
     for (const board of boardsInfo.getAllBoards()) {
@@ -163,10 +184,11 @@ export class MainPanel {
   private getBoardOptionsContent(){
     let result = '';
     if (this.selectedBoard.length > 0) {
-      this.boardOptions = boardsInfo.getBoardOptions(this.selectedBoard);
-      if (this.boardOptions.length > 0 ) {
+      this.board = boardsInfo.getBoard(this.selectedBoard);
+
+      if (this.board.options.length > 0 ) {
         result = `<vscode-radio-group id="boardOpt" orientation="vertical"><label slot="label">Select Board Option</label>`;
-        for (const opt of this.boardOptions) {
+        for (const opt of this.board.options) {
           result = result + `<vscode-radio value="${opt}">${opt}</vscode-radio>`;
         }
         result = result + `</vscode-radio-group>`;
@@ -218,6 +240,7 @@ export class MainPanel {
                 message: this.destinationDirectory,
               });
               this.allSelectionsMade();
+              this.refresh();
             }
             return;
           case "sketch":
@@ -238,10 +261,11 @@ export class MainPanel {
                 message: this.sketchFile,
               });
               this.allSelectionsMade();
+              this.refresh();
             }
             return;
           case "import":
-            ex.startImport(this.sketchFile, this.destinationDirectory, this.selectedBoard, this.selectedOption);
+            ex.startImport(this.sketchFile, this.destinationDirectory, this.board);
         }
       },
       undefined,
@@ -250,13 +274,24 @@ export class MainPanel {
   }
 
   private allSelectionsMade() {
+    if(this.board === undefined) {
+      if(this.selectedBoard === undefined) {
+        console.log("Undefined Selection");
+      }
+      this.board = new Board(this.selectedBoard);
+    }
+
     if (this.sketchFile.length > 0 && this.destinationDirectory.length > 0 && this.selectedBoard.length > 0) {
-      if (this.boardOptions.length > 0 && this.selectedOption.length > 0) {
+      if (this.board.options.length > 0 && this.selectedOption.length > 0) {
         this.readyForImport = true;
-      } else if (this.boardOptions.length === 0) {
+      } else if (this.board.options.length === 0) {
         this.readyForImport = true;
       }
       this.refresh();
     }
+  }
+
+  public getBoard() {
+    return this.board;
   }
 }
