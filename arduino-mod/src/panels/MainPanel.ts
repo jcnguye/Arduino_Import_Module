@@ -3,6 +3,7 @@ import { getUri } from "../utilities/getUri";
 import { getNonce } from "../utilities/getNonce";
 import * as ex from "../extension";
 import * as boardsInfo from "../boardsInfo";
+import { Board } from "../boardsInfo";
 
 export class MainPanel {
   public static currentPanel: MainPanel | undefined;
@@ -15,7 +16,7 @@ export class MainPanel {
   private selectedBoard: string = "";
   private selectedOption: string = "";
 
-  private boardOptions: string[] = [];
+  private board: Board;
   private readyForImport: boolean = false;
 
   /**
@@ -45,7 +46,7 @@ export class MainPanel {
    *
    * @param extensionUri The URI of the directory containing the extension.
    */
-  public static render(extensionUri: Uri) {
+  public static render(extensionUri: Uri): MainPanel {
     if (MainPanel.currentPanel) {
       // If the webview panel already exists reveal it
       MainPanel.currentPanel._panel.reveal(ViewColumn.One);
@@ -70,6 +71,8 @@ export class MainPanel {
 
       MainPanel.currentPanel = new MainPanel(panel, extensionUri);
     }
+
+    return MainPanel.currentPanel;
   }
 
   /**
@@ -163,10 +166,11 @@ export class MainPanel {
   private getBoardOptionsContent(){
     let result = '';
     if (this.selectedBoard.length > 0) {
-      this.boardOptions = boardsInfo.getBoardOptions(this.selectedBoard);
-      if (this.boardOptions.length > 0 ) {
+      this.board = boardsInfo.getBoard(this.selectedBoard);
+
+      if (this.board.options.length > 0 ) {
         result = `<vscode-radio-group id="boardOpt" orientation="vertical"><label slot="label">Select Board Option</label>`;
-        for (const opt of this.boardOptions) {
+        for (const opt of this.board.options) {
           result = result + `<vscode-radio value="${opt}">${opt}</vscode-radio>`;
         }
         result = result + `</vscode-radio-group>`;
@@ -241,7 +245,7 @@ export class MainPanel {
             }
             return;
           case "import":
-            ex.startImport(this.sketchFile, this.destinationDirectory, this.selectedBoard, this.selectedOption);
+            ex.startImport(this.sketchFile, this.destinationDirectory, this.board);
         }
       },
       undefined,
@@ -250,13 +254,24 @@ export class MainPanel {
   }
 
   private allSelectionsMade() {
+    if(this.board == undefined) {
+      if(this.selectedBoard == undefined) {
+        console.log("Undefined Selection");
+      }
+      this.board = new Board(this.selectedBoard);
+    }
+
     if (this.sketchFile.length > 0 && this.destinationDirectory.length > 0 && this.selectedBoard.length > 0) {
-      if (this.boardOptions.length > 0 && this.selectedOption.length > 0) {
+      if (this.board.options.length > 0 && this.selectedOption.length > 0) {
         this.readyForImport = true;
-      } else if (this.boardOptions.length === 0) {
+      } else if (this.board.options.length === 0) {
         this.readyForImport = true;
       }
       this.refresh();
     }
+  }
+
+  public getBoard() {
+    return this.board;
   }
 }
