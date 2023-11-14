@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Board } from './boardsInfo';
 
 
 /**
@@ -96,10 +97,10 @@ export function copyDirectory(src: string, dest: string): void {
  * 
  * @param dest Destination directory where the AVR-GCC compiler should be copied to
  */
-export function copyAvrGcc(dest: string){
+export function copyAvrGcc(dest: string, board: Board){
 	const localAppData = process.env.LOCALAPPDATA;
 	if (localAppData) {
-		const compilerPath = path.join(localAppData,"Arduino15","packages","arduino","tools","avr-gcc");
+		const compilerPath = board.getPathToCompiler();
 		const version = mostRecentDirectory(compilerPath);
 		const finalCompilerPath = path.join(compilerPath, version);
 		dest = path.join(dest, "compiler");

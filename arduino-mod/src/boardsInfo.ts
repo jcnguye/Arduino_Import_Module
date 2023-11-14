@@ -27,6 +27,7 @@ export class Board {
     allFlags: string = "";
     options: string[] = [];
     private pathToCore: string = "";
+    private pathToCompiler: string = "";
 
 
     constructor(boardName: string) {
@@ -39,9 +40,10 @@ export class Board {
             
             const localAppData = process.env.LOCALAPPDATA;
             const version = parser.getDXCoreVersion();
-                if (localAppData) {
+            if (localAppData) {
                 this.pathToCore = path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version,"cores","dxcore");
-                }
+                this.pathToCompiler = path.join(localAppData,"Arduino15","packages","DxCore","tools","avr-gcc");
+            }
         } else if (boardName === MEGA) {
             this.options.push("ATMega2560");
             this.options.push("ATMega1280");
@@ -73,6 +75,10 @@ export class Board {
 
     getPathToCore() {
         return this.pathToCore;
+    }
+
+    getPathToCompiler() {
+        return this.pathToCompiler;
     }
 
 }
