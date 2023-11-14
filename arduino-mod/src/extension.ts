@@ -244,13 +244,13 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     console.log("Core import complete");
 
     //copy avr-gcc compiler 
-    importproj.copyAvrGcc(destDir);
+    importproj.copyAvrGcc(corePath, board);
     console.log("Compiler copy complete");
 
     const cmake= new Cmaker();
     cmake.setProjectDirectory(destDir);
-    cmake.setProjectName(file);
-    cmake.setSourceName(file);
+    cmake.setProjectName(cFile);
+    cmake.setSourceName(cFile);
     cmake.setCompilerFlags(await parser.getAllFlags(board));
 
     //TOD - this needs to be fixed to link correct files
