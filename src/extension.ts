@@ -7,8 +7,60 @@ import * as fs from 'fs';
 import * as parser from './parser';
 import { MainPanel } from "./panels/MainPanel";
 import { Board } from './boardsInfo';
-import * as cmaker from './cmaker';
+import Cmaker from './cmaker';
+
+/**
+ * Gets the compiler flags out of the platform.txt file
+ */
+async function getCompileFlags() {
+    // get platform.txt file to parse
+    const filePath = await vscode.window.showInputBox({
+        placeHolder: "Compiler Flags",
+        prompt: "Enter path to 'platform.txt' file",
+    });
+    if (filePath){
+        // make sure file is valid
+        var flagArr = await parsePlatform(filePath);
+        var flagStr = "";
+        for (var i = 0; i < flagArr.length; i++) {flagStr += flagArr[i] + ',\n';}
+        vscode.window.showInformationMessage(flagStr, {modal: true});
+    } else {
+        vscode.window.showInformationMessage("Not a valid path or directory does not contain platform.txt file.");
+    }
+}
+/**
+ * Parses the platform.txt file and pulls out all the compiler flags
+ * @param filePath - directory to platform.txt file
+ * @returns Array of all the compiler flags
+ */
+async function parsePlatform(filePath:string) {
+    var flagArr: string[] = [];
+    try {
+        ////// separate text file into readable lines
+        const lines: string[] = [];
+        const fileStream = fs.createReadStream(path.join(filePath, 'platform.txt'));
+        const rl = readline.createInterface({
+            input: fileStream,
+            crlfDelay: Infinity,
+        });
+        for await (const line of rl) {
+            lines.push(line);
+        }
+        ////// get all the compiler flag lines
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].substring(0, lines[i].indexOf('='));
+            if (line.includes("compiler.") && line.includes(".flags")) {
+                flagArr.push(lines[i]);
+            }
+        }
+    } catch (error) {
+        flagArr = ["Error occurred while reading the file."];
+    }
+    return flagArr;
+}
+
 import * as importproj from './importproj';
+
 
 /**
      * Returns an iterable object containing the absolute name of all files in a given directory,
@@ -157,20 +209,25 @@ async function printFlags(board : Board) {
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-     
+	
     const arduinoImportCommand = vscode.commands.registerCommand("arduino-mod.arduinoImport", () => {
-        MainPanel.render(context.extensionUri);
-      });
-    context.subscriptions.push(arduinoImportCommand);
-	vscode.commands.registerCommand('arduino-mod.test', () => {
-        cmaker.resetCmakeFiles("/Users/Cole/test");       
-        cmaker.cmakeSkeleton("/Users/Cole/test", "testproj");
-        cmaker.addSourceFile("/Users/Cole/test", "testproj", "sketch.cpp");
-        cmaker.addCompilerFlags("/Users/Cole/test", "testproj", '-c -g -Os -Wall -std=gnu++17 -fpermissive -Wno-sized-deallocation -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -MMD -flto -mrelax -mmcu=avr64dd32 -DF_CPU=24000000L -DCLOCK_SOURCE=0 -DTWI_MORS_SINGLE -DMILLIS_USE_TIMERB2 -DCORE_ATTACH_ALL -DLOCK_FLMAP -DFLMAPSECTION1 -DARDUINO=10607 -DARDUINO_avrdd -DARDUINO_ARCH_MEGAAVR -DDXCORE="1.5.10" -DDXCORE_MAJOR=1UL -DDXCORE_MINOR=5UL -DDXCORE_PATCH=10UL -DDXCORE_RELEASED=1 -DMVIO_ENABLED -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/cores/dxcore/api/deprecated -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/cores/dxcore -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/variants/32pin-ddseries');
-        cmaker.addLinkerFlags("/Users/Cole/test", "testproj", '-Wall -Wextra -Os -g -flto -fuse-linker-plugin -mrelax -Wl,--gc-sections,--section-start=.text=0x0,--section-start=.FLMAP_SECTION1=0x8000,--section-start=.FLMAP_SECTION2=0x10000,--section-start=.FLMAP_SECTION3=0x18000 -mmcu=avr64dd32');
+      MainPanel.render(context.extensionUri);
     });
+    context.subscriptions.push(arduinoImportCommand);
+  
+    vscode.commands.registerCommand('arduino-mod.CMakeSetUp', () => {
+      const cmake= new Cmaker();
+      cmake.setProjectDirectory("C:\Users\nguye\Desktop\SER\SER2023_SPRING\SER_CAP\Arduino_Import_Module\arduino-mod");
+      cmake.setProjectName("testproj");
+      cmake.setSourceName("sketch.cpp");
+      cmake.setCompilerFlags('-c -g -Os -Wall -std=gnu++17 -fpermissive -Wno-sized-deallocation -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -MMD -flto -mrelax -mmcu=avr64dd32 -DF_CPU=24000000L -DCLOCK_SOURCE=0 -DTWI_MORS_SINGLE -DMILLIS_USE_TIMERB2 -DCORE_ATTACH_ALL -DLOCK_FLMAP -DFLMAPSECTION1 -DARDUINO=10607 -DARDUINO_avrdd -DARDUINO_ARCH_MEGAAVR -DDXCORE="1.5.10" -DDXCORE_MAJOR=1UL -DDXCORE_MINOR=5UL -DDXCORE_PATCH=10UL -DDXCORE_RELEASED=1 -DMVIO_ENABLED -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/cores/dxcore/api/deprecated -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/cores/dxcore -I/Users/Cole/Library/Arduino15/packages/DxCore/hardware/megaavr/1.5.10/variants/32pin-ddseries');
+      cmake.setLinkerFlags('-Wall -Wextra -Os -g -flto -fuse-linker-plugin -mrelax -Wl,--gc-sections,--section-start=.text=0x0,--section-start=.FLMAP_SECTION1=0x8000,--section-start=.FLMAP_SECTION2=0x10000,--section-start=.FLMAP_SECTION3=0x18000 -mmcu=avr64dd32');
+      cmake.build();
+      vscode.window.showInformationMessage("Setting of Cmake file structure.");
 
+    });
 }
+
 
 export function startImport(sketchPath: string, destDir: string, board: Board) {
     vscode.window.showInformationMessage("Starting import.");
