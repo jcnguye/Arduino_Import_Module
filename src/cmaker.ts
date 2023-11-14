@@ -47,9 +47,9 @@ export class Cmaker {
 		// cmake link libary
 		let cmakeSrcLinkLib = "\ntarget_link_libraries(" + this.projName + " " + this.linkerflags +")"
 		// hex file generator
-		let hex = "add_custom_command(TARGET " + projName + " POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O ihex -R .eeprom " + projName + " " + projName + ".hex)\n"
+		let hex = "add_custom_command(TARGET " + this.projName + " POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O ihex -R .eeprom " + this.projName + " " + this.projName + ".hex)\n"
 		// bin file generator
-		let bin = "add_custom_command(TARGET " + projName + " POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O binary -R .eeprom " + projName + " " + projName + ".bin)\n"
+		let bin = "add_custom_command(TARGET " + this.projName + " POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O binary -R .eeprom " + this.projName + " " + this.projName + ".bin)\n"
 
 		//resets Cmake File
 		if (fs.existsSync(this.projDir + "/CMakeLists.txt")) {
@@ -72,8 +72,8 @@ export class Cmaker {
 		fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeSrcExecutable);
 		fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeSrcCompileOpt);
 		fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeSrcLinkLib);
-		fs.appendFileSync(projDir + "/CMakeLists.txt", hex);
-		fs.appendFileSync(projDir + "/CMakeLists.txt", bin);
+		fs.appendFileSync(this.projDir + "/CMakeLists.txt", hex);
+		fs.appendFileSync(this.projDir + "/CMakeLists.txt", bin);
 
 		// use fs.appendFileSync(projDir + "/CMakeLists.txt", data); for future appends
 
