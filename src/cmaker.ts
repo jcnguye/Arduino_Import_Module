@@ -16,17 +16,17 @@ export class Cmaker {
 		this.compilerflags = "";
 		this.linkerflags = "";
 	}
-	public setProjectDirectory(ProjectDirectory:string){
-		this.projDir = ProjectDirectory;
+	public setProjectDirectory(projectDirectory:string){
+		this.projDir = projectDirectory;
 	}
-	public setProjectName(ProjectName:string){
-		this.projName = ProjectName;
+	public setProjectName(projectName:string){
+		this.projName = projectName;
 	}
-	public setSourceName(SourceFileName:string){
-		this.srcFileName = SourceFileName;
+	public setSourceName(sourceFileName:string){
+		this.srcFileName = sourceFileName;
 	}
-	public setCompilerFlags(CompileFlag:string){
-		this.compilerflags = CompileFlag;
+	public setCompilerFlags(compileFlag:string){
+		this.compilerflags = compileFlag;
 	}
 	public setLinkerFlags(linkerFlags:string){
 		this.linkerflags = linkerFlags;
@@ -36,16 +36,16 @@ export class Cmaker {
 	public build(): void{
 
 		//sets the cmake version
-		let cmakeHeader = "cmake_minimum_required(VERSION 3.0)"
-		cmakeHeader = cmakeHeader + '\nset(CMAKE_C_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-gcc")'
-		cmakeHeader = cmakeHeader + '\nset(CMAKE_CXX_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-g++")'
-		cmakeHeader = cmakeHeader + "\nproject(" + this.projName + ")"
+		let cmakeHeader = "cmake_minimum_required(VERSION 3.0)";
+		cmakeHeader = cmakeHeader + '\nset(CMAKE_C_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-gcc")';
+		cmakeHeader = cmakeHeader + '\nset(CMAKE_CXX_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-g++")';
+		cmakeHeader = cmakeHeader + "\nproject(" + this.projName + ")";
 		//cmake  adding executable 
-		let cmakeSrcExecutable = "\nadd_executable(" + this.projName + " " + this.srcFileName +")"
+		let cmakeSrcExecutable = "\nadd_executable(" + this.projName + " " + this.srcFileName +")";
 		// cmake adding compile option
-		let cmakeSrcCompileOpt = "\ntarget_compile_options(" + this.projName + " PRIVATE " + this.compilerflags +")"
+		let cmakeSrcCompileOpt = "\ntarget_compile_options(" + this.projName + " PRIVATE " + this.compilerflags +")";
 		// cmake link libary
-		let cmakeSrcLinkLib = "\ntarget_link_libraries(" + this.projName + " " + this.linkerflags +")"
+		let cmakeSrcLinkLib = "\ntarget_link_libraries(" + this.projName + " " + this.linkerflags +")";
 		// hex file generator
 		let hex = "add_custom_command(TARGET " + this.projName + " POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O ihex -R .eeprom " + this.projName + " " + this.projName + ".hex)\n"
 		// bin file generator
@@ -53,19 +53,19 @@ export class Cmaker {
 
 		//resets Cmake File
 		if (fs.existsSync(this.projDir + "/CMakeLists.txt")) {
-			fs.unlinkSync(this.projDir + "/CMakeLists.txt")
+			fs.unlinkSync(this.projDir + "/CMakeLists.txt");
 		}
 		if (fs.existsSync(this.projDir + "/Makefile")) {
-			fs.unlinkSync(this.projDir + "/Makefile")
+			fs.unlinkSync(this.projDir + "/Makefile");
 		}
 		if (fs.existsSync(this.projDir + "/cmake_install.cmake")) {
-			fs.unlinkSync(this.projDir + "/cmake_install.cmake")
+			fs.unlinkSync(this.projDir + "/cmake_install.cmake");
 		}
 		if (fs.existsSync(this.projDir + "/CMakeCache.txt")) {
-			fs.unlinkSync(this.projDir + "/CMakeCache.txt")
+			fs.unlinkSync(this.projDir + "/CMakeCache.txt");
 		}
 		if (fs.existsSync(this.projDir + "/CMakeFiles")) {
-			fs.rmSync(this.projDir + "/CMakeFiles", { recursive: true, force: true })
+			fs.rmSync(this.projDir + "/CMakeFiles", { recursive: true, force: true });
 		}
 
 		fs.writeFileSync(this.projDir + "/CMakeLists.txt", cmakeHeader);
