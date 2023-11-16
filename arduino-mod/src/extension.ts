@@ -235,7 +235,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
         fs.mkdirSync(corePath);
     }
     console.log("Starting to copy code device library files...");
-    importproj.copyDirectory(board.getPathToCore(), corePath);
+    importproj.copyDirectories(board.getCorePaths(), corePath);
     console.log("Core import complete");
 
     //copy avr-gcc compiler 
