@@ -244,7 +244,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
 
     const cmake= new Cmaker();
     cmake.setProjectDirectory(destDir);
-    cmake.setProjectName(cFile);
+    cmake.setProjectName(cFile.replace(".cpp", ""));
     cmake.setSourceName('src/' + cFile);
     cmake.setCompilerFlags(await parser.getAllFlags(board));
 
