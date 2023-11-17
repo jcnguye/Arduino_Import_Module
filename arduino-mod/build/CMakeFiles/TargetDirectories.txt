@@ -1,3 +1,0 @@
-C:/Users/sophi/OneDrive/Documents/StudentFolder/Fall 2023/Capstone/Arduino_Import_Module/arduino-mod/build/CMakeFiles/arduino-import-module.dir
-C:/Users/sophi/OneDrive/Documents/StudentFolder/Fall 2023/Capstone/Arduino_Import_Module/arduino-mod/build/CMakeFiles/ALL_BUILD.dir
-C:/Users/sophi/OneDrive/Documents/StudentFolder/Fall 2023/Capstone/Arduino_Import_Module/arduino-mod/build/CMakeFiles/ZERO_CHECK.dir
