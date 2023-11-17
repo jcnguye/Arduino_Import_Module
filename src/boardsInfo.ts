@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as parser from './parser';
 import * as path from 'path';
+import * as fs from 'fs';
 
 
 export const UNO = "UNO"; //none 
@@ -26,7 +27,8 @@ export class Board {
     private chipName: string = "";
     allFlags: string = "";
     options: string[] = [];
-    private pathToCore: string = "";
+    private corePaths: string[] = []; //list of all necessary core related libraries that need to be copied for each board
+    private pathToCompiler: string = "";
 
 
     constructor(boardName: string) {
@@ -39,9 +41,15 @@ export class Board {
             
             const localAppData = process.env.LOCALAPPDATA;
             const version = parser.getDXCoreVersion();
-                if (localAppData) {
-                this.pathToCore = path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version,"cores","dxcore");
-                }
+            if (localAppData) {
+                this.pathToCompiler = path.join(localAppData,"Arduino15","packages","DxCore","tools","avr-gcc");
+                const compilerVersion = this.mostRecentDirectory(this.pathToCompiler);
+                this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion);
+
+                this.corePaths.push(path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version,"cores","dxcore"));
+                this.corePaths.push(path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version,"variants","32pin-ddseries"));
+                this.corePaths.push(path.join(localAppData, "Arduino15", "packages", "DxCore","tools","avr-gcc",compilerVersion,"avr","include"));
+            }
         } else if (boardName === MEGA) {
             this.options.push("ATMega2560");
             this.options.push("ATMega1280");
@@ -71,8 +79,33 @@ export class Board {
         return this.allFlags;
     }
 
-    getPathToCore() {
-        return this.pathToCore;
+    getCorePaths() {
+        return this.corePaths;
+    }
+
+    getPathToCompiler() {
+        return this.pathToCompiler;
+    }
+
+    /**
+ * Helper function to determine which directory inside a given directory is the most recent
+ * based on the modified stamp
+ * @param dirPath Path to the directory that should be investigated
+ * @returns The name of the directory inside dirPath that was most recently updated
+ */
+    mostRecentDirectory(dirPath: string): string {
+        const directories = fs.readdirSync(dirPath, { withFileTypes: true });
+        const subdirectories = directories.filter((dirent) => dirent.isDirectory());
+        const mostRecentDirectory = subdirectories.reduce((prev, current) => {
+            const prevPath = `${path}/${prev.name}`;
+            const currentPath = `${path}/${current.name}`;
+
+            const prevStat = fs.statSync(prevPath);
+            const currentStat = fs.statSync(currentPath);
+
+            return prevStat.mtimeMs > currentStat.mtimeMs ? prev : current;
+        });
+        return mostRecentDirectory.name;
     }
 
 }

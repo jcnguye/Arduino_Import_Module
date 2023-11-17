@@ -8,6 +8,7 @@ import * as parser from './parser';
 import { MainPanel } from "./panels/MainPanel";
 import { Board } from './boardsInfo';
 import Cmaker from './cmaker';
+import * as importproj from './importproj';
 
 /**
  * Gets the compiler flags out of the platform.txt file
@@ -58,9 +59,6 @@ async function parsePlatform(filePath:string) {
     }
     return flagArr;
 }
-
-import * as importproj from './importproj';
-
 
 /**
      * Returns an iterable object containing the absolute name of all files in a given directory,
@@ -199,13 +197,6 @@ async function copyLibraries(newDirectory: string, sketchFile: string) {
     }
 }
 
-async function printFlags(board : Board) {
-    let str = await parser.getAllFlags(board);
-
-    console.log(str);
-}
-
-
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -223,7 +214,11 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     const file = path.basename(sketchPath);
     const cFile = file.replace(/\.ino$/, '.cpp');
     console.log("Starting to copy sketch file....");
-    copyFile(sketchPath, destDir, cFile);
+    const srcPath = path.join(destDir, 'src');
+    if (!fs.existsSync(srcPath)) {
+        fs.mkdirSync(srcPath);
+    }
+    copyFile(sketchPath, srcPath, cFile);
 
     //create lib folder in destination directory and copy all librarires included in sketch file
     const libPath = path.join(destDir, 'lib');
@@ -240,20 +235,20 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
         fs.mkdirSync(corePath);
     }
     console.log("Starting to copy code device library files...");
-    importproj.copyDirectory(board.getPathToCore(), corePath);
+    importproj.copyDirectories(board.getCorePaths(), corePath);
     console.log("Core import complete");
 
     //copy avr-gcc compiler 
-    importproj.copyAvrGcc(destDir);
+    importproj.copyAvrGcc(corePath, board);
     console.log("Compiler copy complete");
 
     const cmake= new Cmaker();
     cmake.setProjectDirectory(destDir);
-    cmake.setProjectName(file);
-    cmake.setSourceName(file);
+    cmake.setProjectName(cFile.replace(".cpp", ""));
+    cmake.setSourceName('src/' + cFile);
     cmake.setCompilerFlags(await parser.getAllFlags(board));
 
-    //TOD - this needs to be fixed to link correct files
+    //TODO - this needs to be fixed to link correct files
     cmake.setLinkerFlags('-Wall -Wextra -Os -g -flto -fuse-linker-plugin -mrelax -Wl,--gc-sections,--section-start=.text=0x0,--section-start=.FLMAP_SECTION1=0x8000,--section-start=.FLMAP_SECTION2=0x10000,--section-start=.FLMAP_SECTION3=0x18000 -mmcu=avr64dd32');
     cmake.build();
 

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Board } from './boardsInfo';
 
 
 /**
@@ -68,26 +69,38 @@ function shellCopy(from: string, to: string) {
  * @param src The directory to copy
  * @param dest The destination location
  */
-export function copyDirectory(src: string, dest: string): void {
+export function copyDirectories(srcPaths: string[], dest: string): void {
 	// Create destination directory if it doesn't exist
 	if (!fs.existsSync(dest)) {
 	  fs.mkdirSync(dest);
 	}
   
 	// Read the source directory
+	for (const src of srcPaths) {
+		copyDirectory(src, dest);
+	}
+}
+
+export function copyDirectory(src: string, dest: string): void {
+	// Create destination directory if it doesn't exist
+	if (!fs.existsSync(dest)) {
+		fs.mkdirSync(dest);
+	}
+	
+	  // Read the source directory
 	const files = fs.readdirSync(src);
-  
+	
 	// Copy each file to the destination directory
 	files.forEach(file => {
-	  const srcPath = path.join(src, file);
-	  const destPath = path.join(dest, file);
-	  if (fs.lstatSync(srcPath).isDirectory()) {
-		// Recursively copy subdirectories
-		copyDirectory(srcPath, destPath);
-	  } else {
-		// Copy files
-		fs.copyFileSync(srcPath, destPath);
-	  }
+		const srcPath = path.join(src, file);
+		const destPath = path.join(dest, file);
+		if (fs.lstatSync(srcPath).isDirectory()) {
+		  // Recursively copy subdirectories
+		  copyDirectory(srcPath, destPath);
+		} else {
+		  // Copy files
+		  fs.copyFileSync(srcPath, destPath);
+		}
 	});
 }
 
@@ -96,38 +109,10 @@ export function copyDirectory(src: string, dest: string): void {
  * 
  * @param dest Destination directory where the AVR-GCC compiler should be copied to
  */
-export function copyAvrGcc(dest: string){
-	const localAppData = process.env.LOCALAPPDATA;
-	if (localAppData) {
-		const compilerPath = path.join(localAppData,"Arduino15","packages","arduino","tools","avr-gcc");
-		const version = mostRecentDirectory(compilerPath);
-		const finalCompilerPath = path.join(compilerPath, version);
-		dest = path.join(dest, "compiler");
-		copyDirectory(finalCompilerPath, dest);
-	}
-
+export function copyAvrGcc(dest: string, board: Board){
+	dest = path.join(dest, "compiler");
+	copyDirectory(board.getPathToCompiler(), dest);
 }
 
-/**
- * Helper function to determine which directory inside a given directory is the most recent
- * based on the modified stamp
- * @param dirPath Path to the directory that should be investigated
- * @returns The name of the directory inside dirPath that was most recently updated
- */
-function mostRecentDirectory(dirPath: string): string {
 
-   	const directories = fs.readdirSync(dirPath, { withFileTypes: true });
-    const subdirectories = directories.filter((dirent) => dirent.isDirectory());
-    const mostRecentDirectory = subdirectories.reduce((prev, current) => {
-    	const prevPath = `${path}/${prev.name}`;
-    	const currentPath = `${path}/${current.name}`;
-
-    	const prevStat = fs.statSync(prevPath);
-    	const currentStat = fs.statSync(currentPath);
-
-    	return prevStat.mtimeMs > currentStat.mtimeMs ? prev : current;
-    });
-    return mostRecentDirectory.name;
-
-}
 
