@@ -1,16 +1,20 @@
-# NOTE: this file is just for any C++ files we eventually have and is not used for Typescript
+cmake_minimum_required(VERSION 3.0)
+set(CMAKE_SYSTEM_NAME Generic)
+set(CMAKE_LINKER "${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy.exe")
+set(CMAKE_C_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-gcc.exe")
+set(CMAKE_CXX_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-g++.exe")
+# Set the compiler flags to generate a .lst file
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wa,-adhln=blinky_ino.lst")
 
-# minimum version of CMake needed
-cmake_minimum_required(VERSION 3.10)
-# sets project name
-project(arduino-import-module)
+if(BUILD_TESTING)
+    message(STATUS "Testing is enabled. Disabling testing.")
+    set(BUILD_TESTING OFF CACHE BOOL "Enable testing" FORCE)
+endif()
 
-# specifies src files (this needs to be changed to the real C++ file(s) eventually)
-set(SOURCES
-	src/temp_cpp_file.cpp
-)
-
-# add executable target
-add_executable(${PROJECT_NAME} ${SOURCES})
-
-# might eventually need to add any external libraries we use
+project(blinky_ino.cpp)
+add_executable(blinky_ino.cpp blinky_ino.cpp)
+target_compile_options(blinky_ino.cpp PRIVATE -c -g -Os -std=gnu++17 -fpermissive -Wno-sized-deallocation -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -MMD -flto -mrelax -DARDUINO_avrdd -mmcu=avr64dd32 -DCLOCK_SOURCE=0 -DMILLIS_USE_TIMERB2 -DCORE_ATTACH_ALL -DTWI_MORS_SINGLE -DLOCK_FLMAP -DFLMAPSECTION1 -DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L)
+target_include_directories(blinky_ino.cpp PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/core/")
+target_link_libraries(blinky_ino.cpp -Wall -Wextra -Os -g -flto -fuse-linker-plugin -mrelax -Wl,--gc-sections,--section-start=.text=0x0,--section-start=.FLMAP_SECTION1=0x8000,--section-start=.FLMAP_SECTION2=0x10000,--section-start=.FLMAP_SECTION3=0x18000 -mmcu=avr64dd32)
+add_custom_command(TARGET blinky_ino.cpp POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O ihex -R .eeprom blinky_ino.cpp blinky_ino.cpp.hex)
+add_custom_command(TARGET blinky_ino.cpp POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O binary -R .eeprom blinky_ino.cpp blinky_ino.cpp.bin)
