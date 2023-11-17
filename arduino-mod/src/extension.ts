@@ -254,6 +254,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     if (!fs.existsSync(createdSketchPath)) {
         fs.mkdirSync(createdSketchPath);
     }
+    fs.mkdirSync(path.join(destDir, 'preproc'));
     const createdCoreApiPath = path.join(createdCorePath, 'api');
     if (!fs.existsSync(createdCoreApiPath)) {
         fs.mkdirSync(createdCoreApiPath);
@@ -261,16 +262,30 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
 
     //console.log(await parser.getAllFlags(board));
 
+    await preproc(destDir, cFile);
     await compileSketch(destDir, cFile);
     await compileCore(destDir);
+    await createCoreA(destDir);
     await linkAll(destDir);
 
     vscode.window.showInformationMessage("Import complete!");
 }
 
+async function preproc(destDir: string, cFile: string){
+    const commands = [];
+    commands.push(`"${destDir}\\core\\compiler/bin/avr-g++" -c -g -Os -Wall -std=gnu++17 -fpermissive -Wno-sized-deallocation -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -flto -mrelax -w -x c++ -E -CC -mmcu=avr64dd32 -DF_CPU=24000000L -DCLOCK_SOURCE=0 -DTWI_MORS_SINGLE -DMILLIS_USE_TIMERB2 -DCORE_ATTACH_ALL -DLOCK_FLMAP -DFLMAPSECTION1 -DARDUINO=10607 -DARDUINO_avrdd -DARDUINO_ARCH_MEGAAVR "-DDXCORE=\"1.5.8\"" -DDXCORE_MAJOR=1UL -DDXCORE_MINOR=5UL -DDXCORE_PATCH=8UL -DDXCORE_RELEASED=1 -DMVIO_ENABLED "-I${destDir}\\core/api/deprecated" "-I${destDir}\\core" "-I${destDir}\\core\\32pin-ddseries" "${destDir}\\src\\${cFile}" -o nul`);
+    commands.push(`"${destDir}\\core\\compiler/bin/avr-g++" -c -g -Os -Wall -std=gnu++17 -fpermissive -Wno-sized-deallocation -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -flto -mrelax -w -x c++ -E -CC -mmcu=avr64dd32 -DF_CPU=24000000L -DCLOCK_SOURCE=0 -DTWI_MORS_SINGLE -DMILLIS_USE_TIMERB2 -DCORE_ATTACH_ALL -DLOCK_FLMAP -DFLMAPSECTION1 -DARDUINO=10607 -DARDUINO_avrdd -DARDUINO_ARCH_MEGAAVR "-DDXCORE=\"1.5.8\"" -DDXCORE_MAJOR=1UL -DDXCORE_MINOR=5UL -DDXCORE_PATCH=8UL -DDXCORE_RELEASED=1 -DMVIO_ENABLED "-I${destDir}\\core/api/deprecated" "-I${destDir}\\core" "-I${destDir}\\core\\32pin-ddseries" "${destDir}\\src\\${cFile}" -o "${destDir}\\preproc\\ctags_target_for_gcc_minus_e.cpp"`);
+    commands.push(`"C:\\Users\\rsbre\\AppData\\Local\\Arduino15\\packages\\builtin\\tools\\ctags\\5.8-arduino11/ctags" -u --language-force=c++ -f - --c++-kinds=svpf --fields=KSTtzns --line-directives "${destDir}\\preproc\\ctags_target_for_gcc_minus_e.cpp"`);
+    //TODO - FIX LAST HARDCODED command
+    for (const command of commands) {
+		await runCommand(command);
+	}
+
+}
+
 async function compileSketch(destDir: string, cFile: string) {
     const command = `"${destDir}\\core\\compiler/bin/avr-g++" -c -g -Os -Wall -std=gnu++17 -fpermissive -Wno-sized-deallocation -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -MMD -flto -mrelax -mmcu=avr64dd32 -DF_CPU=24000000L -DCLOCK_SOURCE=0 -DTWI_MORS_SINGLE -DMILLIS_USE_TIMERB2 -DCORE_ATTACH_ALL -DLOCK_FLMAP -DFLMAPSECTION1 -DARDUINO=10607 -DARDUINO_avrdd -DARDUINO_ARCH_MEGAAVR "-DDXCORE=\"1.5.8\"" -DDXCORE_MAJOR=1UL -DDXCORE_MINOR=5UL -DDXCORE_PATCH=8UL -DDXCORE_RELEASED=1 -DMVIO_ENABLED "-I${destDir}\\core/api/deprecated" "-I${destDir}\\core" "-I${destDir}\\core\\32pin-ddseries" "${destDir}\\src\\${cFile}" -o "${destDir}\\${cFile}.o"`;
-    runCommand(command);
+    await runCommand(command);
 }
 
 async function compileCore(destDir: string) {
@@ -311,21 +326,18 @@ async function compileCore(destDir: string) {
     commands.push(`"${destDir}\\core\\compiler/bin/avr-gcc" -c -g -x assembler-with-cpp -flto -MMD -mmcu=avr64dd32 -DF_CPU=24000000L -DCLOCK_SOURCE=0 -DTWI_MORS_SINGLE -DMILLIS_USE_TIMERB2 -DCORE_ATTACH_ALL -DLOCK_FLMAP -DFLMAPSECTION1 -DARDUINO=10607 -DARDUINO_avrdd -DARDUINO_ARCH_MEGAAVR "-DDXCORE=\"1.5.8\"" -DDXCORE_MAJOR=1UL -DDXCORE_MINOR=5UL -DDXCORE_PATCH=8UL -DDXCORE_RELEASED=1 -DMVIO_ENABLED "-I${destDir}\\core/api/deprecated" "-I${destDir}\\core" "-I${destDir}\\core\\32pin-ddseries" "${destDir}\\core\\wiring_pulse.S" -o "${destDir}\\created_core\\wiring_pulse.S.o"`);
     commands.push(`"${destDir}\\core\\compiler/bin/avr-gcc" -c -g -Os -Wall -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects -mrelax -Werror=implicit-function-declaration -Wundef -mmcu=avr64dd32 -DF_CPU=24000000L -DCLOCK_SOURCE=0 -DTWI_MORS_SINGLE -DMILLIS_USE_TIMERB2 -DCORE_ATTACH_ALL -DLOCK_FLMAP -DFLMAPSECTION1 -DARDUINO=10607 -DARDUINO_avrdd -DARDUINO_ARCH_MEGAAVR "-DDXCORE=\"1.5.8\"" -DDXCORE_MAJOR=1UL -DDXCORE_MINOR=5UL -DDXCORE_PATCH=8UL -DDXCORE_RELEASED=1 -DMVIO_ENABLED "-I${destDir}\\core/api/deprecated" "-I${destDir}\\core" "-I${destDir}\\core\\32pin-ddseries" "${destDir}\\core\\wiring_pulse.c" -o "${destDir}\\created_core\\wiring_pulse.c.o"`);
     commands.push(`"${destDir}\\core\\compiler/bin/avr-gcc" -c -g -Os -Wall -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects -mrelax -Werror=implicit-function-declaration -Wundef -mmcu=avr64dd32 -DF_CPU=24000000L -DCLOCK_SOURCE=0 -DTWI_MORS_SINGLE -DMILLIS_USE_TIMERB2 -DCORE_ATTACH_ALL -DLOCK_FLMAP -DFLMAPSECTION1 -DARDUINO=10607 -DARDUINO_avrdd -DARDUINO_ARCH_MEGAAVR "-DDXCORE=\"1.5.8\"" -DDXCORE_MAJOR=1UL -DDXCORE_MINOR=5UL -DDXCORE_PATCH=8UL -DDXCORE_RELEASED=1 -DMVIO_ENABLED "-I${destDir}\\core/api/deprecated" "-I${destDir}\\core" "-I${destDir}\\core\\32pin-ddseries" "${destDir}\\core\\wiring_shift.c" -o "${destDir}\\created_core\\wiring_shift.c.o"`);
-    commands.push(`"${destDir}\\core\\compiler/bin/avr-gcc-ar" rcs "${destDir}\\core.a" "${destDir}\\created_core\\Tone.cpp.o" 
-    "${destDir}\\created_core\\UART.cpp.o" "${destDir}\\created_core\\UART0.cpp.o"
-    "${destDir}\\created_core\\UART1.cpp.o"
-    "${destDir}\\created_core\\UART2.cpp.o"
-    "${destDir}\\created_core\\UART3.cpp.o"
-    "${destDir}\\created_core\\UART4.cpp.o"
-    "${destDir}\\created_core\\UART5.cpp.o"
-    "${destDir}\\created_core\\WInterrupts.c.o"
-    "${destDir}\\created_core\\WInterrupts_PA.c.o"
-    "${destDir}\\created_core\\WInterrupts_PB.c.o" "${destDir}\\created_core\\WInterrupts_PC.c.o" "${destDir}\\created_core\\WInterrupts_PD.c.o" "${destDir}\\created_core\\WInterrupts_PE.c.o" "${destDir}\\created_core\\WInterrupts_PF.c.o" "${destDir}\\created_core\\WInterrupts_PG.c.o" "${destDir}\\created_core\\WMath.cpp.o" "${destDir}\\created_core\\abi.cpp.o" "${destDir}\\created_core\\api\\Common.cpp.o" "${destDir}\\created_core\\api\\IPAddress.cpp.o" "${destDir}\\created_core\\api\\PluggableUSB.cpp.o" "${destDir}\\created_core\\api\\Print.cpp.o" "${destDir}\\created_core\\api\\RingBuffer.cpp.o" "${destDir}\\created_core\\api\\Stream.cpp.o" "${destDir}\\created_core\\api\\String.cpp.o" "${destDir}\\created_core\\hooks.c.o" "${destDir}\\created_core\\main.cpp.o" "${destDir}\\created_core\\new.cpp.o" "${destDir}\\created_core\\pinswap.c.o" "${destDir}\\created_core\\wiring.c.o" "${destDir}\\created_core\\wiring_analog.c.o" "${destDir}\\created_core\\wiring_digital.c.o" "${destDir}\\created_core\\wiring_extra.cpp.o" "${destDir}\\created_core\\wiring_pulse.S.o" "${destDir}\\created_core\\wiring_pulse.c.o"`);
-
+ //   commands.push(`"${destDir}\\core\\compiler/bin/avr-gcc-ar" rcs "${destDir}\\core.a" "${destDir}\\created_core\\Tone.cpp.o" "${destDir}\\created_core\\UART.cpp.o" "${destDir}\\created_core\\UART0.cpp.o" "${destDir}\\created_core\\UART1.cpp.o" "${destDir}\\created_core\\UART2.cpp.o" "${destDir}\\created_core\\UART3.cpp.o" "${destDir}\\created_core\\UART4.cpp.o" "${destDir}\\created_core\\UART5.cpp.o" "${destDir}\\created_core\\WInterrupts.c.o" "${destDir}\\created_core\\WInterrupts_PA.c.o" "${destDir}\\created_core\\WInterrupts_PB.c.o" "${destDir}\\created_core\\WInterrupts_PC.c.o" "${destDir}\\created_core\\WInterrupts_PD.c.o" "${destDir}\\created_core\\WInterrupts_PE.c.o" "${destDir}\\created_core\\WInterrupts_PF.c.o" "${destDir}\\created_core\\WInterrupts_PG.c.o" "${destDir}\\created_core\\WMath.cpp.o" "${destDir}\\created_core\\abi.cpp.o" "${destDir}\\created_core\\api\\Common.cpp.o" "${destDir}\\created_core\\api\\IPAddress.cpp.o" "${destDir}\\created_core\\api\\PluggableUSB.cpp.o" "${destDir}\\created_core\\api\\Print.cpp.o" "${destDir}\\created_core\\api\\RingBuffer.cpp.o" "${destDir}\\created_core\\api\\Stream.cpp.o" "${destDir}\\created_core\\api\\String.cpp.o" "${destDir}\\created_core\\hooks.c.o" "${destDir}\\created_core\\main.cpp.o" "${destDir}\\created_core\\new.cpp.o" "${destDir}\\created_core\\pinswap.c.o" "${destDir}\\created_core\\wiring.c.o" "${destDir}\\created_core\\wiring_analog.c.o" "${destDir}\\created_core\\wiring_digital.c.o" "${destDir}\\created_core\\wiring_extra.cpp.o" "${destDir}\\created_core\\wiring_pulse.S.o" "${destDir}\\created_core\\wiring_pulse.c.o"`);
+  
     for (const command of commands) {
-		runCommand(command);
+		await runCommand(command);
 	}
 
+}
+
+async function createCoreA(destDir: string){
+    const command = `"${destDir}\\core\\compiler/bin/avr-gcc-ar" rcs "${destDir}\\core.a" "${destDir}\\created_core\\Tone.cpp.o" "${destDir}\\created_core\\UART.cpp.o" "${destDir}\\created_core\\UART0.cpp.o" "${destDir}\\created_core\\UART1.cpp.o" "${destDir}\\created_core\\UART2.cpp.o" "${destDir}\\created_core\\UART3.cpp.o" "${destDir}\\created_core\\UART4.cpp.o" "${destDir}\\created_core\\UART5.cpp.o" "${destDir}\\created_core\\WInterrupts.c.o" "${destDir}\\created_core\\WInterrupts_PA.c.o" "${destDir}\\created_core\\WInterrupts_PB.c.o" "${destDir}\\created_core\\WInterrupts_PC.c.o" "${destDir}\\created_core\\WInterrupts_PD.c.o" "${destDir}\\created_core\\WInterrupts_PE.c.o" "${destDir}\\created_core\\WInterrupts_PF.c.o" "${destDir}\\created_core\\WInterrupts_PG.c.o" "${destDir}\\created_core\\WMath.cpp.o" "${destDir}\\created_core\\abi.cpp.o" "${destDir}\\created_core\\api\\Common.cpp.o" "${destDir}\\created_core\\api\\IPAddress.cpp.o" "${destDir}\\created_core\\api\\PluggableUSB.cpp.o" "${destDir}\\created_core\\api\\Print.cpp.o" "${destDir}\\created_core\\api\\RingBuffer.cpp.o" "${destDir}\\created_core\\api\\Stream.cpp.o" "${destDir}\\created_core\\api\\String.cpp.o" "${destDir}\\created_core\\hooks.c.o" "${destDir}\\created_core\\main.cpp.o" "${destDir}\\created_core\\new.cpp.o" "${destDir}\\created_core\\pinswap.c.o" "${destDir}\\created_core\\wiring.c.o" "${destDir}\\created_core\\wiring_analog.c.o" "${destDir}\\created_core\\wiring_digital.c.o" "${destDir}\\created_core\\wiring_extra.cpp.o" "${destDir}\\created_core\\wiring_pulse.S.o" "${destDir}\\created_core\\wiring_pulse.c.o"`
+  
+    await runCommand(command);
 }
 
 async function linkAll(destDir: string) {
@@ -336,13 +348,13 @@ async function linkAll(destDir: string) {
 //    commands.push(`"${destDir}\\core\\compiler/bin/avr-objcopy" -O ihex -R .eeprom "${destDir}\\sketches/Blink.elf" "${destDir}\\sketches/Blink.hex"`);
 
     for (const command of commands) {
-		runCommand(command);
+		await runCommand(command);
 	}
 
 }
 
 
-function runCommand(command: string) {
+async function runCommand(command: string) {
     exec(command, (error, stdout, stderr) => {
         if (error) {
           console.error(`Error: ${error.message}`);
