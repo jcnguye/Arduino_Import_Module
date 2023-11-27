@@ -81,7 +81,7 @@ export function copyDirectories(srcPaths: string[], dest: string): void {
 	}
 }
 
-export function copyDirectory(src: string, dest: string): void {
+export function copyDirectory(src: string, dest: string) {
 	// Create destination directory if it doesn't exist
 	if (!fs.existsSync(dest)) {
 		fs.mkdirSync(dest);

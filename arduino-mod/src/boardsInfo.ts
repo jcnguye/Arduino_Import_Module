@@ -42,13 +42,15 @@ export class Board {
             const localAppData = process.env.LOCALAPPDATA;
             const version = parser.getDXCoreVersion();
             if (localAppData) {
-                this.pathToCompiler = path.join(localAppData,"Arduino15","packages","DxCore","tools","avr-gcc");
+
+                this.pathToCompiler = path.join(localAppData,"Arduino15","packages","arduino","tools","avr-gcc");
                 const compilerVersion = this.mostRecentDirectory(this.pathToCompiler);
                 this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion);
 
-                this.corePaths.push(path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version,"cores","dxcore"));
-                this.corePaths.push(path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version,"variants","32pin-ddseries"));
-                this.corePaths.push(path.join(localAppData, "Arduino15", "packages", "DxCore","tools","avr-gcc",compilerVersion,"avr","include"));
+                //TODO - Fix version
+                this.corePaths.push(path.join(localAppData, "Arduino15", "packages", "arduino","hardware","avr","1.8.6","cores","arduino"));
+                this.corePaths.push(path.join(localAppData, "Arduino15", "packages", "arduino","hardware","avr","1.8.6","variants"));
+
             }
         } else if (boardName === MEGA) {
             this.options.push("ATMega2560");
