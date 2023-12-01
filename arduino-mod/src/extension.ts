@@ -242,6 +242,41 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     importproj.copyAvrGcc(corePath, board);
     console.log("Compiler copy complete");
 
+    // create makefile
+    console.log("Creating makefile...");
+    const makefileContent = `
+    # Makefile
+    # Compiler
+    CC = g++
+    
+    # Compiler flags
+    CFLAGS = -Wall -g
+    
+    # Source files
+    SOURCES = ${cFile}
+    
+    # Output executable
+    EXECUTABLE = arduino-import
+    
+    # Library path
+    LIB_PATH = -L./lib
+    
+    # Wildcard to find all shared libraries
+    LIBS = $(wildcard ./lib/*.h)
+    
+    # Build rule
+    $(EXECUTABLE): $(SOURCES)
+        $(CC) $(CFLAGS) $^ -o $@ $(LIB_PATH) $(LIBS)
+    
+    # Clean rule
+    clean:
+        rm -f $(EXECUTABLE)
+    `;
+
+    const makefilePath = path.join(destDir, 'Makefile.txt'.trim())
+    fs.writeFileSync(makefilePath, makefileContent);
+    console.log("Makefile created");
+
     const cmake= new Cmaker();
     cmake.setProjectDirectory(destDir);
     cmake.setProjectName(cFile.replace(".cpp", ""));
