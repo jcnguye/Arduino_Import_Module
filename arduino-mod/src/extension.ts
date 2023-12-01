@@ -267,7 +267,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     await compileSketch(destDir, cFile);
     await compileCore(destDir);
     await createCoreA(destDir);
- //   await linkAll(destDir);
+    await linkAll(destDir);
 
     vscode.window.showInformationMessage("Import complete!");
     }
@@ -342,7 +342,7 @@ async function createCoreA(destDir: string): Promise<string>{
 
 async function linkAll(destDir: string): Promise<string> {
     const commands = [];
-    commands.push(`"${destDir}\\core\\compiler/bin/avr-gcc" -w -Os -g -flto -fuse-linker-plugin -Wl,--gc-sections -mmcu=atmega328p -o "${destDir}/Blink.elf" "${destDir}\\Blink.cpp.o" "${destDir}\\core.a" "-L${destDir}" -lm`);
+    commands.push(`"${destDir}\\core\\compiler/bin/avr-gcc" -w -Os -g -flto -fuse-linker-plugin -Wl,--gc-sections -mmcu=atmega328p -o "${destDir}/Blink.elf" "${destDir}\\Blink.cpp.o" "${destDir}\\created_core\\core.a" "-L${destDir}" -lm`);
     commands.push(`"${destDir}\\core\\compiler/bin/avr-objcopy" -O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0 "${destDir}/Blink.elf" "${destDir}/Blink.eep"`);
     commands.push(`"${destDir}\\core\\compiler/bin/avr-objcopy" -O ihex -R .eeprom "${destDir}/Blink.elf" "${destDir}/Blink.hex"`);
  //commands.push(`"${destDir}\\core\\compiler/bin/avr-gcc" -Wall -Os -g -flto -fuse-linker-plugin -mrelax -Wl,--gc-sections,--section-start=.text=0x0,--section-start=.FLMAP_SECTION1=0x8000,--section-start=.FLMAP_SECTION2=0x10000,--section-start=.FLMAP_SECTION3=0x18000 -mmcu=avr64dd32 -o "${destDir}\\Blink.elf" "${destDir}\\Blink.cpp.o" "${destDir}\\core.a" "-L${destDir}" -lm`);
@@ -359,7 +359,7 @@ async function linkAll(destDir: string): Promise<string> {
 
 
 async function runCommand(command: string): Promise<string> {
-    console.log(command);
+//    console.log(command);
     exec(command, (error, stdout, stderr) => {
         if (error) {
         console.error(`Error: ${error.message}`);
