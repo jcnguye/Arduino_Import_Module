@@ -245,36 +245,37 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     // create makefile
     console.log("Creating makefile...");
     const makefileContent = `
-    # Makefile
-    # Compiler
-    CC = g++
-    
-    # Compiler flags
-    CFLAGS = -Wall -g
-    
-    # Source files
-    SOURCES = ${cFile}
-    
-    # Output executable
-    EXECUTABLE = arduino-import
-    
-    # Library path
-    LIB_PATH = -L./lib
-    
-    # Wildcard to find all shared libraries
-    LIBS = $(wildcard ./lib/*.h)
-    
-    # Build rule
-    $(EXECUTABLE): $(SOURCES)
-        $(CC) $(CFLAGS) $^ -o $@ $(LIB_PATH) $(LIBS)
-    
-    # Clean rule
-    clean:
-        rm -f $(EXECUTABLE)
-    `;
+# Makefile
+# Compiler
+CC = g++
 
-    const makefilePath = path.join(destDir, 'Makefile.txt'.trim())
-    fs.writeFileSync(makefilePath, makefileContent);
+# Compiler flags
+CFLAGS = -Wall -g
+
+# Source files
+SOURCES = src/${cFile}
+
+# Output executable
+EXECUTABLE = arduino-import
+
+# Library path
+LIB_PATH = -L./lib
+
+# Wildcard to find all shared libraries
+LIBS = $(wildcard ./lib/*.h)
+
+# Build rule
+$(EXECUTABLE): $(SOURCES)
+        $(CC) $(CFLAGS) $^ -o $@ $(LIB_PATH) $(LIBS)
+
+# Clean rule
+clean:
+        rm -f $(EXECUTABLE)
+`;
+
+    const makefilePath = path.join(__dirname, 'Makefile');
+    console.log("Make file is here temporarily: " + makefilePath);
+    fs.writeFileSync(makefilePath, makefileContent.trim());
     console.log("Makefile created");
 
     const cmake= new Cmaker();
