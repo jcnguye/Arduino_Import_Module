@@ -1,7 +1,16 @@
-# from https://github.com/microsoft/TypeScript/blob/main/.gitignore
+# IDE Files
+*.code-workspace
 
-# because the build dir is set to out/ in tsconfig.json
-out/
+# Compilation Files
+*.js
+arduino-mod/node_modules/.bin/*
+arduino-mod/out/*
+
+# External Library Files
+arduino-mod/node_modules/*
+
+# build directory
+arduino-mod/build/*
 
 node_modules/
 .node_modules/
@@ -16,3 +25,5 @@ Thumbs.db
 !**/.vscode/extensions.json
 .idea
 .vscodeignore
+
+build/
