@@ -242,6 +242,42 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     importproj.copyAvrGcc(corePath, board);
     console.log("Compiler copy complete");
 
+    // create makefile
+    console.log("Creating makefile...");
+    const makefileContent = `
+# Makefile
+# Compiler
+CC = core/compiler/bin/avr-gcc.exe
+
+# Compiler flags
+CFLAGS = -Wall -g -Icore/ -c -g -Os -std=gnu++17 -fpermissive -Wno-sized-deallocation -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -MMD -flto -mrelax -DARDUINO_avrdd -mmcu=avr64dd32 -DCLOCK_SOURCE=0 -DMILLIS_USE_TIMERB2 -DCORE_ATTACH_ALL -DTWI_MORS_SINGLE -DLOCK_FLMAP -DFLMAPSECTION1 -DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L -DDXCORE_MAJOR=1UL -DDXCORE_MINOR=5UL -DDXCORE_PATCH=11UL -DDXCORE_RELEASED=1 -DMVIO_ENABLED 
+
+# Source files
+SOURCES = src/${cFile}
+
+# Output executable
+EXECUTABLE = arduino-import
+
+# Library path
+LIB_PATH = -L./lib
+
+# Wildcard to find all shared libraries
+LIBS = $(wildcard ./lib/*.h)
+
+# Build rule
+$(EXECUTABLE): $(SOURCES)
+\t$(CC) $(CFLAGS) $^ -o $@ $(LIB_PATH) $(LIBS)
+
+# Clean rule
+clean:
+\trm -f $(EXECUTABLE)
+`;
+
+    const makefilePath = path.join(__dirname, 'Makefile');
+    console.log("Make file is here temporarily: " + makefilePath);
+    fs.writeFileSync(makefilePath, makefileContent.trim());
+    console.log("Makefile created");
+
     const cmake= new Cmaker();
     cmake.setProjectDirectory(destDir);
     cmake.setProjectName(cFile.replace(".cpp", ""));
