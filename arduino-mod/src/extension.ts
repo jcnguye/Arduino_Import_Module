@@ -247,10 +247,10 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     const makefileContent = `
 # Makefile
 # Compiler
-CC = g++
+CC = core/compiler/bin/avr-gcc.exe
 
 # Compiler flags
-CFLAGS = -Wall -g
+CFLAGS = -Wall -g -Icore/ -c -g -Os -std=gnu++17 -fpermissive -Wno-sized-deallocation -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -MMD -flto -mrelax -DARDUINO_avrdd -mmcu=avr64dd32 -DCLOCK_SOURCE=0 -DMILLIS_USE_TIMERB2 -DCORE_ATTACH_ALL -DTWI_MORS_SINGLE -DLOCK_FLMAP -DFLMAPSECTION1 -DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L -DDXCORE_MAJOR=1UL -DDXCORE_MINOR=5UL -DDXCORE_PATCH=11UL -DDXCORE_RELEASED=1 -DMVIO_ENABLED 
 
 # Source files
 SOURCES = src/${cFile}
@@ -266,11 +266,11 @@ LIBS = $(wildcard ./lib/*.h)
 
 # Build rule
 $(EXECUTABLE): $(SOURCES)
-        $(CC) $(CFLAGS) $^ -o $@ $(LIB_PATH) $(LIBS)
+\t$(CC) $(CFLAGS) $^ -o $@ $(LIB_PATH) $(LIBS)
 
 # Clean rule
 clean:
-        rm -f $(EXECUTABLE)
+\trm -f $(EXECUTABLE)
 `;
 
     const makefilePath = path.join(__dirname, 'Makefile');

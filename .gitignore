@@ -9,6 +9,9 @@ arduino-mod/out/*
 # External Library Files
 arduino-mod/node_modules/*
 
+# build directory
+arduino-mod/build/*
+
 node_modules/
 .node_modules/
 **/.DS_Store
