@@ -239,7 +239,11 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     console.log("Core import complete");
 
     //copy avr-gcc compiler 
-    importproj.copyAvrGcc(corePath, board);
+    const compilerPath = path.join(destDir, 'compiler');
+    if (!fs.existsSync(compilerPath)) {
+        fs.mkdirSync(compilerPath);
+    }
+    importproj.copyDirectory(board.getPathToCompiler(), compilerPath);
     console.log("Compiler copy complete");
 
     // create makefile
