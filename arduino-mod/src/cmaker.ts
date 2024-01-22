@@ -36,16 +36,16 @@ export class Cmaker {
 	public build(): void{
 
 		//sets the cmake version
-		let cmakeHeader = "cmake_minimum_required(VERSION 3.0)";
-		cmakeHeader = cmakeHeader + '\nset(CMAKE_C_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-gcc")';
-		cmakeHeader = cmakeHeader + '\nset(CMAKE_CXX_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-g++")';
-		cmakeHeader = cmakeHeader + "\nproject(" + this.projName + ")";
+		let cmakeHeader = "cmake_minimum_required(VERSION 3.0)\n";
+		cmakeHeader = cmakeHeader + 'set(CMAKE_C_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-gcc")\n';
+		cmakeHeader = cmakeHeader + 'set(CMAKE_CXX_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-g++")\n';
+		cmakeHeader = cmakeHeader + "project(" + this.projName + ")\n";
 		//cmake  adding executable 
-		let cmakeSrcExecutable = "\nadd_executable(" + this.projName + " " + this.srcFileName +")";
+		let cmakeSrcExecutable = "add_executable(" + this.projName + " " + this.srcFileName +")\n";
 		// cmake adding compile option
-		let cmakeSrcCompileOpt = "\ntarget_compile_options(" + this.projName + " PRIVATE " + this.compilerflags +")";
+		let cmakeSrcCompileOpt = "target_compile_options(" + this.projName + " PRIVATE " + this.compilerflags +")\n";
 		// cmake link libary
-		let cmakeSrcLinkLib = "\ntarget_link_libraries(" + this.projName + " " + this.linkerflags +")";
+		let cmakeSrcLinkLib = "target_link_libraries(" + this.projName + " " + this.linkerflags +")\n";
 		// hex file generator
 		let hex = "add_custom_command(TARGET " + this.projName + " POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O ihex -R .eeprom " + this.projName + " " + this.projName + ".hex)\n";
 		// bin file generator
