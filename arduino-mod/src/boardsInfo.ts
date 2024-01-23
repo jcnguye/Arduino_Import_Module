@@ -33,22 +33,28 @@ export class Board {
 
     constructor(boardName: string) {
         this.boardName = boardName;
-        const localAppData = process.env.LOCALAPPDATA;
-
+        var localAppData = "???";
+		if(process.platform === "win32") {
+			localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15")
+		} else if(process.platform === "darwin") {
+			localAppData = path.join(process.env.HOME, "Library", "Arduino15")
+		} else if(process.platform === "linux") {
+			localAppData = path.join(process.env.HOME, ".arduino15")
+		}
         if(boardName === NANO) {
             this.hardCodedFlags = "-DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L"; //TODO - Update for Nano
             this.chipName = "avrdd"; //TODO - Update for Nano
             this.options.push("ATmega328P or ATmega328P (Old Bootloader)");          
              
             if (localAppData) {
-                this.pathToCompiler = path.join(localAppData,"Arduino15","packages","arduino","tools","avr-gcc"); 
+                this.pathToCompiler = path.join(localAppData,"packages","arduino","tools","avr-gcc");
                 const compilerVersion = this.mostRecentDirectory(this.pathToCompiler); 
                 this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion); 
 
                 //TODO - Update core paths for Nano
                 const version = parser.getDXCoreVersion(); //TODO - Update for Nano
-                this.corePaths.push(path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version,"cores","dxcore"));
-                this.corePaths.push(path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version,"variants","32pin-ddseries"));
+                this.corePaths.push(path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"cores","dxcore"));
+                this.corePaths.push(path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"variants","32pin-ddseries"));
             }
         } else if (boardName === MEGA) {
             this.options.push("ATMega2560");
@@ -71,9 +77,9 @@ export class Board {
                 const compilerVersion = this.mostRecentDirectory(this.pathToCompiler);
                 this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion);
 
-                this.corePaths.push(path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version,"cores","dxcore"));
-                this.corePaths.push(path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version,"variants","32pin-ddseries"));
-                this.corePaths.push(path.join(localAppData, "Arduino15", "packages", "DxCore","tools","avr-gcc",compilerVersion,"avr","include"));
+                this.corePaths.push(path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"cores","dxcore"));
+                this.corePaths.push(path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"variants","32pin-ddseries"));
+                this.corePaths.push(path.join(localAppData, "packages", "DxCore","tools","avr-gcc",compilerVersion,"avr","include"));
             }
         */
     }

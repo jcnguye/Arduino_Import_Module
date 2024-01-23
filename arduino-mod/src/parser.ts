@@ -115,13 +115,20 @@ export async function getAllFlags(board: Board): Promise<string> {
         const hardCodedFlags = board.getHardcodedFlags();
 
         //getting map for boards.txt
-        const localAppData = process.env.LOCALAPPDATA;
+        var localAppData = "???";
+		if(process.platform === "win32") {
+			localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15")
+		} else if(process.platform === "darwin") {
+			localAppData = path.join(process.env.HOME!, "Library", "Arduino15")
+		} else if(process.platform === "linux") {
+			localAppData = path.join(process.env.HOME!, ".arduino15")
+		}
         const version = getDXCoreVersion();
-        const libraryFilePath = path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version,"boards.txt");
+        const libraryFilePath = path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"boards.txt");
         const map = await parseBoards(libraryFilePath, platform);
 
         //getting array of platform.txt
-        let platformFolder = path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version);
+        let platformFolder = path.join(localAppData, "packages", "DxCore","hardware","megaavr",version);
         let array = await parsePlatform(platformFolder);
 
         let cppPatternIndex = 0;
@@ -183,8 +190,8 @@ export async function getAllFlags(board: Board): Promise<string> {
                             const match = opt.match(/{(.*?)}/);
                             flagAndVariables.push(opt);
                         
-                            if(match[1] !== null) {
-                                variables.push(match[1]);
+                            if(match![1] !== null) {
+                                variables.push(match![1]);
                             }   
                         }
                     //new variable
@@ -215,7 +222,7 @@ export async function getAllFlags(board: Board): Promise<string> {
 
                             const match = flagAndVariables[x].match(/{(.*?)}/);
     
-                            indexRemove.push(match[1]);
+                            indexRemove.push(match![1]);
                             fPlusVariablesToRemove.push(flagAndVariables[x]);
                             standAloneFlags.push(getFlag(flagAndVariables[x],value));
                         }
@@ -242,7 +249,7 @@ export async function getAllFlags(board: Board): Promise<string> {
 
                             const match = flagAndVariables[x].match(/{(.*?)}/);
     
-                            indexRemove.push(match[1]);
+                            indexRemove.push(match![1]);
                             fPlusVariablesToRemove.push(flagAndVariables[x]);
                             standAloneFlags.push(getFlag(flagAndVariables[x],value));
                         }
@@ -256,7 +263,7 @@ export async function getAllFlags(board: Board): Promise<string> {
 
                             const match = flagAndVariables[x].match(/{(.*?)}/);
     
-                            indexRemove.push(match[1]);
+                            indexRemove.push(match![1]);
                             fPlusVariablesToRemove.push(flagAndVariables[x]);
                             standAloneFlags.push(getFlag(flagAndVariables[x],value));
                         }
@@ -270,7 +277,7 @@ export async function getAllFlags(board: Board): Promise<string> {
                             const match = flagAndVariables[x].match(/{(.*?)}/);
 
 
-                            indexRemove.push(match[1]);
+                            indexRemove.push(match![1]);
                             fPlusVariablesToRemove.push(flagAndVariables[x]);
                             standAloneFlags.push(getFlag(flagAndVariables[x],value));
                         }
@@ -281,7 +288,7 @@ export async function getAllFlags(board: Board): Promise<string> {
                 for(let i = 0; i < flagAndVariables.length; i++) {
                     const match = flagAndVariables[i].match(/{(.*?)}/);
 
-                    if(key.includes(match[1])) {
+                    if(key.includes(match![1])) {
                         let str = getFlag(flagAndVariables[i],value);
 
                         if(!str.includes("{") && !str.includes(" ") && !str.includes("}")) {
