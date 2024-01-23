@@ -204,6 +204,25 @@ async function copyLibraries(newDirectory: string, sketchFile: string) {
     }
 }
 
+/**
+ * Adds #include <Arduino.h> to the top specified file (needed for cmake build)
+ * 
+ * @param filePath path to the file that should have "#include <Arduino.h>" added. 
+ */
+function addIncludeArduinoHToFile(filePath: string) {
+    const appendIncludes = '#include <Arduino.h>';
+    console.log("filepath to add includes" + filePath);
+    try {
+        const fileContent = fs.readFileSync(filePath, 'utf-8');
+        console.log("file content: \n\n" + fileContent);
+        const modifiedContent = appendIncludes + '\n' + fileContent;
+        console.log("\n\nModified content:" + modifiedContent);
+        fs.writeFileSync(filePath, modifiedContent, 'utf-8');
+    } catch (error) {
+        console.log(error);
+    }
+ }
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -226,6 +245,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
         fs.mkdirSync(srcPath);
     }
     copyFile(sketchPath, srcPath, cFile);
+    addIncludeArduinoHToFile(path.join(srcPath, cFile));
 
     //create lib folder in destination directory and copy all librarires included in sketch file
     const libPath = path.join(destDir, 'lib');
