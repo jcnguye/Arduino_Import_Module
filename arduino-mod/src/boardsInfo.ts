@@ -21,11 +21,10 @@ export function getBoard(boardName: string): Board {
 /**
  * Board class that stores hardcoded data for each board
  */
-export class Board {
+export class Board{
     boardName: string;
     private hardCodedFlags: string = "";
     private chipName: string = "";
-    allFlags: string = "";
     options: string[] = [];
     private corePaths: string[] = []; //list of all necessary core related libraries that need to be copied for each board
     private pathToCompiler: string = "";
@@ -69,14 +68,6 @@ export class Board {
 
     getChipName() {
         return this.chipName;
-    }
-
-    setAllFlags(allFlags: string) {
-        this.allFlags = allFlags;
-    }
-
-    getAllFlags() {
-        return this.allFlags;
     }
 
     getCorePaths() {
