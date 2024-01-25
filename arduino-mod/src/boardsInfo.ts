@@ -51,10 +51,11 @@ export class Board {
                 const compilerVersion = this.mostRecentDirectory(this.pathToCompiler); 
                 this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion); 
 
-                //TODO - Update core paths for Nano
-                const version = parser.getDXCoreVersion(); //TODO - Update for Nano
-                this.corePaths.push(path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"cores","dxcore"));
-                this.corePaths.push(path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"variants","32pin-ddseries"));
+                
+                const version = parser.getNanoVersion(); //TODO - Update for Nano
+                this.corePaths.push(path.join(localAppData, "packages", "arduino","hardware","avr",version,"cores","arduino"));
+                this.corePaths.push(path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"variants","eightanaloginputs"));
+                this.corePaths.push(path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"variants","standard"));
             }
         } else if (boardName === MEGA) {
             this.options.push("ATMega2560");
