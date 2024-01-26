@@ -135,8 +135,9 @@ function getAllLibraries(filepath: string): Promise<string[]> {
  * @param destinationDirectory Path to the directory the file should be copied into
  * @param newFileName Optional. Rename the copy of the file. Can be used to rename .ino to .cpp, but doesn't change the 
  * contents of the file. 
+ * @param appendString Optional. String to add to the beginning of the copied file. 
  */
-function copyFile(sourcePath: string, destinationDirectory: string, newFileName?: string) {
+function copyFile(sourcePath: string, destinationDirectory: string, newFileName?: string, appendString?: string) {
 	var fileName;
 	if (newFileName) {
 		fileName = newFileName;
@@ -153,6 +154,10 @@ function copyFile(sourcePath: string, destinationDirectory: string, newFileName?
 	output.on('error', (err) => {
 		console.error('Error writing to file: ', destinationPath);
 	});
+
+    if (appendString) {
+        output.write(appendString);
+    }
 	//copy file
 	input.pipe(output);
 }
@@ -218,7 +223,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     if (!fs.existsSync(srcPath)) {
         fs.mkdirSync(srcPath);
     }
-    copyFile(sketchPath, srcPath, cFile);
+    copyFile(sketchPath, srcPath, cFile, '#include <Arduino.h>\n');
 
     //create lib folder in destination directory and copy all librarires included in sketch file
     const libPath = path.join(destDir, 'lib');
@@ -239,7 +244,11 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     console.log("Core import complete");
 
     //copy avr-gcc compiler 
-    importproj.copyAvrGcc(corePath, board);
+    const compilerPath = path.join(destDir, 'compiler');
+    if (!fs.existsSync(compilerPath)) {
+        fs.mkdirSync(compilerPath);
+    }
+    importproj.copyDirectory(board.getPathToCompiler(), compilerPath);
     console.log("Compiler copy complete");
 
     // create makefile

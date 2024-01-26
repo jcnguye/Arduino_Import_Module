@@ -36,18 +36,35 @@ export class Cmaker {
 	public build(): void{
 
 		//sets the cmake version
-		let cmakeHeader = "cmake_minimum_required(VERSION 3.0)";
-		cmakeHeader = cmakeHeader + '\nset(CMAKE_C_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-gcc")';
-		cmakeHeader = cmakeHeader + '\nset(CMAKE_CXX_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-g++")';
-		cmakeHeader = cmakeHeader + "\nproject(" + this.projName + ")";
+		let cmakeHeader = "cmake_minimum_required(VERSION 3.8)\n";
+		cmakeHeader = cmakeHeader + 'project(' + this.projName + ' C CXX)\n\n';
+		cmakeHeader = cmakeHeader + 'set(CORE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/core)\n\n';
+		cmakeHeader = cmakeHeader + 'set(CMAKE_C_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-gcc.exe")\n';
+		cmakeHeader = cmakeHeader + 'set(CMAKE_CXX_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-g++.exe")\n';
+		cmakeHeader = cmakeHeader + 'set(CMAKE_AR "${CMAKE_CURRENT_SOURCE_DIR}/compiler/bin/avr-gcc-ar.exe")\n';
+		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJCOPY "${CMAKE_CURRENT_SOURCE_DIR}/compiler/bin/avr-objcopy.exe")\n\n';
+		cmakeHeader = cmakeHeader + 'set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -c -g -Os -w -std=gnu++11 -fpermissive -fno-exceptions ' + 
+		'-ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -MMD -flto -mmcu=atmega328p -DF_CPU=16000000L '+ 
+		'-DARDUINO=10607 -DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR")\n';
+		cmakeHeader = cmakeHeader + 'set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -c -g -Os -w -std=gnu11 -ffunction-sections -fdata-sections -MMD ' + 
+		'-flto -fno-fat-lto-objects -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10607 -DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR")\n';
+		cmakeHeader = cmakeHeader + 'set(CMAKE_STATIC_LIBRARY_FLAGS "rcs")\n';
+		cmakeHeader = cmakeHeader + 'set(CMAKE_C_FLAGS_LINKER "${CMAKE_C_FLAGS_LINKER} -w -Os -g -flto -fuse-linker-plugin -Wl,--gc-sections ' +
+		'-mmcu=atmega328p -o ${CMAKE_CURRENT_SOURCE_DIR}/build/CMakeFiles/' + this.projName + '.dir/' + this.projName + 
+		'.elf ${CMAKE_CURRENT_SOURCE_DIR}/build/CMakeFiles/' + this.projName + '.dir/' + this.projName + '.cpp.o ${CMAKE_CURRENT_SOURCE_DIR}/build/libcore.a -L${CMAKE_CURRENT_SOURCE_DIR}/build -lm")\n\n';
+
 		//cmake  adding executable 
-		let cmakeSrcExecutable = "\nadd_executable(" + this.projName + " " + this.srcFileName +")";
+		let cmakeSrcExecutable = "add_executable(" + this.projName + " " + this.srcFileName +")\n";
 		// cmake adding compile option
-		let cmakeSrcCompileOpt = "\ntarget_compile_options(" + this.projName + " PRIVATE " + this.compilerflags +")";
+		let cmakeSrcCompileOpt = "target_compile_options(" + this.projName + " PRIVATE " + this.compilerflags +")\n";
 		// cmake link libary
-		let cmakeSrcLinkLib = "\ntarget_link_libraries(" + this.projName + " " + this.linkerflags +")";
+		let cmakeSrcLinkLib = "target_link_libraries(" + this.projName + " " + this.linkerflags +")\n";
+		// cmake include directories, file, and add library
+		let cmakeDir = 'include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core" "${CMAKE_CURRENT_SOURCE_DIR}/core/eightanaloginputs" "${CMAKE_CURRENT_SOURCE_DIR}/core/standard")\n' +
+		'file(GLOB CORE_SOURCES "${CORE_DIR}/*.cpp" "${CORE_DIR}/*.c")\nadd_library(core STATIC ${CORE_SOURCES})\n\n';
 		// hex file generator
 		let hex = "add_custom_command(TARGET " + this.projName + " POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O ihex -R .eeprom " + this.projName + " " + this.projName + ".hex)\n";
+		hex = hex + 'set(HEX_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/' + this.projName + '.hex")\n';
 		// bin file generator
 		let bin = "add_custom_command(TARGET " + this.projName + " POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O binary -R .eeprom " + this.projName + " " + this.projName + ".bin)\n";
 
@@ -72,6 +89,7 @@ export class Cmaker {
 		fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeSrcExecutable);
 		fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeSrcCompileOpt);
 		fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeSrcLinkLib);
+		fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeDir);
 		fs.appendFileSync(this.projDir + "/CMakeLists.txt", hex);
 		fs.appendFileSync(this.projDir + "/CMakeLists.txt", bin);
 

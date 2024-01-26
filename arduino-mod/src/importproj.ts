@@ -104,15 +104,6 @@ export function copyDirectory(src: string, dest: string): void {
 	});
 }
 
-/**
- * Copies the most recent version of the AVR-GCC compiler that a user has downloaded
- * 
- * @param dest Destination directory where the AVR-GCC compiler should be copied to
- */
-export function copyAvrGcc(dest: string, board: Board){
-	dest = path.join(dest, "compiler");
-	copyDirectory(board.getPathToCompiler(), dest);
-}
 
 
 
