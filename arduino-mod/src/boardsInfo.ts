@@ -27,7 +27,7 @@ export class Board {
     private chipName: string = "";
     allFlags: string = "";
     options: string[] = [];
-    private corePaths: string[] = []; //list of all necessary core related libraries that need to be copied for each board
+    private corePaths: [string, string][] = []; // tuple of core lib path and ./core/ dest
     private pathToCompiler: string = "";
 
 
@@ -52,9 +52,10 @@ export class Board {
                 this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion); 
 
             	const basepath = path.join(localAppData, "packages", "arduino", "hardware", "avr", parser.getNanoVersion())
-                this.corePaths.push(path.join(basepath, "cores", "arduino"));
-                this.corePaths.push(path.join(basepath, "variants", "eightanaloginputs"));
-                this.corePaths.push(path.join(basepath, "variants", "standard"));
+            	
+                this.corePaths.push([path.join(basepath, "cores", "arduino"), "core"]);
+                this.corePaths.push([path.join(basepath, "variants", "eightanaloginputs"), path.join("core", "eightanaloginputs")]);
+                this.corePaths.push([path.join(basepath, "variants", "standard"), path.join("core", "standard")]);
             }
         } else if (boardName === MEGA) {
             this.options.push("ATMega2560");

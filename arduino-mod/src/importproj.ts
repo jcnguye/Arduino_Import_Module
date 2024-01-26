@@ -105,5 +105,22 @@ export function copyDirectory(src: string, dest: string): void {
 }
 
 
+/** Recursively copies a directory to each specified location
+ * 
+ * @param src[..][0] The source directory
+ * @param src[..][1] The destination directory
+ * @param basePath The path to apply before the destination directory
+ */
+export function copyDirectoriesPaired(pairs: [string, string][], basePath: string): void {
+	// Create destination directory if it doesn't exist
 
-
+	// Read the source directory
+	for (const src of pairs) {
+		const truePath = path.join(basePath, src[1])
+		console.log("pair:" + src[0] + src[1])
+		if (!fs.existsSync(truePath)) {
+			fs.mkdirSync(truePath);
+		}
+		copyDirectory(src[0], truePath);
+	}
+}
