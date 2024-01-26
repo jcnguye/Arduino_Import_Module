@@ -21,7 +21,7 @@ export function getBoard(boardName: string): Board {
  */
 export class Board{
     boardName: string;
-    private hardCodedFlags: string = "";
+    private flags: string = "";
     private chipName: string = "";
     options: string[] = [];
     private corePaths: string[] = []; //list of all necessary core related libraries that need to be copied for each board
@@ -44,8 +44,8 @@ export class Board{
         return this.boardName;
     }
 
-    getHardcodedFlags() {
-        return this.hardCodedFlags;
+    getFlags() {
+        return this.flags;
     }
 
     getChipName() {
@@ -59,9 +59,19 @@ export class Board{
     getPathToCompiler() {
         return this.pathToCompiler;
     }
+    setBoardName(boardName:string):void{
+        this.boardName = boardName;
+    }
+    setFlag(flag:string):void{
+        this.flags = flag;
+    }
+    setChipName(chipName:string):void{
+        this.chipName = chipName;
+    }
+   
 
     NanoBuild(): void{
-        this.hardCodedFlags = "-DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L";
+        this.setFlag("-DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L") ;
         this.chipName = "avrdd";
         this.options.push("ATmega328P or ATmega328P (Old Bootloader)");
             

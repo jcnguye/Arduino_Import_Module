@@ -112,7 +112,7 @@ export async function getAllFlags(board: Board): Promise<string> {
     try {
         //initalize some variables
         const platform = board.getChipName();
-        const hardCodedFlags = board.getHardcodedFlags();
+        const hardCodedFlags = board.getFlags();
 
         //getting map for boards.txt
         const localAppData = process.env.LOCALAPPDATA;
