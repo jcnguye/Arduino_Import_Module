@@ -62,11 +62,11 @@ export class Board{
 
     NanoBuild(): void{
         this.hardCodedFlags = "-DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L";
-            this.chipName = "avrdd";
-            this.options.push("ATmega328P or ATmega328P (Old Bootloader)");
+        this.chipName = "avrdd";
+        this.options.push("ATmega328P or ATmega328P (Old Bootloader)");
             
-            const localAppData = process.env.LOCALAPPDATA;
-            const version = parser.getDXCoreVersion();
+        const localAppData = process.env.LOCALAPPDATA;
+        const version = parser.getDXCoreVersion();
             if (localAppData) {
                 this.pathToCompiler = path.join(localAppData,"Arduino15","packages","DxCore","tools","avr-gcc");
                 const compilerVersion = this.mostRecentDirectory(this.pathToCompiler);
@@ -77,7 +77,6 @@ export class Board{
                 this.corePaths.push(path.join(localAppData, "Arduino15", "packages", "DxCore","tools","avr-gcc",compilerVersion,"avr","include"));
             }
     }
-
     MegaBuild(): void{
         this.options.push("ATMega2560");
         this.options.push("ATMega1280");

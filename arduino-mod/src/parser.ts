@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as readline from 'readline';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Board } from './boardsInfo';
+import { Board } from './board';
 
 /**
  * Parses the platform.txt file and pulls out all the compiler flags
