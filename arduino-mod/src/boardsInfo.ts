@@ -33,30 +33,10 @@ export class Board{
 
         if(boardName === NANO) {
             this.NanoBuild();
-            // this.hardCodedFlags = "-DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L";
-            // this.chipName = "avrdd";
-            // this.options.push("ATmega328P or ATmega328P (Old Bootloader)");
-            
-            // const localAppData = process.env.LOCALAPPDATA;
-            // const version = parser.getDXCoreVersion();
-            // if (localAppData) {
-            //     this.pathToCompiler = path.join(localAppData,"Arduino15","packages","DxCore","tools","avr-gcc");
-            //     const compilerVersion = this.mostRecentDirectory(this.pathToCompiler);
-            //     this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion);
-
-            //     this.corePaths.push(path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version,"cores","dxcore"));
-            //     this.corePaths.push(path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version,"variants","32pin-ddseries"));
-            //     this.corePaths.push(path.join(localAppData, "Arduino15", "packages", "DxCore","tools","avr-gcc",compilerVersion,"avr","include"));
-            // }
-            this.NanoBuild();
         } else if (boardName === MEGA) {
             this.MegaBuild();
-            // this.options.push("ATMega2560");
-            // this.options.push("ATMega1280");
         } else if (boardName === PRO) {
             this.ProBuild();
-            this.options.push("ATmega328P (5V, 16 MHz)");
-            this.options.push("ATmega328P (3.3V, 8 MHz)");
         }
     }
 
