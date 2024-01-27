@@ -6,7 +6,7 @@ import * as readline from 'readline';
 import * as fs from 'fs';
 import * as parser from './parser';
 import { MainPanel } from "./panels/MainPanel";
-import { Board } from './boardsInfo';
+import { Board } from './board';
 import Cmaker from './cmaker';
 import * as importproj from './importproj';
 
