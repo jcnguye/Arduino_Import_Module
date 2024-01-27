@@ -7,9 +7,10 @@ export const UNO = "UNO"; //none
 export const NANO = "Nano"; //ATmega328P or ATmega328P (Old Bootloader) 
 export const MEGA = "Mega or Mega2560"; //ATMega2560; ATMega1280 
 export const PRO = "Pro or Pro Mini"; //ATmega328P (5V, 16 MHz); ATmega328P (3.3V, 8 MHz) 
+export const DXCORE = "DxCore";
 
 export function getAllBoards(): string[] {
-    const result = [UNO, NANO, MEGA, PRO];
+    const result = [UNO, NANO, MEGA, PRO, DXCORE];
     return result;
 }
 export function getBoard(boardName: string): Board {
@@ -32,11 +33,13 @@ export class Board{
         this.boardName = boardName;
 
         if(boardName === NANO) {
-            this.NanoBuild();
-        } else if (boardName === MEGA) {
-            this.MegaBuild();
+            this.nanoBuild();
+        } else if (boardName === DXCORE) {
+            this.dxcoreBuild();
+        }else if (boardName === MEGA) {
+            this.megaBuild();
         } else if (boardName === PRO) {
-            this.ProBuild();
+            this.proBuild();
         }
     }
 
@@ -68,12 +71,24 @@ export class Board{
     setChipName(chipName:string):void{
         this.chipName = chipName;
     }
+
+    nanoBuild(): void {
+        this.options.push("ATmega328P or ATmega328P (Old Bootloader)");
+
+        const localAppData = process.env.LOCALAPPDATA;
+
+        if (localAppData) {
+            this.pathToCompiler = path.join(localAppData,"packages","arduino","tools","avr-gcc");
+            const compilerVersion = this.mostRecentDirectory(this.pathToCompiler); 
+            this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion);
+        }
+    }
    
 
-    NanoBuild(): void{
+    dxcoreBuild(): void{
         this.setFlag("-DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L") ;
-        this.chipName = "Nano";
-        this.options.push("ATmega328P or ATmega328P (Old Bootloader)");
+        this.chipName = "avrdd";
+        // TODO - determine board options that should be supported for the DxCore 
 
         const localAppData = process.env.LOCALAPPDATA;
         const version = parser.getDXCoreVersion();
@@ -88,12 +103,13 @@ export class Board{
                 this.corePaths.push(path.join(localAppData, "Arduino15", "packages", "DxCore","tools","avr-gcc",compilerVersion,"avr","include"));
             }
     }
-    MegaBuild(): void{
+
+    megaBuild(): void{
         this.options.push("ATMega2560");
         this.options.push("ATMega1280");
     }
 
-    ProBuild(): void{
+    proBuild(): void{
         this.options.push("ATmega328P (5V, 16 MHz)");
         this.options.push("ATmega328P (3.3V, 8 MHz)");
     }
