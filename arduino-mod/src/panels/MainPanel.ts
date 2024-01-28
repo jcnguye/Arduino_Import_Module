@@ -2,8 +2,8 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "../utilities/getUri";
 import { getNonce } from "../utilities/getNonce";
 import * as ex from "../extension";
-import * as boardsInfo from "../boardsInfo";
-import { Board } from "../boardsInfo";
+import * as boardsInfo from "../board";
+import { Board } from "../board";
 
 export class MainPanel {
   public static currentPanel: MainPanel | undefined;

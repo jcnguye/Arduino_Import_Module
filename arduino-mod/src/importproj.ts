@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Board } from './boardsInfo';
+import { Board } from './board';
 
 
 /**

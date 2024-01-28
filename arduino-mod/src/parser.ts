@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as readline from 'readline';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Board } from './boardsInfo';
+import { Board } from './board';
 
 /**
  * Parses the platform.txt file and pulls out all the compiler flags
@@ -112,7 +112,7 @@ export async function getAllFlags(board: Board): Promise<string> {
     try {
         //initalize some variables
         const platform = board.getChipName();
-        const hardCodedFlags = board.getHardcodedFlags();
+        const hardCodedFlags = board.getFlags();
 
         //getting map for boards.txt
         var localAppData = "???";
