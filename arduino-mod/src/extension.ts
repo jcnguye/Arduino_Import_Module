@@ -174,8 +174,15 @@ function copyFile(sourcePath: string, destinationDirectory: string, newFileName?
  */
 async function copyLibraries(newDirectory: string, sketchFile: string) {
     //getting file paths
-    const localAppData = process.env.LOCALAPPDATA;
-    const libraryFilePath = path.join(localAppData!, "Arduino15", "libraries");
+    var localAppData = "???";
+	if(process.platform === "win32") {
+		localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15")
+	} else if(process.platform === "darwin") {
+		localAppData = path.join(process.env.HOME!, "Library", "Arduino15")
+	} else if(process.platform === "linux") {
+		localAppData = path.join(process.env.HOME!, ".arduino15")
+	}
+    const libraryFilePath = path.join(localAppData, "libraries");
     let libraries = undefined;
     try {
         libraries = await getAllLibraries(sketchFile);
@@ -240,7 +247,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
         fs.mkdirSync(corePath);
     }
     console.log("Starting to copy code device library files...");
-    importproj.copyDirectories(board.getCorePaths(), corePath);
+    importproj.copyDirectoriesPaired(board.getCorePaths(), destDir);
     console.log("Core import complete");
 
     //copy avr-gcc compiler 
