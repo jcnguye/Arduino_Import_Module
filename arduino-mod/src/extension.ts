@@ -176,11 +176,11 @@ async function copyLibraries(newDirectory: string, sketchFile: string) {
     //getting file paths
     var localAppData = "???";
 	if(process.platform === "win32") {
-		localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15")
+		localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15");
 	} else if(process.platform === "darwin") {
-		localAppData = path.join(process.env.HOME!, "Library", "Arduino15")
+		localAppData = path.join(process.env.HOME!, "Library", "Arduino15");
 	} else if(process.platform === "linux") {
-		localAppData = path.join(process.env.HOME!, ".arduino15")
+		localAppData = path.join(process.env.HOME!, ".arduino15");
 	}
     const libraryFilePath = path.join(localAppData, "libraries");
     let libraries = undefined;
@@ -250,15 +250,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     importproj.copyDirectoriesPaired(board.getCorePaths(), destDir);
     console.log("Core import complete");
 
-    //copy avr-gcc compiler 
-    const compilerPath = path.join(destDir, 'compiler');
-    if (!fs.existsSync(compilerPath)) {
-        fs.mkdirSync(compilerPath);
-    }
-    importproj.copyDirectory(board.getPathToCompiler(), compilerPath);
-    console.log("Compiler copy complete");
-
-    const cmake= new Cmaker();
+    const cmake= new Cmaker(board);
     cmake.setProjectDirectory(destDir);
     cmake.setProjectName(cFile.replace(".cpp", ""));
     cmake.setSourceName('src/' + cFile);

@@ -32,15 +32,24 @@ export class Board{
     constructor(boardName: string) {
         this.boardName = boardName;
 
+        var localAppData = "???";
+		if(process.platform === "win32") {
+			localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15");
+		} else if(process.platform === "darwin") {
+			localAppData = path.join(process.env.HOME!, "Library", "Arduino15");
+		} else if(process.platform === "linux") {
+			localAppData = path.join(process.env.HOME!, ".arduino15");
+		}
+
 
         if(boardName === NANO) {
-            this.nanoBuild();
+            this.nanoBuild(localAppData);
         } else if (boardName === DXCORE) {
-            this.dxcoreBuild();
+            this.dxcoreBuild(localAppData);
         }else if (boardName === MEGA) {
-            this.megaBuild();
+            this.megaBuild(localAppData);
         } else if (boardName === PRO) {
-            this.proBuild();
+            this.proBuild(localAppData);
         }
     }
 
@@ -73,16 +82,7 @@ export class Board{
         this.chipName = chipName;
     }
 
-    nanoBuild(): void {
-        var localAppData = "???";
-		if(process.platform === "win32") {
-			localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15");
-		} else if(process.platform === "darwin") {
-			localAppData = path.join(process.env.HOME!, "Library", "Arduino15");
-		} else if(process.platform === "linux") {
-			localAppData = path.join(process.env.HOME!, ".arduino15");
-		}
-
+    nanoBuild(localAppData:string): void {
         this.options.push("ATmega328P or ATmega328P (Old Bootloader)");          
              
         if (localAppData) {
@@ -100,32 +100,31 @@ export class Board{
     }
    
 
-    dxcoreBuild(): void{
+    dxcoreBuild(localAppData:string): void{
         this.setFlag("-DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L") ;
         this.chipName = "avrdd";
         this.options.push("ATmega328P or ATmega328P (Old Bootloader)");
 
-        const localAppData = process.env.LOCALAPPDATA;
         const version = parser.getDXCoreVersion();
         
-            if (localAppData) {
-                this.pathToCompiler = path.join(localAppData,"Arduino15","packages","DxCore","tools","avr-gcc");
-                const compilerVersion = this.mostRecentDirectory(this.pathToCompiler);
-                this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion);
-
-                this.corePaths.push([path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"cores","dxcore"), "core"]);
-                //TODO - determine which variants are needed & correct path
-                //this.corePaths.push(path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"variants","32pin-ddseries"));
-                //this.corePaths.push(path.join(localAppData, "packages", "DxCore","tools","avr-gcc",compilerVersion,"avr","include"));
-            }
+        if (localAppData) {
+            this.pathToCompiler = path.join(localAppData,"packages","DxCore","tools","avr-gcc");
+            const compilerVersion = this.mostRecentDirectory(this.pathToCompiler);
+            this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion);
+            
+            this.corePaths.push([path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"cores","dxcore"), "core"]);
+            //TODO - determine which variants are needed & correct path
+            //this.corePaths.push(path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"variants","32pin-ddseries"));
+            //this.corePaths.push(path.join(localAppData, "packages", "DxCore","tools","avr-gcc",compilerVersion,"avr","include"));
+        }
     }
 
-    megaBuild(): void{
+    megaBuild(localAppData:string): void{
         this.options.push("ATMega2560");
         this.options.push("ATMega1280");
     }
 
-    proBuild(): void{
+    proBuild(localAppData:string): void{
         this.options.push("ATmega328P (5V, 16 MHz)");
         this.options.push("ATmega328P (3.3V, 8 MHz)");
     }
