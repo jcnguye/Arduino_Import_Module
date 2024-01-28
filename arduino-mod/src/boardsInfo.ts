@@ -35,11 +35,11 @@ export class Board {
         this.boardName = boardName;
         var localAppData = "???";
 		if(process.platform === "win32") {
-			localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15")
+			localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15");
 		} else if(process.platform === "darwin") {
-			localAppData = path.join(process.env.HOME, "Library", "Arduino15")
+			localAppData = path.join(process.env.HOME!, "Library", "Arduino15");
 		} else if(process.platform === "linux") {
-			localAppData = path.join(process.env.HOME, ".arduino15")
+			localAppData = path.join(process.env.HOME!, ".arduino15");
 		}
         if(boardName === NANO) {
             this.hardCodedFlags = "-DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L"; //TODO - Update for Nano
@@ -51,7 +51,7 @@ export class Board {
                 const compilerVersion = this.mostRecentDirectory(this.pathToCompiler); 
                 this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion); 
 
-            	const basepath = path.join(localAppData, "packages", "arduino", "hardware", "avr", parser.getNanoVersion())
+            	const basepath = path.join(localAppData, "packages", "arduino", "hardware", "avr", parser.getNanoVersion());
             	
                 this.corePaths.push([path.join(basepath, "cores", "arduino"), "core"]);
                 this.corePaths.push([path.join(basepath, "variants", "eightanaloginputs"), path.join("core", "eightanaloginputs")]);
