@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as readline from 'readline';
 import * as fs from 'fs';
+import { execSync } from 'child_process';
 import * as parser from './parser';
 import { MainPanel } from "./panels/MainPanel";
 import { Board } from './board';
@@ -260,7 +261,15 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     cmake.setLinkerFlags('-Wall -Wextra -Os -g -flto -fuse-linker-plugin -mrelax -Wl,--gc-sections,--section-start=.text=0x0,--section-start=.FLMAP_SECTION1=0x8000,--section-start=.FLMAP_SECTION2=0x10000,--section-start=.FLMAP_SECTION3=0x18000 -mmcu=avr64dd32');
     cmake.build();
 
-    vscode.window.showInformationMessage("Import complete!");
+    vscode.window.showInformationMessage("Import complete! Building project.");
+    try {
+        execSync('cmake -G "Unix Makefiles"', {cwd: destDir});
+        execSync('make', {cwd: destDir});
+    } catch (error) {
+        console.error('Error:', error);
+        vscode.window.showInformationMessage("Error using CMake. See console for more info.");
+    }
+    
 }
 
 
