@@ -4,6 +4,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Board } from './board';
 
+
+
+export class Parser{
+    
+}
 /**
  * Parses the platform.txt file and pulls out all the compiler flags
  * @param filePath - directory to platform.txt file
