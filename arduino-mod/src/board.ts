@@ -99,7 +99,7 @@ export class Board{
 
     dxCoreBuild(): void{
         this.setFlag("-DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L") ;
-        this.chipName = "avrdd";
+        this.setChipName("avrdd");
         this.options.push("ATmega328P or ATmega328P (Old Bootloader)");
 
         const localAppData = process.env.LOCALAPPDATA;
