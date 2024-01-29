@@ -9,6 +9,7 @@ import { MainPanel } from "./panels/MainPanel";
 import { Board } from './board';
 import Cmaker from './cmaker';
 import * as importproj from './importproj';
+import { Console } from 'console';
 
 /**
  * Gets the compiler flags out of the platform.txt file
@@ -300,9 +301,16 @@ clean:
     cmake.setSourceName('src/' + cFile);
     cmake.setCompilerFlags(await parser.getAllFlags(board));
 
+    //testing parser 
+    board.getCflagsNano("C:\Users\triplit\AppData\Local\Arduino15\packages\arduino\hardware\avr\1.8.6\boards.txt");
+
+
+
     //TODO - this needs to be fixed to link correct files
     cmake.setLinkerFlags('-Wall -Wextra -Os -g -flto -fuse-linker-plugin -mrelax -Wl,--gc-sections,--section-start=.text=0x0,--section-start=.FLMAP_SECTION1=0x8000,--section-start=.FLMAP_SECTION2=0x10000,--section-start=.FLMAP_SECTION3=0x18000 -mmcu=avr64dd32');
     cmake.build();
+
+
 
     vscode.window.showInformationMessage("Import complete!");
 }

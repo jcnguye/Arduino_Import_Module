@@ -148,4 +148,16 @@ export class Board{
         return mostRecentDirectory.name;
     }
 
+
+    getCflagsNano(filePath:string){
+        console.log("Getting Nano C flag");
+        let cFlag = " ";
+        
+        // try {
+        // } catch (error) {
+        //     cFlag = "Error occurred while reading the file.";
+        // }
+    }
+
+
 }
