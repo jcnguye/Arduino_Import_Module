@@ -257,6 +257,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
         fs.mkdirSync(compilerPath);
     }
     importproj.copyDirectory(board.getPathToCompiler(), compilerPath);
+    
     console.log("Compiler copy complete");
 
     // create makefile

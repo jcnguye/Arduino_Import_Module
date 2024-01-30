@@ -111,6 +111,7 @@ export class Board{
                 this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion);
 
                 this.corePaths.push([path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"cores","dxcore"), "core"]);
+                
                 //TODO - determine which variants are needed & correct path
                 //this.corePaths.push(path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"variants","32pin-ddseries"));
                 //this.corePaths.push(path.join(localAppData, "packages", "DxCore","tools","avr-gcc",compilerVersion,"avr","include"));
@@ -147,9 +148,13 @@ export class Board{
         });
         return mostRecentDirectory.name;
     }
-    getCflagsNano(filePath:string){
-        console.log("Getting Nano C flag");
-        console.log("File path \n\n"+ filePath);
+    getCflagsNano(filePath:string): string {
+        var hardWarePath = "";
+        console.log("Getting Nano C flag \n");
+        const arduinoPackagePath = 'C:\\Users\\triplit\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6';
+        const boardFilePath = path.join(arduinoPackagePath, 'boards.txt');
+        console.log(boardFilePath);
+        console.log("File path \n ----"+ filePath);
 
         let cFlag = " ";
         try {
@@ -162,6 +167,8 @@ export class Board{
         } catch (error) {
             cFlag = "Error occurred while reading the file.";
         }
+
+        return cFlag;
     }
 
 
