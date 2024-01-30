@@ -150,12 +150,24 @@ export class Board{
     }
     getCflagsNano(filePath:string): string {
         var hardWarePath = "";
-        console.log("Getting Nano C flag \n");
-        console.log("File path \n ----"+ filePath);
+        let insideSection = false;
+        // Split the content by lines
         let cFlag = " ";
         try {
             const data = fs.readFileSync(filePath, 'utf-8');
-            console.log(data);
+            const dataArr = data.split('\n');
+            console.log(dataArr);
+            for(const line of dataArr){
+                if('nano.name=Arduino Nano'){
+                    insideSection = true;
+                }
+                console.log(line);
+
+                if('## Arduino Nano w/ ATmega328P'){
+                    insideSection = false;
+                }
+
+            }
             // const lines = data.split('\n');
             // for (const line of lines) {
             // // Process each line here
