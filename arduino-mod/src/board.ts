@@ -151,19 +151,16 @@ export class Board{
     getCflagsNano(filePath:string): string {
         var hardWarePath = "";
         console.log("Getting Nano C flag \n");
-        const arduinoPackagePath = 'C:\\Users\\triplit\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6';
-        const boardFilePath = path.join(arduinoPackagePath, 'boards.txt');
-        console.log(boardFilePath);
         console.log("File path \n ----"+ filePath);
-
         let cFlag = " ";
         try {
             const data = fs.readFileSync(filePath, 'utf-8');
-            const lines = data.split('\n');
-            for (const line of lines) {
-            // Process each line here
-                console.log(line); 
-            }
+            console.log(data);
+            // const lines = data.split('\n');
+            // for (const line of lines) {
+            // // Process each line here
+            //     console.log(line); 
+            // }
         } catch (error) {
             cFlag = "Error occurred while reading the file.";
         }
