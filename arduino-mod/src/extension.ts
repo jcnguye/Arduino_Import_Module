@@ -301,7 +301,7 @@ clean:
     cmake.setSourceName('src/' + cFile);
     cmake.setCompilerFlags(await parser.getAllFlags(board));
 
-    //testing parser 
+    //testing Nano Parser Flag
     board.getCflagsNano("C:\Users\triplit\AppData\Local\Arduino15\packages\arduino\hardware\avr\1.8.6\boards.txt");
 
 

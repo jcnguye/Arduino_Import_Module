@@ -147,16 +147,21 @@ export class Board{
         });
         return mostRecentDirectory.name;
     }
-
-
     getCflagsNano(filePath:string){
         console.log("Getting Nano C flag");
+        console.log("File path \n\n"+ filePath);
+
         let cFlag = " ";
-        
-        // try {
-        // } catch (error) {
-        //     cFlag = "Error occurred while reading the file.";
-        // }
+        try {
+            const data = fs.readFileSync(filePath, 'utf-8');
+            const lines = data.split('\n');
+            for (const line of lines) {
+            // Process each line here
+                console.log(line); 
+            }
+        } catch (error) {
+            cFlag = "Error occurred while reading the file.";
+        }
     }
 
 
