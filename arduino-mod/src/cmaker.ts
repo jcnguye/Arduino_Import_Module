@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { Board } from './board';
 
 export class Cmaker {
 	public projDir: string;
@@ -8,13 +9,15 @@ export class Cmaker {
 	public srcFileName: string;
 	public compilerflags: string;
 	public linkerflags: string;
+	private board: Board;
 	
-	constructor(){
+	constructor(board: Board){
 		this.projDir = "";
 		this.projName = "";
 		this.srcFileName = "";
 		this.compilerflags = "";
 		this.linkerflags = "";
+		this.board = board; 
 	}
 	public setProjectDirectory(projectDirectory:string){
 		this.projDir = projectDirectory;
@@ -37,12 +40,17 @@ export class Cmaker {
 
 		//sets the cmake version
 		let cmakeHeader = "cmake_minimum_required(VERSION 3.8)\n";
+		
+		const binPath = path.join(this.board.getPathToCompiler(), "bin");
+		cmakeHeader = cmakeHeader + 'set(CMAKE_C_COMPILER ' + path.join(binPath, "avr-gcc.exe").replace(/\\/g, '/') + ')\n';
+		cmakeHeader = cmakeHeader + 'set(CMAKE_CXX_COMPILER ' + path.join(binPath, "avr-g++.exe").replace(/\\/g, '/') +')\n';
+
 		cmakeHeader = cmakeHeader + 'project(' + this.projName + ' C CXX)\n\n';
 		cmakeHeader = cmakeHeader + 'set(CORE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/core)\n\n';
-		cmakeHeader = cmakeHeader + 'set(CMAKE_C_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-gcc.exe")\n';
-		cmakeHeader = cmakeHeader + 'set(CMAKE_CXX_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-g++.exe")\n';
-		cmakeHeader = cmakeHeader + 'set(CMAKE_AR "${CMAKE_CURRENT_SOURCE_DIR}/compiler/bin/avr-gcc-ar.exe")\n';
-		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJCOPY "${CMAKE_CURRENT_SOURCE_DIR}/compiler/bin/avr-objcopy.exe")\n\n';
+		
+		cmakeHeader = cmakeHeader + 'set(CMAKE_AR ' + path.join(binPath, "avr-gcc-ar.exe").replace(/\\/g, '/') +')\n';
+		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJCOPY ' + path.join(binPath, "avr-objcopy.exe").replace(/\\/g, '/') +')\n\n';
+
 		cmakeHeader = cmakeHeader + 'set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -c -g -Os -w -std=gnu++11 -fpermissive -fno-exceptions ' + 
 		'-ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -MMD -flto -mmcu=atmega328p -DF_CPU=16000000L '+ 
 		'-DARDUINO=10607 -DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR")\n';

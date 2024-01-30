@@ -117,11 +117,11 @@ export async function getAllFlags(board: Board): Promise<string> {
         //getting map for boards.txt
         var localAppData = "???";
 		if(process.platform === "win32") {
-			localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15")
+			localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15");
 		} else if(process.platform === "darwin") {
-			localAppData = path.join(process.env.HOME!, "Library", "Arduino15")
+			localAppData = path.join(process.env.HOME!, "Library", "Arduino15");
 		} else if(process.platform === "linux") {
-			localAppData = path.join(process.env.HOME!, ".arduino15")
+			localAppData = path.join(process.env.HOME!, ".arduino15");
 		}
         const version = getDXCoreVersion();
         const libraryFilePath = path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"boards.txt");
@@ -399,11 +399,11 @@ export function getDXCoreVersion(): string {
     let result = '';
     var localAppData = "";
 	if(process.platform === "win32") {
-		localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15")
+		localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15");
 	} else if(process.platform === "darwin") {
-		localAppData = path.join(process.env.HOME!, "Library", "Arduino15")
+		localAppData = path.join(process.env.HOME!, "Library", "Arduino15");
 	} else if(process.platform === "linux") {
-		localAppData = path.join(process.env.HOME!, ".arduino15")
+		localAppData = path.join(process.env.HOME!, ".arduino15");
 	}
     const versionFilePath = path.join(localAppData, "packages", "DxCore","hardware","megaavr");
     const directories = fs.readdirSync(versionFilePath, { withFileTypes: true });
@@ -431,11 +431,11 @@ export function getNanoVersion(): string {
     let result = '';
     var localAppData = "";
 	if(process.platform === "win32") {
-		localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15")
+		localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15");
 	} else if(process.platform === "darwin") {
-		localAppData = path.join(process.env.HOME!, "Library", "Arduino15")
+		localAppData = path.join(process.env.HOME!, "Library", "Arduino15");
 	} else if(process.platform === "linux") {
-		localAppData = path.join(process.env.HOME!, ".arduino15")
+		localAppData = path.join(process.env.HOME!, ".arduino15");
 	}
 	const versionFilePath = path.join(localAppData, "packages", "arduino","hardware","avr");
 	const directories = fs.readdirSync(versionFilePath, { withFileTypes: true });
