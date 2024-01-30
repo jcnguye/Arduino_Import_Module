@@ -158,13 +158,18 @@ export class Board{
             const dataArr = data.split('\n');
             console.log(dataArr);
             for(const line of dataArr){
-                if('nano.name=Arduino Nano'){
+                if(line === 'nano.name=Arduino Nano'){
                     insideSection = true;
+                    console.log("Inside the nano");
                 }
-                console.log(line);
+                if(insideSection===true){
+                    console.log(line);
+                }
 
-                if('## Arduino Nano w/ ATmega328P'){
+                if(line === '## Arduino Nano w/ ATmega328P'){
                     insideSection = false;
+                    console.log("Outside the nano");
+
                 }
 
             }
