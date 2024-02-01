@@ -171,7 +171,10 @@ export class Board{
         try {
             const data = fs.readFileSync(filePath, 'utf-8');
             const dataArr = data.split('\n');
-            for(const line of dataArr){
+            for(const line of dataArr.slice(192,211)){
+                // let stringMatchArr = line.split('=');
+                // let result = stringMatchArr[1].trim();
+                // console.log('result: ' + result);
                 if(line === 'nano.name=Arduino Nano'){
                     insideSection = true;
                     console.log("Inside the nano");
