@@ -45,17 +45,21 @@ export class Cmaker {
 		cmakeHeader = cmakeHeader + 'set(CMAKE_C_COMPILER ' + path.join(binPath, "avr-gcc.exe").replace(/\\/g, '/') + ')\n';
 		cmakeHeader = cmakeHeader + 'set(CMAKE_CXX_COMPILER ' + path.join(binPath, "avr-g++.exe").replace(/\\/g, '/') +')\n';
 
+		cmakeHeader += 'set(CMAKE_SYSTEM_NAME Generic)\n';
+
 		cmakeHeader = cmakeHeader + 'project(' + this.projName + ' C CXX)\n\n';
 		cmakeHeader = cmakeHeader + 'set(CORE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/core)\n\n';
 		
 		cmakeHeader = cmakeHeader + 'set(CMAKE_AR ' + path.join(binPath, "avr-gcc-ar.exe").replace(/\\/g, '/') +')\n';
 		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJCOPY ' + path.join(binPath, "avr-objcopy.exe").replace(/\\/g, '/') +')\n\n';
 
-		cmakeHeader = cmakeHeader + 'set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -c -g -Os -w -std=gnu++11 -fpermissive -fno-exceptions ' + 
-		'-ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -MMD -flto -mmcu=atmega328p -DF_CPU=16000000L '+ 
-		'-DARDUINO=10607 -DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR")\n';
-		cmakeHeader = cmakeHeader + 'set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -c -g -Os -w -std=gnu11 -ffunction-sections -fdata-sections -MMD ' + 
-		'-flto -fno-fat-lto-objects -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10607 -DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR")\n';
+		cmakeHeader = cmakeHeader + 'set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Os -w -std=gnu++11 -fpermissive -fno-exceptions ' + 
+		'-ffunction-sections -fdata-sections -flto -fno-fat-lto-objects -ffat-lto-objects -fno-threadsafe-statics -Wno-error=narrowing '
+		+ '-MMD -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10607 -DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR")\n';
+
+		cmakeHeader = cmakeHeader + 'set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Os -w -std=gnu11 -ffunction-sections -fdata-sections -MMD ' + 
+		'-flto -fno-fat-lto-objects -ffat-lto-objects -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10607 -DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR")\n';
+
 		cmakeHeader = cmakeHeader + 'set(CMAKE_STATIC_LIBRARY_FLAGS "rcs")\n';
 		cmakeHeader = cmakeHeader + 'set(CMAKE_C_FLAGS_LINKER "${CMAKE_C_FLAGS_LINKER} -w -Os -g -flto -fuse-linker-plugin -Wl,--gc-sections ' +
 		'-mmcu=atmega328p -o ${CMAKE_CURRENT_SOURCE_DIR}/build/CMakeFiles/' + this.projName + '.dir/' + this.projName + 
