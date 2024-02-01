@@ -89,6 +89,14 @@ export class Board{
             
           	const basepath = path.join(localAppData, "packages", "arduino", "hardware", "avr", parser.getNanoVersion());
             	
+            
+             //testing getting c flag
+            let arduinoPackagePath = 'C:\\Users\\triplit\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6';
+            arduinoPackagePath = path.join(basepath, 'boards.txt');
+            console.log("Path to board");
+            console.log(arduinoPackagePath);
+            this.getCflagsNano(arduinoPackagePath);
+
             this.corePaths.push([path.join(basepath, "cores", "arduino"), "core"]);
             this.corePaths.push([path.join(basepath, "variants", "eightanaloginputs"), path.join("core", "eightanaloginputs")]);
             this.corePaths.push([path.join(basepath, "variants", "standard"), path.join("core", "standard")]);
