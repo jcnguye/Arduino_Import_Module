@@ -90,13 +90,18 @@ export class Board{
           	const basepath = path.join(localAppData, "packages", "arduino", "hardware", "avr", parser.getNanoVersion());
             	
             
-             //testing getting c flag
-            let arduinoPackagePath = 'C:\\Users\\triplit\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6';
+             //testing getting c flag board.txt
+            let arduinoPackagePath = ' ';
             arduinoPackagePath = path.join(basepath, 'boards.txt');
-            console.log("Path to board");
-            console.log(arduinoPackagePath);
-            this.getCflagsNano(arduinoPackagePath);
+            console.log("Nano board.txt flag");
+            //testing returns a string of nano flags Compile c++ flags 
+            console.log(this.getBoardCflagsNano(arduinoPackagePath));
+            arduinoPackagePath = '';
+            arduinoPackagePath = path.join(basepath, 'platform.txt');
+            console.log(this.getPlatformCCompilerFlag(arduinoPackagePath));
 
+
+        
             this.corePaths.push([path.join(basepath, "cores", "arduino"), "core"]);
             this.corePaths.push([path.join(basepath, "variants", "eightanaloginputs"), path.join("core", "eightanaloginputs")]);
             this.corePaths.push([path.join(basepath, "variants", "standard"), path.join("core", "standard")]);
@@ -156,36 +161,67 @@ export class Board{
         });
         return mostRecentDirectory.name;
     }
-    getCflagsNano(filePath:string): string {
-        var hardWarePath = "";
+
+      /**
+ * Function that retrieves the nano compile flag within board.txt 
+ * @param dirPath Path to the directory that should be investigated
+ * @returns The name of the directory inside dirPath that was most recently updated
+ */
+    getBoardCflagsNano(filePath:string): string {
         let insideSection = false;
         // Split the content by lines
-        let cFlag = " ";
+        let cFlag = "";
+        let cFlagArr = [];
         try {
             const data = fs.readFileSync(filePath, 'utf-8');
             const dataArr = data.split('\n');
-            console.log(dataArr);
             for(const line of dataArr){
                 if(line === 'nano.name=Arduino Nano'){
                     insideSection = true;
                     console.log("Inside the nano");
                 }
-                if(insideSection===true){
-                    console.log(line);
-                }
-
                 if(line === '## Arduino Nano w/ ATmega328P'){
                     insideSection = false;
                     console.log("Outside the nano");
-
+                }
+                  if(insideSection===true && !(line === '')){
+                    cFlagArr.push(line);
                 }
 
             }
-            // const lines = data.split('\n');
-            // for (const line of lines) {
-            // // Process each line here
-            //     console.log(line); 
-            // }
+            cFlag = cFlagArr.join(" ");
+        } catch (error) {
+            cFlag = "Error occurred while reading the file.";
+        }
+
+        return cFlag;
+    }
+
+    getPlatformCCompilerFlag(filePath:string){
+        var hardWarePath = "";
+        let insideSection = false;
+        // Split the content by lines
+        let cFlag = "";
+        let cFlagArr = [];
+        let signalCount = 0;
+        try {
+            const data = fs.readFileSync(filePath, 'utf-8');
+            const dataArr = data.split('\n');
+            for(const line of dataArr.slice(56,58)){
+                if(line === '## Compile c++ files'){
+                    insideSection = true;
+                    console.log("Inside text");
+                }
+                if(line === ''){
+                    insideSection = false;
+                    console.log("Outside the nano");
+                }
+                  if(insideSection===true && !(line === '## Compile c++ files')){
+                    cFlagArr.push(line);
+                }
+
+            }
+            cFlag = cFlagArr.join(" ");
         } catch (error) {
             cFlag = "Error occurred while reading the file.";
         }
