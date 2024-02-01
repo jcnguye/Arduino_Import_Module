@@ -88,23 +88,20 @@ export class Board{
             this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion); 
             
           	const basepath = path.join(localAppData, "packages", "arduino", "hardware", "avr", parser.getNanoVersion());
-            	
-            
+            this.corePaths.push([path.join(basepath, "cores", "arduino"), "core"]);
+            this.corePaths.push([path.join(basepath, "variants", "eightanaloginputs"), path.join("core", "eightanaloginputs")]);
+            this.corePaths.push([path.join(basepath, "variants", "standard"), path.join("core", "standard")]);
+
              //testing getting c flag board.txt
             let arduinoPackagePath = ' ';
             arduinoPackagePath = path.join(basepath, 'boards.txt');
             console.log("Nano board.txt flag");
             //testing returns a string of nano flags Compile c++ flags 
             console.log(this.getBoardCflagsNano(arduinoPackagePath));
+            console.log("Nano platform.txt flag");
             arduinoPackagePath = '';
             arduinoPackagePath = path.join(basepath, 'platform.txt');
             console.log(this.getPlatformCCompilerFlag(arduinoPackagePath));
-
-
-        
-            this.corePaths.push([path.join(basepath, "cores", "arduino"), "core"]);
-            this.corePaths.push([path.join(basepath, "variants", "eightanaloginputs"), path.join("core", "eightanaloginputs")]);
-            this.corePaths.push([path.join(basepath, "variants", "standard"), path.join("core", "standard")]);
         }
 
     }
@@ -122,7 +119,6 @@ export class Board{
                 this.pathToCompiler = path.join(localAppData,"Arduino15","packages","DxCore","tools","avr-gcc");
                 const compilerVersion = this.mostRecentDirectory(this.pathToCompiler);
                 this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion);
-
                 this.corePaths.push([path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"cores","dxcore"), "core"]);
                 
                 //TODO - determine which variants are needed & correct path
@@ -163,9 +159,9 @@ export class Board{
     }
 
       /**
- * Function that retrieves the nano compile flag within board.txt 
- * @param dirPath Path to the directory that should be investigated
- * @returns The name of the directory inside dirPath that was most recently updated
+ * Function that retrieves information of nano boards flags within board.txt 
+ * @param filePath Path to arduino hardware file
+ * @returns a string compriseing of information on the nano board flags
  */
     getBoardCflagsNano(filePath:string): string {
         let insideSection = false;
@@ -197,6 +193,11 @@ export class Board{
         return cFlag;
     }
 
+          /**
+ * Function that retrieves the nano compile flag within platform.txt 
+ * @param filePath path to arduino hardware file
+ * @returns a string compriseing of C++ flags from platform.txt
+ */
     getPlatformCCompilerFlag(filePath:string){
         var hardWarePath = "";
         let insideSection = false;
