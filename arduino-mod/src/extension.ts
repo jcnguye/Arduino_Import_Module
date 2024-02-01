@@ -302,13 +302,6 @@ clean:
     cmake.setSourceName('src/' + cFile);
     cmake.setCompilerFlags(await parser.getAllFlags(board));
 
-    //testing getting c flag
-    // const arduinoPackagePath = 'C:\\Users\\triplit\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6';
-    // const boardFilePath = path.join(arduinoPackagePath, 'boards.txt');
-    // console.log("Path to board");
-    // console.log(boardFilePath);
-    // board.getCflagsNano(boardFilePath);
-
 
 
     //TODO - this needs to be fixed to link correct files
