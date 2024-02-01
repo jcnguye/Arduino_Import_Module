@@ -97,7 +97,7 @@ export class Board{
             arduinoPackagePath = path.join(basepath, 'boards.txt');
             console.log("Nano board.txt flag");
             //testing returns a string of nano flags Compile c++ flags 
-            console.log(this.getBoardCflagsNano(arduinoPackagePath));
+            console.log(this.getBoardflagsNano(arduinoPackagePath));
             console.log("Nano platform.txt flag");
             arduinoPackagePath = '';
             arduinoPackagePath = path.join(basepath, 'platform.txt');
@@ -163,7 +163,7 @@ export class Board{
  * @param filePath Path to arduino hardware file
  * @returns a string compriseing of information on the nano board flags
  */
-    getBoardCflagsNano(filePath:string): string {
+    getBoardflagsNano(filePath:string): string {
         let insideSection = false;
         // Split the content by lines
         let cFlag = "";
@@ -177,11 +177,11 @@ export class Board{
                 // console.log('result: ' + result);
                 if(line === 'nano.name=Arduino Nano'){
                     insideSection = true;
-                    console.log("Inside the nano");
+                    console.log("Inside the nano read");
                 }
                 if(line === '## Arduino Nano w/ ATmega328P'){
                     insideSection = false;
-                    console.log("Outside the nano");
+                    console.log("Outside the nano read");
                 }
                   if(insideSection===true && !(line === '')){
                     cFlagArr.push(line);
@@ -202,12 +202,10 @@ export class Board{
  * @returns a string compriseing of C++ flags from platform.txt
  */
     getPlatformCCompilerFlag(filePath:string){
-        var hardWarePath = "";
         let insideSection = false;
         // Split the content by lines
         let cFlag = "";
         let cFlagArr = [];
-        let signalCount = 0;
         try {
             const data = fs.readFileSync(filePath, 'utf-8');
             const dataArr = data.split('\n');

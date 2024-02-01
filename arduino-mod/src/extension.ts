@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as readline from 'readline';
 import * as fs from 'fs';
+import { execSync } from 'child_process';
 import * as parser from './parser';
 import { MainPanel } from "./panels/MainPanel";
 import { Board } from './board';
@@ -177,11 +178,11 @@ async function copyLibraries(newDirectory: string, sketchFile: string) {
     //getting file paths
     var localAppData = "???";
 	if(process.platform === "win32") {
-		localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15")
+		localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15");
 	} else if(process.platform === "darwin") {
-		localAppData = path.join(process.env.HOME!, "Library", "Arduino15")
+		localAppData = path.join(process.env.HOME!, "Library", "Arduino15");
 	} else if(process.platform === "linux") {
-		localAppData = path.join(process.env.HOME!, ".arduino15")
+		localAppData = path.join(process.env.HOME!, ".arduino15");
 	}
     const libraryFilePath = path.join(localAppData, "libraries");
     let libraries = undefined;
@@ -251,6 +252,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     importproj.copyDirectoriesPaired(board.getCorePaths(), destDir);
     console.log("Core import complete");
 
+
     //copy avr-gcc compiler 
     const compilerPath = path.join(destDir, 'compiler');
     if (!fs.existsSync(compilerPath)) {
@@ -296,7 +298,8 @@ clean:
     fs.writeFileSync(makefilePath, makefileContent.trim());
     console.log("Makefile created");
 
-    const cmake= new Cmaker();
+
+    const cmake= new Cmaker(board);
     cmake.setProjectDirectory(destDir);
     cmake.setProjectName(cFile.replace(".cpp", ""));
     cmake.setSourceName('src/' + cFile);
@@ -309,8 +312,16 @@ clean:
     cmake.build();
 
 
+    vscode.window.showInformationMessage("Import complete! Building project.");
+    try {
+        execSync('cmake -G "Unix Makefiles"', {cwd: destDir});
+        execSync('make', {cwd: destDir});
+    } catch (error) {
+        console.error('Error:', error);
+        vscode.window.showInformationMessage("Error using CMake. See console for more info.");
+    }
+    
 
-    vscode.window.showInformationMessage("Import complete!");
 }
 
 
