@@ -62,11 +62,11 @@ async function parsePlatform(filePath:string) {
 }
 
 /**
-     * Returns an iterable object containing the absolute name of all files in a given directory,
-	 * including files in subfolders. 
-     * @param directoryPath - the absolute path to the directory
-	 * @returns Iterable object with the absolute name of all files in a directory
-     */
+ * Returns an iterable object containing the absolute name of all files in a given directory,
+ * including files in subfolders.
+ * @param directoryPath - the absolute path to the directory
+ * @returns Iterable object with the absolute name of all files in a directory
+ */
 function* getAllFilePaths(directoryPath: string): Iterable<string> {
     const files = fs.readdirSync(directoryPath);
 
@@ -81,6 +81,19 @@ function* getAllFilePaths(directoryPath: string): Iterable<string> {
         }
     }
 }
+
+/**
+ * Returns an iterable object containing the absolute name of all files in all given directories,
+ * including files in subfolders.
+ * @param directoryPaths - an array of absolute paths to directories
+ * @returns Iterable object with the absolute name of all files in a directory
+ */
+function* getAllFilePathsArray(directoryPaths: string[]): Iterable<string> {
+	for (const dir in directoryPaths) {
+		yield* getAllFilePaths(dir);
+	}
+}
+
 
 /**
  * This function scans a file's include statements to retrive
@@ -191,8 +204,10 @@ async function copyLibraries(newDirectory: string, sketchFile: string) {
         console.error(error);
         return;
     }
-
-    const iterable = getAllFilePaths(libraryFilePath);
+	
+	const downloadedLibraries = path.join(process.env.HOME!, "Documents", "Arduino", "libraries")
+	
+    const iterable = getAllFilePathsArray([libraryFilePath, downloadedLibraries]);
     
     //copying files to new directory if their directory name matches .ino file
     for await(const scanned of iterable) {
@@ -209,6 +224,7 @@ async function copyLibraries(newDirectory: string, sketchFile: string) {
         }
     }
 }
+
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
