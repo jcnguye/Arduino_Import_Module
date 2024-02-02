@@ -101,7 +101,8 @@ export class Board{
             console.log("Nano platform.txt flag");
             arduinoPackagePath = '';
             arduinoPackagePath = path.join(basepath, 'platform.txt');
-            console.log(this.getPlatformCCompilerFlag(arduinoPackagePath));
+            console.log(this.getPlatformCPlusCompilerFlag(arduinoPackagePath));
+            //testing get
         }
 
     }
@@ -195,13 +196,48 @@ export class Board{
 
         return cFlag;
     }
+    getBoardMegaNanoFlag(filePath:string): string {
+        let insideSection = false;
+        // Split the content by lines
+        let cFlag = "";
+        let cFlagArr = [];
+        try {
+            const data = fs.readFileSync(filePath, 'utf-8');
+            const dataArr = data.split('\n');
+            for(const line of dataArr.slice(213,224)){
+                // let stringMatchArr = line.split('=');
+                // let result = stringMatchArr[1].trim();
+                // console.log('result: ' + result);
+                if(line === 'nano.menu.cpu.atmega328=ATmega328P'){
+                    insideSection = true;
+                    console.log("Inside the nano read");
+                }
+                if(line === '## Arduino Nano w/ ATmega328P'){
+                    insideSection = false;
+                    console.log("Outside the nano read");
+                }
+                  if(insideSection===true && !(line === '')){
+                    cFlagArr.push(line);
+                }
+
+            }
+            cFlag = cFlagArr.join(" ");
+        } catch (error) {
+            cFlag = "Error occurred while reading the file.";
+        }
+
+        return cFlag;
+    }
+    getBoardMegaNanoBootloaderFlag(){
+
+    }
 
           /**
  * Function that retrieves the nano compile flag within platform.txt 
  * @param filePath path to arduino hardware file
  * @returns a string compriseing of C++ flags from platform.txt
  */
-    getPlatformCCompilerFlag(filePath:string){
+    getPlatformCPlusCompilerFlag(filePath:string){
         let insideSection = false;
         // Split the content by lines
         let cFlag = "";
