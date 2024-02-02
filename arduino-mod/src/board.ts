@@ -287,18 +287,22 @@ export class Board{
         try {
             const data = fs.readFileSync(filePath, 'utf-8');
             const dataArr = data.split('\n');
-            for(const line of dataArr.slice(56,58)){
-                if(line === '## Compile c++ files'){
-                    insideSection = true;
-                    console.log("Inside text");
-                }
-                if(line === ''){
-                    insideSection = false;
-                    console.log("Outside the nano");
-                }
-                  if(insideSection===true && !(line === '## Compile c++ files')){
+            for(const line of dataArr.slice(57,58)){
+                if(!(line === '')){
                     cFlagArr.push(line);
                 }
+                
+                // if(line === '## Compile c++ files'){
+                //     insideSection = true;
+                //     console.log("Inside text");
+                // }
+                // if(line === ''){
+                //     insideSection = false;
+                //     console.log("Outside the nano");
+                // }
+                //   if(insideSection===true && !(line === '## Compile c++ files')){
+                //     cFlagArr.push(line);
+                // }
 
             }
             cFlag = cFlagArr.join(" ");
@@ -322,18 +326,21 @@ export class Board{
         try {
             const data = fs.readFileSync(filePath, 'utf-8');
             const dataArr = data.split('\n');
-            for(const line of dataArr.slice(53,55)){
-                if(line === '## Compile c files'){
-                    insideSection = true;
-                    console.log("Inside text");
-                }
-                if(line === ''){
-                    insideSection = false;
-                    console.log("Outside the nano");
-                }
-                    if(insideSection===true && !(line === '## Compile c++ files')){
+            for(const line of dataArr.slice(54,56)){
+                // if(line === '## Compile c files'){
+                //     insideSection = true;
+                //     console.log("Inside text");
+                // }
+                // if(line === ''){
+                //     insideSection = false;
+                //     console.log("Outside the nano");
+                // }
+                //     if(insideSection===true && !(line === '## Compile c++ files')){
+                // }
+                if(!(line === '')){
                     cFlagArr.push(line);
                 }
+
     
             }
             cFlag = cFlagArr.join(" ");
