@@ -92,17 +92,24 @@ export class Board{
             this.corePaths.push([path.join(basepath, "variants", "eightanaloginputs"), path.join("core", "eightanaloginputs")]);
             this.corePaths.push([path.join(basepath, "variants", "standard"), path.join("core", "standard")]);
 
-             //testing getting c flag board.txt
-            let arduinoPackagePath = ' ';
-            arduinoPackagePath = path.join(basepath, 'boards.txt');
-            console.log("Nano board.txt flag");
-            //testing returns a string of nano flags Compile c++ flags 
-            console.log(this.getBoardflagsNano(arduinoPackagePath));
-            console.log("Nano platform.txt flag");
-            arduinoPackagePath = '';
-            arduinoPackagePath = path.join(basepath, 'platform.txt');
-            console.log(this.getPlatformCPlusCompilerFlag(arduinoPackagePath));
-            //testing get
+            var arduinoPackagePathBoard = path.join(basepath, 'boards.txt');
+            var arduinoPackagePathPlatform = path.join(basepath, 'platform.txt');
+            //testing getting c flag board.txt
+            // let arduinoPackagePath = ' ';
+            console.log("---------- Nano board.txt flag -------");
+            console.log(this.getBoardflagsNano(arduinoPackagePathBoard));
+            console.log("---------- END OF Nano board.txt flag -------");
+
+            //testing platform file c++ flag
+            console.log("--------- Nano platform.txt C++ flag ----------");
+            console.log(this.getPlatformCPlusCompilerFlag(arduinoPackagePathPlatform));
+            console.log("--------- END OF Nano platform.txt C++ flag ----------");
+
+            //testing getBoardMegaNanoFlag function 
+            
+
+            //testing getBoardMegaNanoFlagBootLoader
+
         }
 
     }
@@ -233,7 +240,7 @@ export class Board{
     }
 
           /**
- * Function that retrieves the nano compile flag within platform.txt 
+ * Function that retrieves the nano C++ compile flag within platform.txt 
  * @param filePath path to arduino hardware file
  * @returns a string compriseing of C++ flags from platform.txt
  */
@@ -266,6 +273,42 @@ export class Board{
 
         return cFlag;
     }
+
+        /**
+ * Function that retrieves the nano C compile flag within platform.txt 
+ * @param filePath path to arduino hardware file
+ * @returns a string compriseing of C flags from platform.txt
+ */
+        getPlatformCCompilerFlag(filePath:string){
+            let insideSection = false;
+            // Split the content by lines
+            let cFlag = "";
+            let cFlagArr = [];
+            try {
+                const data = fs.readFileSync(filePath, 'utf-8');
+                const dataArr = data.split('\n');
+                for(const line of dataArr.slice(53,54)){
+                    if(line === '## Compile c files'){
+                        insideSection = true;
+                        console.log("Inside text");
+                    }
+                    if(line === ''){
+                        insideSection = false;
+                        console.log("Outside the nano");
+                    }
+                      if(insideSection===true && !(line === '## Compile c++ files')){
+                        cFlagArr.push(line);
+                    }
+    
+                }
+                cFlag = cFlagArr.join(" ");
+            } catch (error) {
+                cFlag = "Error occurred while reading the file.";
+            }
+    
+            return cFlag;
+        }
+    
 
 
 }
