@@ -186,9 +186,6 @@ export class Board{
             const data = fs.readFileSync(filePath, 'utf-8');
             const dataArr = data.split('\n');
             for(const line of dataArr.slice(192,211)){
-                // let stringMatchArr = line.split('=');
-                // let result = stringMatchArr[1].trim();
-                // console.log('result: ' + result);
                 if(line === 'nano.name=Arduino Nano'){
                     insideSection = true;
                     console.log("Inside the nano read");
@@ -218,9 +215,6 @@ export class Board{
             const data = fs.readFileSync(filePath, 'utf-8');
             const dataArr = data.split('\n');
             for(const line of dataArr.slice(213,226)){
-                // let stringMatchArr = line.split('=');
-                // let result = stringMatchArr[1].trim();
-                // console.log('result: ' + result);
                 if(line === 'nano.menu.cpu.atmega328=ATmega328P'){
                     insideSection = true;
                     console.log("Inside the nano read");
@@ -250,9 +244,6 @@ export class Board{
             const data = fs.readFileSync(filePath, 'utf-8');
             const dataArr = data.split('\n');
             for(const line of dataArr.slice(228,241)){
-                // let stringMatchArr = line.split('=');
-                // let result = stringMatchArr[1].trim();
-                // console.log('result: ' + result);
                 if(line === 'nano.menu.cpu.atmega328old=ATmega328P (Old Bootloader)'){
                     insideSection = true;
                     console.log("Inside the nano read");
@@ -280,7 +271,6 @@ export class Board{
  * @returns a string compriseing of C++ flags from platform.txt
  */
     getPlatformCPlusCompilerFlag(filePath:string){
-        let insideSection = false;
         // Split the content by lines
         let cFlag = "";
         let cFlagArr = [];
@@ -291,18 +281,6 @@ export class Board{
                 if(!(line === '')){
                     cFlagArr.push(line);
                 }
-                
-                // if(line === '## Compile c++ files'){
-                //     insideSection = true;
-                //     console.log("Inside text");
-                // }
-                // if(line === ''){
-                //     insideSection = false;
-                //     console.log("Outside the nano");
-                // }
-                //   if(insideSection===true && !(line === '## Compile c++ files')){
-                //     cFlagArr.push(line);
-                // }
 
             }
             cFlag = cFlagArr.join(" ");
@@ -319,7 +297,6 @@ export class Board{
  * @returns a string compriseing of C flags from platform.txt
  */
     getPlatformCCompilerFlag(filePath:string){
-        let insideSection = false;
         // Split the content by lines
         let cFlag = "";
         let cFlagArr = [];
@@ -327,21 +304,9 @@ export class Board{
             const data = fs.readFileSync(filePath, 'utf-8');
             const dataArr = data.split('\n');
             for(const line of dataArr.slice(54,56)){
-                // if(line === '## Compile c files'){
-                //     insideSection = true;
-                //     console.log("Inside text");
-                // }
-                // if(line === ''){
-                //     insideSection = false;
-                //     console.log("Outside the nano");
-                // }
-                //     if(insideSection===true && !(line === '## Compile c++ files')){
-                // }
                 if(!(line === '')){
                     cFlagArr.push(line);
                 }
-
-    
             }
             cFlag = cFlagArr.join(" ");
         } catch (error) {
