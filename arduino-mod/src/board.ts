@@ -99,17 +99,23 @@ export class Board{
             console.log("---------- Nano board.txt flag -------");
             console.log(this.getBoardflagsNano(arduinoPackagePathBoard));
             console.log("---------- END OF Nano board.txt flag -------");
+            //testing getBoardMegaNanoFlag function 
+            console.log("---------- Nano Mega nano board.txt flag -------");
+            console.log(this.getBoardMegaNanoFlag(arduinoPackagePathBoard));
+            console.log("---------- END OF Mega nano board.txt flag -------");
+            //testing getBoardMegaNanoFlagBootLoader
+            console.log("---------- Nano Mega nano Bootloader board.txt flag -------");
+            console.log(this.getBoardMegaNanoBootloaderFlag(arduinoPackagePathBoard));
+            console.log("---------- END OF Mega nano Bootloader board.txt flag -------");
 
             //testing platform file c++ flag
             console.log("--------- Nano platform.txt C++ flag ----------");
             console.log(this.getPlatformCPlusCompilerFlag(arduinoPackagePathPlatform));
             console.log("--------- END OF Nano platform.txt C++ flag ----------");
-
-            //testing getBoardMegaNanoFlag function 
-            
-
-            //testing getBoardMegaNanoFlagBootLoader
-
+            //testing platform file c flag
+            console.log("--------- Nano platform.txt C flag ----------");
+            console.log(this.getPlatformCCompilerFlag(arduinoPackagePathPlatform));
+            console.log("--------- END OF Nano platform.txt C flag ----------");
         }
 
     }
@@ -235,8 +241,8 @@ export class Board{
 
         return cFlag;
     }
-    getBoardMegaNanoBootloaderFlag(){
-
+    getBoardMegaNanoBootloaderFlag(filePath:string): string {
+        return "";
     }
 
           /**
