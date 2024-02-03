@@ -250,6 +250,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     }
     console.log("Starting to copy code device library files...");
     importproj.copyDirectoriesPaired(board.getCorePaths(), destDir);
+    fs.renameSync(path.join(destDir, "core", "wiring_pulse.S"), path.join(destDir, "core", "wiring_pulse_asm.S"))
     console.log("Core import complete");
 
 
@@ -315,14 +316,23 @@ clean:
     vscode.window.showInformationMessage("Import complete! Building project.");
     try {
         execSync('cmake -G "Unix Makefiles"', {cwd: destDir});
-        execSync('make', {cwd: destDir});
+        execSync('make', {cwd: destDir});    
     } catch (error) {
         console.error('Error:', error);
         vscode.window.showInformationMessage("Error using CMake. See console for more info.");
     }
     
 
+    try {
+        const command = process.platform === 'win32' ? `start "" "${destDir}"` : `open "${destDir}"`;
+        execSync(command);
+    } catch (error) {
+        console.error(error);
+        vscode.window.showInformationMessage("Error opening project directory. See console for more info.");
+    }
+
 }
+
 
 
 
