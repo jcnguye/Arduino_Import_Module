@@ -249,6 +249,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     }
     console.log("Starting to copy code device library files...");
     importproj.copyDirectoriesPaired(board.getCorePaths(), destDir);
+    fs.renameSync(path.join(destDir, "core", "wiring_pulse.S"), path.join(destDir, "core", "wiring_pulse_asm.S"))
     console.log("Core import complete");
 
     const cmake= new Cmaker(board);
@@ -279,6 +280,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     }
     
 }
+
 
 
 
