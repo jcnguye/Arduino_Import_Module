@@ -281,10 +281,18 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     vscode.window.showInformationMessage("Import complete! Building project.");
     try {
         execSync('cmake -G "Unix Makefiles"', {cwd: destDir});
-        execSync('make', {cwd: destDir});
+        execSync('make', {cwd: destDir});    
     } catch (error) {
         console.error('Error:', error);
         vscode.window.showInformationMessage("Error using CMake. See console for more info.");
+    }
+    
+    try {
+        const command = process.platform === 'win32' ? `start "" "${destDir}"` : `open "${destDir}"`;
+        execSync(command);
+    } catch (error) {
+        console.error(error);
+        vscode.window.showInformationMessage("Error opening project directory. See console for more info.");
     }
     
 }
