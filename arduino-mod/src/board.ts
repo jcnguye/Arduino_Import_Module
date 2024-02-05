@@ -94,7 +94,7 @@ export class Board{
 
             var arduinoPackagePathBoard = path.join(basepath, 'boards.txt');
             var arduinoPackagePathPlatform = path.join(basepath, 'platform.txt');
-            //testing getting c flag board.txt
+            //Testing if platform and board is being read
             // let arduinoPackagePath = ' ';
             console.log("---------- Nano board.txt flag -------");
             console.log(this.getBoardflagsNano(arduinoPackagePathBoard));
@@ -315,7 +315,13 @@ export class Board{
         }
     
         return cFlag;
-        }
+    }
+    /*
+    funtion that will format the C compiler recipe with all needed flags
+    */
+    formatCCompiler(){
+
+    }
     
 
 
