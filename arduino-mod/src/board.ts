@@ -110,11 +110,11 @@ export class Board{
 
             //testing platform file c++ flag
             console.log("--------- Nano platform.txt C++ flag ----------");
-            console.log(this.getPlatformCPlusCompilerFlag(arduinoPackagePathPlatform));
+            console.log(this.getPlatformCPlusRecipePattern(arduinoPackagePathPlatform));
             console.log("--------- END OF Nano platform.txt C++ flag ----------");
             //testing platform file c flag
             console.log("--------- Nano platform.txt C flag ----------");
-            console.log(this.getPlatformCCompilerFlag(arduinoPackagePathPlatform));
+            console.log(this.getPlatformCCompilerRecipePattern(arduinoPackagePathPlatform));
             console.log("--------- END OF Nano platform.txt C flag ----------");
         }
 
@@ -235,6 +235,7 @@ export class Board{
 
         return cFlag;
     }
+
     getBoardMegaNanoBootloaderFlag(filePath:string): string {
         let insideSection = false;
         // Split the content by lines
@@ -266,11 +267,11 @@ export class Board{
     }
 
           /**
- * Function that retrieves the nano C++ compile flag within platform.txt 
+ * Function that retrieves the recipe pattern of C++ from platform.txt
  * @param filePath path to arduino hardware file
- * @returns a string compriseing of C++ flags from platform.txt
+ * @returns a string of the recipe pattern of C plus 
  */
-    getPlatformCPlusCompilerFlag(filePath:string){
+    getPlatformCPlusRecipePattern(filePath:string){
         // Split the content by lines
         let cFlag = "";
         let cFlagArr = [];
@@ -292,11 +293,11 @@ export class Board{
     }
 
         /**
- * Function that retrieves the nano C compile flag within platform.txt 
+ * Function that retrieves the recipe pattern of C in platform.txt 
  * @param filePath path to arduino hardware file
- * @returns a string compriseing of C flags from platform.txt
+ * @returns a string of the recipe pattern of C
  */
-    getPlatformCCompilerFlag(filePath:string){
+    getPlatformCCompilerRecipePattern(filePath:string){
         // Split the content by lines
         let cFlag = "";
         let cFlagArr = [];
