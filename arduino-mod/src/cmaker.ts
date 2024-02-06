@@ -72,9 +72,13 @@ export class Cmaker {
 		'file(GLOB CORE_SOURCES "${CORE_DIR}/*.cpp" "${CORE_DIR}/*.c")\nadd_library(core STATIC ${CORE_SOURCES})\n\n';
 		// hex file generator
 		let hex = "add_custom_command(TARGET " + this.projName + " POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O ihex -R .eeprom " + this.projName + " " + this.projName + ".hex)\n";
-		hex = hex + 'set(HEX_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/' + this.projName + '.hex")\n';
+		hex = hex + 'set(HEX_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/' + this.projName + '/output/hex_file.hex")\n';
 		// bin file generator
 		let bin = "add_custom_command(TARGET " + this.projName + " POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O binary -R .eeprom " + this.projName + " " + this.projName + ".bin)\n";
+		// set .elf, .map, and .lss files to output folder when these are eventually created
+		let elf = 'set(ELF_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/' + this.projName + '/output/elf_file.elf")\n';
+		let map = 'set(MAP_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/' + this.projName + '/output/map_file.map")\n';
+		let lss = 'set(LSS_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/' + this.projName + '/output/lss_file.lss")\n';
 
 		//resets Cmake File
 		if (fs.existsSync(this.projDir + "/CMakeLists.txt")) {
@@ -100,6 +104,9 @@ export class Cmaker {
 		fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeDir);
 		fs.appendFileSync(this.projDir + "/CMakeLists.txt", hex);
 		fs.appendFileSync(this.projDir + "/CMakeLists.txt", bin);
+		fs.appendFileSync(this.projDir + "/CMakeLists.txt", elf);
+		fs.appendFileSync(this.projDir + "/CMakeLists.txt", map);
+		fs.appendFileSync(this.projDir + "/CMakeLists.txt", lss);
 
 		// use fs.appendFileSync(projDir + "/CMakeLists.txt", data); for future appends
 
