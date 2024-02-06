@@ -16,7 +16,6 @@ export class MainPanel {
   private selectedBoard: string = "";
   private selectedOption: string = "";
 
-  private board: Board;
   private readyForImport: boolean = false;
 
   /**
@@ -116,6 +115,7 @@ export class MainPanel {
     const dirContent = this.getDirContent();
     const boardContent = this.getBoardContent();
     const boardOptionsContent = this.getBoardOptionsContent();
+    const debugOptionsContent = this.getDebugOptionsContent();
     const importContent = this.getImportContent();
 
     // Tip: Install the es6-string-html VS Code extension to enable code highlighting below
@@ -147,6 +147,7 @@ export class MainPanel {
           <br>
           <br>
           ${boardOptionsContent}
+          ${debugOptionsContent}
           <br>
           ${importContent}
 					<script type="module" nonce="${nonce}" src="${webviewUri}"></script>
@@ -184,15 +185,30 @@ export class MainPanel {
   private getBoardOptionsContent(){
     let result = '';
     if (this.selectedBoard.length > 0) {
-      this.board = boardsInfo.getBoard(this.selectedBoard);
+      const board = boardsInfo.getBoard(this.selectedBoard);
 
-      if (this.board.options.length > 0 ) {
+      if (board.options.length > 0 ) {
         result = `<vscode-radio-group id="boardOpt" orientation="vertical"><label slot="label">Select Board Option</label>`;
-        for (const opt of this.board.options) {
+        for (const opt of board.options) {
           result = result + `<vscode-radio value="${opt}">${opt}</vscode-radio>`;
         }
         result = result + `</vscode-radio-group>`;
       }
+    }
+    return result;
+  }
+
+  private getDebugOptionsContent(){
+    let result = '';
+    if (this.selectedBoard.length > 0) {
+      const board = boardsInfo.getBoard(this.selectedBoard);
+
+      result = `<vscode-radio-group id="debugOpt" orientation="vertical"><label slot="label">Select Debug Options (Optional)</label>`;
+      for (const key of board.getDebugMap().keys()) {
+        result = result + `<vscode-radio value="${key}">${key}</vscode-radio>`;
+      }
+      result = result + `</vscode-radio-group>`;
+      
     }
     return result;
   }
@@ -265,7 +281,7 @@ export class MainPanel {
             }
             return;
           case "import":
-            ex.startImport(this.sketchFile, this.destinationDirectory, this.board);
+            ex.startImport(this.sketchFile, this.destinationDirectory, new Board(this.selectedBoard));
         }
       },
       undefined,
@@ -273,25 +289,17 @@ export class MainPanel {
     );
   }
 
+  //TODO - fix so import button appears correctly
   private allSelectionsMade() {
-    if(this.board === undefined) {
-      if(this.selectedBoard === undefined) {
-        console.log("Undefined Selection");
-      }
-      this.board = new Board(this.selectedBoard);
-    }
-
     if (this.sketchFile.length > 0 && this.destinationDirectory.length > 0 && this.selectedBoard.length > 0) {
-      if (this.board.options.length > 0 && this.selectedOption.length > 0) {
+      const board = new Board(this.selectedBoard);
+      if (board.options.length > 0 && this.selectedOption.length > 0) {
         this.readyForImport = true;
-      } else if (this.board.options.length === 0) {
+      } else if (board.options.length === 0) {
         this.readyForImport = true;
       }
       this.refresh();
     }
   }
 
-  public getBoard() {
-    return this.board;
-  }
 }

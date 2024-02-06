@@ -27,10 +27,13 @@ export class Board{
     options: string[] = [];
     private corePaths: [string, string][] = []; // tuple of core lib path and ./core/ dest
     private pathToCompiler: string = "";
+    private debugMap: Map<string, string>; //keys are the name of the debug option, value is the flag
 
 
     constructor(boardName: string) {
         this.boardName = boardName;
+        this.debugMap = new Map();
+        this.debugMap.set("Debug Option 1", "Compiler flag");
 
         var localAppData = "???";
 		if(process.platform === "win32") {
@@ -72,6 +75,11 @@ export class Board{
     getPathToCompiler() {
         return this.pathToCompiler;
     }
+
+    getDebugMap(): Map<string, string> {
+        return this.debugMap;
+    }
+
     setBoardName(boardName:string):void{
         this.boardName = boardName;
     }
