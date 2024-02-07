@@ -283,6 +283,7 @@ export class MainPanel {
     );
   }
 
+  //TODO - fix so import button appears correctly
   private allSelectionsMade() {
     if(this.board === undefined) {
       if(this.selectedBoard === undefined) {
@@ -298,10 +299,7 @@ export class MainPanel {
         this.readyForImport = true;
       }
       this.refresh();
+      }
     }
-  }
 
-  public getBoard() {
-    return this.board;
   }
-}

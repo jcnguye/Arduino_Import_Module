@@ -72,6 +72,7 @@ export class Board{
     getPathToCompiler() {
         return this.pathToCompiler;
     }
+
     setBoardName(boardName:string):void{
         this.boardName = boardName;
     }
