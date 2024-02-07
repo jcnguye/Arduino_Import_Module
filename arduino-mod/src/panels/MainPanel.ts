@@ -18,6 +18,7 @@ export class MainPanel {
 
   private board: Board;
   private readyForImport: boolean = false;
+  private debuggingOptimization = false; 
 
   /**
    * The MainPanel class private constructor (called only from the render method).
@@ -147,6 +148,10 @@ export class MainPanel {
           <br>
           <br>
           ${boardOptionsContent}
+          <vscode-radio-group id="optimizeOpt" orientation="vertical"><label slot="label">Select Optimization Option</label>
+            <vscode-radio default value="codeSizeOptimization">Optimize for code size (default)</vscode-radio>
+            <vscode-radio value="debuggingOptimization">Optimize for debugging</vscode-radio>
+          </vscode-radio-group>
           <br>
           ${importContent}
 					<script type="module" nonce="${nonce}" src="${webviewUri}"></script>
@@ -225,6 +230,11 @@ export class MainPanel {
           case "boardOpt":
             this.selectedOption = text;
             return;
+          case "optimizeOpt":
+            if (text === "debuggingOptimization") {
+              this.debuggingOptimization = true;
+            }
+            return;  
           case "directory":
             const destDir = await window.showOpenDialog({
               canSelectFiles: false,
@@ -265,7 +275,7 @@ export class MainPanel {
             }
             return;
           case "import":
-            ex.startImport(this.sketchFile, this.destinationDirectory, this.board);
+            ex.startImport(this.sketchFile, this.destinationDirectory, this.board, this.debuggingOptimization);
         }
       },
       undefined,

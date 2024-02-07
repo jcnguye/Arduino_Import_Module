@@ -28,6 +28,9 @@ function main() {
   const boardOptGroup = document.getElementById("boardOpt") as RadioGroup;
   boardOptGroup?.addEventListener("change", handleBoardOptChange);
 
+  const optimizeOptGroup = document.getElementById("optimizeOpt") as RadioGroup;
+  optimizeOptGroup?.addEventListener("change", handleOptimizeOptChange);
+
   const importButton = document.getElementById("import") as Button;
   importButton?.addEventListener("click", handleImportClick);
 
@@ -65,10 +68,17 @@ function handleBoardChange(){
 
 function handleBoardOptChange(){
   const boardOptGroup = document.getElementById("boardOpt") as RadioGroup;
-  boardOptGroup.value;
   vscodeApi.postMessage({
     command: "boardOpt",
     text: boardOptGroup.value, 
+  });
+}
+
+function handleOptimizeOptChange(){
+  const optimizeOptGroup = document.getElementById("optimizeOpt") as RadioGroup;
+  vscodeApi.postMessage({
+    command: "optimizeOpt",
+    text: optimizeOptGroup.value, 
   });
 }
 

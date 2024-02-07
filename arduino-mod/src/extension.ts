@@ -221,7 +221,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 
-export async function startImport(sketchPath: string, destDir: string, board: Board) {
+export async function startImport(sketchPath: string, destDir: string, board: Board, debuggingOptimization: boolean) {
     vscode.window.showInformationMessage("Starting import.");
     //rename .ino as .cpp and copy it to the destination directory
     const file = path.basename(sketchPath);
@@ -251,6 +251,9 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     importproj.copyDirectoriesPaired(board.getCorePaths(), destDir);
     fs.renameSync(path.join(destDir, "core", "wiring_pulse.S"), path.join(destDir, "core", "wiring_pulse_asm.S"))
     console.log("Core import complete");
+
+    //DELETE
+    vscode.window.showInformationMessage("Debugging optimization: " + debuggingOptimization);
 
     const cmake= new Cmaker(board);
     cmake.setProjectDirectory(destDir);
