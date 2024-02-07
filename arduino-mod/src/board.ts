@@ -87,7 +87,15 @@ export class Board{
              
         if (localAppData) {
             this.pathToCompiler = path.join(localAppData,"packages","arduino","tools","avr-gcc");
-            const compilerVersion = this.mostRecentDirectory(this.pathToCompiler); 
+
+            let compilerVersion = "";
+            
+            try {
+                compilerVersion = this.mostRecentDirectory(this.pathToCompiler); 
+            } catch(error) {
+                compilerVersion = "7.3.0-atmel3.6.1-arduino7"
+            }
+            
             this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion); 
             
           	const basepath = path.join(localAppData, "packages", "arduino", "hardware", "avr", parser.getNanoVersion());
@@ -136,6 +144,7 @@ export class Board{
  * @returns The name of the directory inside dirPath that was most recently updated
  */
     mostRecentDirectory(dirPath: string): string {
+        console.log(dirPath);
         const directories = fs.readdirSync(dirPath, { withFileTypes: true });
         const subdirectories = directories.filter((dirent) => dirent.isDirectory());
         const mostRecentDirectory = subdirectories.reduce((prev, current) => {

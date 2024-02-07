@@ -259,7 +259,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     cmake.setCompilerFlags(await parser.getAllFlags(board));
 
     //TODO - this needs to be fixed to link correct files
-    cmake.setLinkerFlags('-Wall -Wextra -Os -g -flto -fuse-linker-plugin -mrelax -Wl,--gc-sections,--section-start=.text=0x0,--section-start=.FLMAP_SECTION1=0x8000,--section-start=.FLMAP_SECTION2=0x10000,--section-start=.FLMAP_SECTION3=0x18000 -mmcu=avr64dd32');
+    // cmake.setLinkerFlags('-Wall -Wextra -Os -g -flto -fuse-linker-plugin -mrelax -Wl,--gc-sections,--section-start=.text=0x0,--section-start=.FLMAP_SECTION1=0x8000,--section-start=.FLMAP_SECTION2=0x10000,--section-start=.FLMAP_SECTION3=0x18000 -mmcu=avr64dd32');
     cmake.build();
 
     vscode.window.showInformationMessage("Import complete! Building project.");

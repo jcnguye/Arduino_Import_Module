@@ -42,8 +42,11 @@ export class Cmaker {
 		let cmakeHeader = "cmake_minimum_required(VERSION 3.8)\n";
 		
 		const binPath = path.join(this.board.getPathToCompiler(), "bin");
+
+		//setting copmiler
 		cmakeHeader = cmakeHeader + 'set(CMAKE_C_COMPILER ' + path.join(binPath, "avr-gcc.exe").replace(/\\/g, '/') + ')\n';
 		cmakeHeader = cmakeHeader + 'set(CMAKE_CXX_COMPILER ' + path.join(binPath, "avr-g++.exe").replace(/\\/g, '/') +')\n';
+		cmakeHeader += 'set(CMAKE_SYSTEM_NAME Generic)\n';
 
 		cmakeHeader = cmakeHeader + 'project(' + this.projName + ' C CXX)\n\n';
 		cmakeHeader = cmakeHeader + 'set(CORE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/core)\n\n';
@@ -51,34 +54,34 @@ export class Cmaker {
 		cmakeHeader = cmakeHeader + 'set(CMAKE_AR ' + path.join(binPath, "avr-gcc-ar.exe").replace(/\\/g, '/') +')\n';
 		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJCOPY ' + path.join(binPath, "avr-objcopy.exe").replace(/\\/g, '/') +')\n\n';
 
-		cmakeHeader = cmakeHeader + 'set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -c -g -Os -w -std=gnu++11 -fpermissive -fno-exceptions ' + 
-		'-ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -MMD -flto -mmcu=atmega328p -DF_CPU=16000000L '+ 
-		'-DARDUINO=10607 -DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR")\n';
-		cmakeHeader = cmakeHeader + 'set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -c -g -Os -w -std=gnu11 -ffunction-sections -fdata-sections -MMD ' + 
-		'-flto -fno-fat-lto-objects -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10607 -DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR")\n';
+		cmakeHeader = cmakeHeader + 'set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Os -w -std=gnu++11 -fpermissive -fno-exceptions ' + 
+		'-ffunction-sections -fdata-sections -flto -fno-fat-lto-objects -ffat-lto-objects -fno-threadsafe-statics -Wno-error=narrowing '
+		+ '-MMD -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10607 -DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR")\n';
+
+		cmakeHeader = cmakeHeader + 'set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Os -w -std=gnu11 -ffunction-sections -fdata-sections -MMD ' + 
+		'-flto -fno-fat-lto-objects -ffat-lto-objects -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10607 -DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR")\n';
+
 		cmakeHeader = cmakeHeader + 'set(CMAKE_STATIC_LIBRARY_FLAGS "rcs")\n';
 		cmakeHeader = cmakeHeader + 'set(CMAKE_C_FLAGS_LINKER "${CMAKE_C_FLAGS_LINKER} -w -Os -g -flto -fuse-linker-plugin -Wl,--gc-sections ' +
 		'-mmcu=atmega328p -o ${CMAKE_CURRENT_SOURCE_DIR}/build/CMakeFiles/' + this.projName + '.dir/' + this.projName + 
 		'.elf ${CMAKE_CURRENT_SOURCE_DIR}/build/CMakeFiles/' + this.projName + '.dir/' + this.projName + '.cpp.o ${CMAKE_CURRENT_SOURCE_DIR}/build/libcore.a -L${CMAKE_CURRENT_SOURCE_DIR}/build -lm")\n\n';
 
+		cmakeHeader = cmakeHeader + "# testinggg \n";
 		//cmake  adding executable 
 		let cmakeSrcExecutable = "add_executable(" + this.projName + " " + this.srcFileName +")\n";
-		// cmake adding compile option
-		let cmakeSrcCompileOpt = "target_compile_options(" + this.projName + " PRIVATE " + this.compilerflags +")\n";
-		// cmake link libary
-		let cmakeSrcLinkLib = "target_link_libraries(" + this.projName + " " + this.linkerflags +")\n";
-		// cmake include directories, file, and add library
-		let cmakeDir = 'include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core" "${CMAKE_CURRENT_SOURCE_DIR}/core/eightanaloginputs" "${CMAKE_CURRENT_SOURCE_DIR}/core/standard")\n' +
-		'file(GLOB CORE_SOURCES "${CORE_DIR}/*.cpp" "${CORE_DIR}/*.c")\nadd_library(core STATIC ${CORE_SOURCES})\n\n';
+
+		let cmakeDir = 'include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core" + "\t${CMAKE_CURRENT_SOURCE_DIR}/core/eightanaloginputs\n" + "\t${CMAKE_CURRENT_SOURCE_DIR}/core/standard)\n";
+
+		cmakeDir = cmakeDir +'file(GLOB CORE_SOURCES "${CORE_DIR}/*.cpp" "${CORE_DIR}/*.c")\nadd_library(core STATIC ${CORE_SOURCES})\n\n';
+
+		let cmakeSrcLinkLib = "target_link_libraries(" + this.projName + " PRIVATE core)\n";
 		// hex file generator
-		let hex = "add_custom_command(TARGET " + this.projName + " POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O ihex -R .eeprom " + this.projName + " " + this.projName + ".hex)\n";
-		hex = hex + 'set(HEX_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/' + this.projName + '/output/hex_file.hex")\n';
-		// bin file generator
-		let bin = "add_custom_command(TARGET " + this.projName + " POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O binary -R .eeprom " + this.projName + " " + this.projName + ".bin)\n";
-		// set .elf, .map, and .lss files to output folder when these are eventually created
-		let elf = 'set(ELF_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/' + this.projName + '/output/elf_file.elf")\n';
-		let map = 'set(MAP_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/' + this.projName + '/output/map_file.map")\n';
-		let lss = 'set(LSS_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/' + this.projName + '/output/lss_file.lss")\n';
+		let hex = 'set(HEX_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/' + this.projName + '/output/hex_file.hex")\n\n';
+		// hex += "add_custom_command(TARGET " + this.projName + " POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O ihex -R .eeprom " + this.projName + " " + this.projName + ".hex)\n";
+		hex += "add_custom_command(TARGET " + this.projName + " POST_BUILD COMMAND ${CMAKE_OBJECOPY} -o ihex $<TARGET_FILE:" + this.projName +
+			"> ${HEX_FILE_OUTPUT_PATH} COMMENT \"Generating HEX file\")\n\n";
+
+		hex += "add_custom_target(GenerateHex ALL DEPENDS ${HEX_FILE_OUTPUT_PATH} COMMENT (\"Building Hex File\")";
 
 		//resets Cmake File
 		if (fs.existsSync(this.projDir + "/CMakeLists.txt")) {
