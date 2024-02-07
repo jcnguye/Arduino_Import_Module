@@ -116,6 +116,7 @@ export class Board{
             console.log("--------- Nano platform.txt C flag ----------");
             console.log(this.getPlatformCCompilerRecipePattern(arduinoPackagePathPlatform));
             console.log("--------- END OF Nano platform.txt C flag ----------");
+            this.formatCCompiler(this.getPlatformCCompilerRecipePattern(arduinoPackagePathPlatform))
         }
 
     }
@@ -271,7 +272,7 @@ export class Board{
  * @param filePath path to arduino hardware file
  * @returns a string of the recipe pattern of C plus 
  */
-    getPlatformCPlusRecipePattern(filePath:string){
+    getPlatformCPlusRecipePattern(filePath:string): string {
         // Split the content by lines
         let cFlag = "";
         let cFlagArr = [];
@@ -297,7 +298,7 @@ export class Board{
  * @param filePath path to arduino hardware file
  * @returns a string of the recipe pattern of C
  */
-    getPlatformCCompilerRecipePattern(filePath:string){
+    getPlatformCCompilerRecipePattern(filePath:string): string {
         // Split the content by lines
         let cFlag = "";
         let cFlagArr = [];
@@ -319,8 +320,13 @@ export class Board{
     /*
     funtion that will format the C compiler recipe with all needed flags
     */
-    formatCCompiler(){
-
+    formatCCompiler(cRecipeString:String): string {
+        let cRecipeStringArr = cRecipeString.split(' ');
+        for (const str of cRecipeStringArr) {
+            console.log(str);
+        }
+    
+        return "";
     }
     
 
