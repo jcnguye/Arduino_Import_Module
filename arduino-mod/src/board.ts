@@ -26,6 +26,7 @@ export class Board{
     options: string[] = [];
     private corePaths: [string, string][] = []; // tuple of core lib path and ./core/ dest
     private pathToCompiler: string = "";
+    private pathToHardware: string = "";
 
 
     constructor(boardName: string) {
@@ -91,9 +92,12 @@ export class Board{
             this.corePaths.push([path.join(basepath, "cores", "arduino"), "core"]);
             this.corePaths.push([path.join(basepath, "variants", "eightanaloginputs"), path.join("core", "eightanaloginputs")]);
             this.corePaths.push([path.join(basepath, "variants", "standard"), path.join("core", "standard")]);
+            
+            this.pathToHardware = basepath;
 
             var arduinoPackagePathBoard = path.join(basepath, 'boards.txt');
             var arduinoPackagePathPlatform = path.join(basepath, 'platform.txt');
+
             //Testing if platform and board is being read
             // let arduinoPackagePath = ' ';
             console.log("---------- Nano board.txt flag -------");
@@ -119,6 +123,11 @@ export class Board{
             this.formatCCompiler(this.getPlatformCCompilerRecipePattern(arduinoPackagePathPlatform))
         }
 
+    }
+
+
+    getPathToHardware(): String {
+        return this.pathToHardware;
     }
    
 
@@ -207,6 +216,8 @@ export class Board{
 
         return cFlag;
     }
+
+    
     getBoardMegaNanoFlag(filePath:string): string {
         let insideSection = false;
         // Split the content by lines
@@ -236,6 +247,7 @@ export class Board{
 
         return cFlag;
     }
+
 
     getBoardMegaNanoBootloaderFlag(filePath:string): string {
         let insideSection = false;
@@ -322,10 +334,10 @@ export class Board{
     */
     formatCCompiler(cRecipeString:String): string {
         let cRecipeStringArr = cRecipeString.split(' ');
+
         for (const str of cRecipeStringArr) {
             console.log(str);
         }
-    
         return "";
     }
     
