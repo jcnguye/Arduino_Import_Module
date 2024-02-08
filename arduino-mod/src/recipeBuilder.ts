@@ -61,24 +61,3 @@ export class Recipe {
 
 
 }
-
-
-// Example usage
-const recipe1 = 'recipe.c.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} -mmcu={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {compiler.c.extra_flags} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"';
-const replacements1 = {
-    'compiler.path': '/path/to/compiler/',
-    'compiler.c.cmd': 'gcc',
-    'build.mcu': 'atmega328p',
-    'build.f_cpu': '16000000L',
-    'runtime.ide.version': '1.8.13',
-    'build.board': 'UNO',
-    'build.arch': 'AVR',
-    'compiler.c.extra_flags': '',
-    'build.extra_flags': '',
-    'includes': '-I/path/to/includes',
-    'source_file': 'main.c',
-    'object_file': 'main.o'
-};
-
-//const replacedRecipe = replaceVariables(recipe1, replacements1);
-//console.log(replacedRecipe);
