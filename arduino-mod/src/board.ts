@@ -27,12 +27,12 @@ export class Board{
     private corePaths: [string, string][] = []; // tuple of core lib path and ./core/ dest
     private pathToCompiler: string = "";
     private pathToHardware: string = "";
+    private pathToPlatformFile: string = "";
+    private pathToBoardFile: string = "";
 
 
     constructor(boardName: string) {
         this.boardName = boardName;
-
-
         if(boardName === NANO) {
             this.nanoBuild();
         } else if (boardName === MEGA) {
@@ -61,6 +61,19 @@ export class Board{
     getPathToCompiler() {
         return this.pathToCompiler;
     }
+    getPathToHardware() {
+        return this.pathToHardware;
+    }
+    getPathToPlatformFile(){
+        return this.pathToPlatformFile;
+    }
+    getPathToBoardFile() {
+        return this.pathToBoardFile;
+    }
+    setPathToHardware(hardwarePath:string){
+        this.pathToHardware = hardwarePath;
+    }
+    
     setBoardName(boardName:string):void{
         this.boardName = boardName;
     }
@@ -96,40 +109,15 @@ export class Board{
             this.pathToHardware = basepath;
 
             var arduinoPackagePathBoard = path.join(basepath, 'boards.txt');
+            
             var arduinoPackagePathPlatform = path.join(basepath, 'platform.txt');
 
-            //Testing if platform and board is being read
-            // let arduinoPackagePath = ' ';
-            console.log("---------- Nano board.txt flag -------");
-            console.log(this.getBoardflagsNano(arduinoPackagePathBoard));
-            console.log("---------- END OF Nano board.txt flag -------");
-            //testing getBoardMegaNanoFlag function 
-            console.log("---------- Nano Mega nano board.txt flag -------");
-            console.log(this.getBoardMegaNanoFlag(arduinoPackagePathBoard));
-            console.log("---------- END OF Mega nano board.txt flag -------");
-            //testing getBoardMegaNanoFlagBootLoader
-            console.log("---------- Nano Mega nano Bootloader board.txt flag -------");
-            console.log(this.getBoardMegaNanoBootloaderFlag(arduinoPackagePathBoard));
-            console.log("---------- END OF Mega nano Bootloader board.txt flag -------");
-
-            //testing platform file c++ flag
-            console.log("--------- Nano platform.txt C++ flag ----------");
-            console.log(this.getPlatformCPlusRecipePattern(arduinoPackagePathPlatform));
-            console.log("--------- END OF Nano platform.txt C++ flag ----------");
-            //testing platform file c flag
-            console.log("--------- Nano platform.txt C flag ----------");
-            console.log(this.getPlatformCCompilerRecipePattern(arduinoPackagePathPlatform));
-            console.log("--------- END OF Nano platform.txt C flag ----------");
-            this.formatCCompiler(this.getPlatformCCompilerRecipePattern(arduinoPackagePathPlatform))
+            this.pathToBoardFile = arduinoPackagePathBoard;
+            this.pathToPlatformFile = arduinoPackagePathPlatform;
         }
 
     }
 
-
-    getPathToHardware(): String {
-        return this.pathToHardware;
-    }
-   
 
     dxCoreBuild(): void{
         this.setFlag("-DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L") ;
@@ -167,7 +155,7 @@ export class Board{
  * @param dirPath Path to the directory that should be investigated
  * @returns The name of the directory inside dirPath that was most recently updated
  */
-    mostRecentDirectory(dirPath: string): string {
+    mostRecentDirectory(dirPath: string){
         const directories = fs.readdirSync(dirPath, { withFileTypes: true });
         const subdirectories = directories.filter((dirent) => dirent.isDirectory());
         const mostRecentDirectory = subdirectories.reduce((prev, current) => {
@@ -187,7 +175,7 @@ export class Board{
  * @param filePath Path to arduino hardware file
  * @returns a string compriseing of information on the nano board flags
  */
-    getBoardflagsNano(filePath:string): string {
+    getBoardflagsNano(filePath:string){
         let insideSection = false;
         // Split the content by lines
         let cFlag = "";
@@ -218,13 +206,13 @@ export class Board{
     }
 
     
-    getBoardMegaNanoFlag(filePath:string): string {
+    getBoardMegaNanoFlag(){
         let insideSection = false;
         // Split the content by lines
         let cFlag = "";
         let cFlagArr = [];
         try {
-            const data = fs.readFileSync(filePath, 'utf-8');
+            const data = fs.readFileSync(this.getPathToBoardFile(), 'utf-8');
             const dataArr = data.split('\n');
             for(const line of dataArr.slice(213,226)){
                 if(line === 'nano.menu.cpu.atmega328=ATmega328P'){
@@ -249,7 +237,7 @@ export class Board{
     }
 
 
-    getBoardMegaNanoBootloaderFlag(filePath:string): string {
+    getBoardMegaNanoBootloaderFlag(filePath:string){
         let insideSection = false;
         // Split the content by lines
         let cFlag = "";
@@ -284,7 +272,7 @@ export class Board{
  * @param filePath path to arduino hardware file
  * @returns a string of the recipe pattern of C plus 
  */
-    getPlatformCPlusRecipePattern(filePath:string): string {
+    getPlatformCPlusRecipePattern(filePath:string){
         // Split the content by lines
         let cFlag = "";
         let cFlagArr = [];
@@ -310,7 +298,7 @@ export class Board{
  * @param filePath path to arduino hardware file
  * @returns a string of the recipe pattern of C
  */
-    getPlatformCCompilerRecipePattern(filePath:string): string {
+    getPlatformCCompilerRecipePattern(filePath:string){
         // Split the content by lines
         let cFlag = "";
         let cFlagArr = [];
@@ -328,19 +316,32 @@ export class Board{
         }
     
         return cFlag;
-    }
-    /*
-    funtion that will format the C compiler recipe with all needed flags
-    */
-    formatCCompiler(cRecipeString:String): string {
-        let cRecipeStringArr = cRecipeString.split(' ');
+    } 
 
-        for (const str of cRecipeStringArr) {
-            console.log(str);
+    /*
+    Function that takes in a flag target along with a string of flags associated with the board information
+    */
+    getTargetBoardFlagHelper(targetFlag:String,boardFlagsInfo:String){
+        console.log(boardFlagsInfo);
+        let boardFlagsInfoArr = boardFlagsInfo.split(' ');
+        for (const line of boardFlagsInfoArr){
+            console.log("Testing boardFlagsInfoArr " + line);
         }
-        return "";
+        for (const target of boardFlagsInfoArr){
+            console.log("target variable: " + target);
+            let variableFlagArr = target.split("=");
+
+            let variableFlag = variableFlagArr[0];
+            console.log(variableFlag);
+            console.log(variableFlagArr[1]);
+
+            if(variableFlag === targetFlag){
+                return variableFlagArr[1];
+            }
+        }
+        return null;
     }
-    
+
 
 
 }
