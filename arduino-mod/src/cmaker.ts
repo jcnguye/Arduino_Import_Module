@@ -46,7 +46,7 @@ export class Cmaker {
 		//setting copmiler
 		cmakeHeader = cmakeHeader + 'set(CMAKE_C_COMPILER ' + path.join(binPath, "avr-gcc.exe").replace(/\\/g, '/') + ')\n';
 		cmakeHeader = cmakeHeader + 'set(CMAKE_CXX_COMPILER ' + path.join(binPath, "avr-g++.exe").replace(/\\/g, '/') +')\n';
-		cmakeHeader += 'set(CMAKE_SYSTEM_NAME Generic)\n';
+		cmakeHeader = cmakeHeader + 'set(CMAKE_SYSTEM_NAME Generic)\n';
 
 		cmakeHeader = cmakeHeader + 'project(' + this.projName + ' C CXX)\n\n';
 		cmakeHeader = cmakeHeader + 'set(CORE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/core)\n\n';
@@ -66,20 +66,19 @@ export class Cmaker {
 		'-mmcu=atmega328p -o ${CMAKE_CURRENT_SOURCE_DIR}/build/CMakeFiles/' + this.projName + '.dir/' + this.projName + 
 		'.elf ${CMAKE_CURRENT_SOURCE_DIR}/build/CMakeFiles/' + this.projName + '.dir/' + this.projName + '.cpp.o ${CMAKE_CURRENT_SOURCE_DIR}/build/libcore.a -L${CMAKE_CURRENT_SOURCE_DIR}/build -lm")\n\n';
 
-		cmakeHeader = cmakeHeader + "# testinggg \n";
 		//cmake  adding executable 
-		let cmakeSrcExecutable = "add_executable(" + this.projName + " " + this.srcFileName +")\n";
+		let cmakeSrcExecutable = 'add_executable(' + this.projName + ' ' + this.srcFileName +")\n';
 
 		let cmakeDir = 'include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core" + "\t${CMAKE_CURRENT_SOURCE_DIR}/core/eightanaloginputs\n" + "\t${CMAKE_CURRENT_SOURCE_DIR}/core/standard)\n";
 
 		cmakeDir = cmakeDir +'file(GLOB CORE_SOURCES "${CORE_DIR}/*.cpp" "${CORE_DIR}/*.c")\nadd_library(core STATIC ${CORE_SOURCES})\n\n';
 
-		let cmakeSrcLinkLib = "target_link_libraries(" + this.projName + " PRIVATE core)\n";
+		// let cmakeSrcLinkLib = "target_link_libraries(" + this.projName + " PRIVATE core)\n";
 		// hex file generator
 		let hex = 'set(HEX_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/' + this.projName + '/output/hex_file.hex")\n\n';
 		// hex += "add_custom_command(TARGET " + this.projName + " POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O ihex -R .eeprom " + this.projName + " " + this.projName + ".hex)\n";
-		hex += "add_custom_command(TARGET " + this.projName + " POST_BUILD COMMAND ${CMAKE_OBJECOPY} -o ihex $<TARGET_FILE:" + this.projName +
-			"> ${HEX_FILE_OUTPUT_PATH} COMMENT \"Generating HEX file\")\n\n";
+		hex += 'add_custom_command(TARGET ' + this.projName + 'POST_BUILD COMMAND ${CMAKE_OBJCOPY} -o ihex $<TARGET_FILE:' + this.projName +
+			"> ${HEX_FILE_OUTPUT_PATH} COMMENT \"Generating HEX file\")\n\n';
 
 		hex += "add_custom_target(GenerateHex ALL DEPENDS ${HEX_FILE_OUTPUT_PATH} COMMENT (\"Building Hex File\")";
 
@@ -102,14 +101,14 @@ export class Cmaker {
 
 		fs.writeFileSync(this.projDir + "/CMakeLists.txt", cmakeHeader);
 		fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeSrcExecutable);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeSrcCompileOpt);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeSrcLinkLib);
+		// fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeSrcCompileOpt);
+		// fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeSrcLinkLib);
 		fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeDir);
 		fs.appendFileSync(this.projDir + "/CMakeLists.txt", hex);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", bin);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", elf);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", map);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", lss);
+		// fs.appendFileSync(this.projDir + "/CMakeLists.txt", bin);
+		// fs.appendFileSync(this.projDir + "/CMakeLists.txt", elf);
+		// fs.appendFileSync(this.projDir + "/CMakeLists.txt", map);
+		// fs.appendFileSync(this.projDir + "/CMakeLists.txt", lss);
 
 		// use fs.appendFileSync(projDir + "/CMakeLists.txt", data); for future appends
 
