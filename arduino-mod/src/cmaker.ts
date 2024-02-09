@@ -7,6 +7,7 @@ export class Cmaker {
 	public projDir: string;
 	public projName: string;
 	public srcFileName: string;
+	public compilerflags: string;
 	private board: Board;
 	private debuggingOptimization: boolean; 
 
@@ -18,6 +19,7 @@ export class Cmaker {
 		this.projDir = "";
 		this.projName = "";
 		this.srcFileName = "";
+		this.compilerflags = "";
 		this.board = board; 
 		this.debuggingOptimization = debuggingOptimization;
 	}
@@ -29,6 +31,9 @@ export class Cmaker {
 	}
 	public setSourceName(sourceFileName:string){
 		this.srcFileName = sourceFileName;
+	}
+	public setCompilerFlags(compileFlag:string){
+		this.compilerflags = compileFlag;
 	}
 
 
@@ -69,14 +74,14 @@ export class Cmaker {
 		'file(GLOB CORE_SOURCES "${CORE_DIR}/*.cpp" "${CORE_DIR}/*.c")\nadd_library(core STATIC ${CORE_SOURCES})\ntarget_link_libraries(' +  this.projName + ' PRIVATE core)\n\n';
 		
 		// hex file generator
-		let hex = 'set(HEX_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/' + this.projName + '.hex")\n';
+		let hex = 'set(HEX_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/output/' + this.projName + '.hex")\n';
 		hex = hex + 'add_custom_command(TARGET ' + this.projName + ' POST_BUILD COMMAND ${CMAKE_OBJCOPY} -O ihex $<TARGET_FILE:' + this.projName + '> ${HEX_FILE_OUTPUT_PATH} COMMENT "Generating HEX file")\n';
 		hex = hex + '\n\nadd_custom_target(GenerateHex ALL DEPENDS ${HEX_FILE_OUTPUT_PATH} COMMENT "Building HEX file")\n';
 
 		// set .elf, .map, and .lss files to output folder when these are eventually created
-		let elf = 'set(ELF_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/' + this.projName + '.elf")\n';
-		let map = 'set(MAP_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/' + this.projName + '.map")\n';
-		let lss = 'set(LSS_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/' + this.projName + '.lss")\n';
+		let elf = 'set(ELF_FILE_OUTPUT_PATH "${HEX_FILE_OUTPUT_PATH}/' + this.projName + '.elf")\n';
+		let map = 'set(MAP_FILE_OUTPUT_PATH "${HEX_FILE_OUTPUT_PATH}/' + this.projName + '.map")\n';
+		let lss = 'set(LSS_FILE_OUTPUT_PATH "${HEX_FILE_OUTPUT_PATH}/' + this.projName + '.lss")\n';
 
 		//resets Cmake File
 		if (fs.existsSync(this.projDir + "/CMakeLists.txt")) {

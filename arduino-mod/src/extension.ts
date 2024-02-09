@@ -256,9 +256,15 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     cmake.setProjectDirectory(destDir);
     cmake.setProjectName(cFile.replace(".cpp", ""));
     cmake.setSourceName('src/' + cFile);
+    cmake.setCompilerFlags(await parser.getAllFlags(board));
     cmake.build();
 
 
+    //create ouptput directory
+    const outputPath = path.join(destDir, 'output');
+    if (!fs.existsSync(outputPath)) {
+        fs.mkdirSync(outputPath);
+    }
     vscode.window.showInformationMessage("Import complete! Building project...");
     try {
         execSync('cmake -G "Unix Makefiles"', {cwd: destDir});
@@ -269,7 +275,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     }
     
     try {
-        const command = process.platform === 'win32' ? `start "" "${destDir}"` : `open "${destDir}"`;
+        const command = process.platform === 'win32' ? `start "" "${outputPath}"` : `open "${outputPath}"`;
         execSync(command);
     } catch (error) {
         console.error(error);
