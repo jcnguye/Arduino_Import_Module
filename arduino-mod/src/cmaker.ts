@@ -99,17 +99,14 @@ export class Cmaker {
 		if (fs.existsSync(this.projDir + "/CMakeFiles")) {
 			fs.rmSync(this.projDir + "/CMakeFiles", { recursive: true, force: true });
 		}
-
-		fs.writeFileSync(this.projDir + "/CMakeLists.txt", cmakeHeader);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeSrcExecutable);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeDir);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", hex);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", elf);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", map);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", lss);
-
-		// use fs.appendFileSync(projDir + "/CMakeLists.txt", data); for future appends
-
+		
+		let output = cmakeHeader + cmakeSrcExecutable + cmakeDir + hex + elf + map + lss
+		if(process.platform != "win32") {
+			output = output.replace(/\.exe/g, "")
+			console.log("exe removed?!")
+		}
+		fs.writeFileSync(this.projDir + "/CMakeLists.txt", output);
+		
 	}
 }
 
