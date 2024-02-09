@@ -35,7 +35,7 @@ export class Recipe {
         };
     }
 
-    
+
     //Function that replaces the split string 
     replaceStringHelper(originalString: string): string {
         for (const key in this.replacements) {
@@ -44,7 +44,7 @@ export class Recipe {
                 originalString = originalString.replace(key, replacement);
             }
         }
-        console.log(originalString)
+        console.log(originalString);
         return originalString;
     }
 
@@ -70,7 +70,7 @@ export class Recipe {
         }
         let finalFormat = newFormatStringArr.join(' ');
         console.log("New formated string " + finalFormat);
-        return "";
+        return finalFormat;
     }
 
 
