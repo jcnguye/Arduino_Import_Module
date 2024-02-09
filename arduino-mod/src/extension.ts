@@ -249,23 +249,17 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     }
     console.log("Starting to copy code device library files...");
     importproj.copyDirectoriesPaired(board.getCorePaths(), destDir);
-    fs.renameSync(path.join(destDir, "core", "wiring_pulse.S"), path.join(destDir, "core", "wiring_pulse_asm.S"))
+    fs.renameSync(path.join(destDir, "core", "wiring_pulse.S"), path.join(destDir, "core", "wiring_pulse_asm.S"));
     console.log("Core import complete");
 
-    //DELETE
-    vscode.window.showInformationMessage("Debugging optimization: " + debuggingOptimization);
-
-    const cmake= new Cmaker(board);
+    const cmake= new Cmaker(board, debuggingOptimization);
     cmake.setProjectDirectory(destDir);
     cmake.setProjectName(cFile.replace(".cpp", ""));
     cmake.setSourceName('src/' + cFile);
-    cmake.setCompilerFlags(await parser.getAllFlags(board));
-
-    //TODO - this needs to be fixed to link correct files
-    cmake.setLinkerFlags('-Wall -Wextra -Os -g -flto -fuse-linker-plugin -mrelax -Wl,--gc-sections,--section-start=.text=0x0,--section-start=.FLMAP_SECTION1=0x8000,--section-start=.FLMAP_SECTION2=0x10000,--section-start=.FLMAP_SECTION3=0x18000 -mmcu=avr64dd32');
     cmake.build();
 
-    vscode.window.showInformationMessage("Import complete! Building project.");
+
+    vscode.window.showInformationMessage("Import complete! Building project...");
     try {
         execSync('cmake -G "Unix Makefiles"', {cwd: destDir});
         execSync('make', {cwd: destDir});    

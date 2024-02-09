@@ -28,6 +28,11 @@ export class Board{
     private corePaths: [string, string][] = []; // tuple of core lib path and ./core/ dest
     private pathToCompiler: string = "";
 
+    //used by cmaker class
+    private cFlags: string = "";
+    private cxxFlags: string = "";
+    private cFlagsLinker: string = "";
+
 
     constructor(boardName: string) {
         this.boardName = boardName;
@@ -73,6 +78,18 @@ export class Board{
         return this.pathToCompiler;
     }
 
+    getCFlags(): string {
+        return this.cFlags;
+    }
+
+    getCXXFlags(): string {
+        return this.cxxFlags;
+    }
+
+    getCFlagsLinker(): string {
+        return this.cFlagsLinker;
+    }
+
     setBoardName(boardName:string):void{
         this.boardName = boardName;
     }
@@ -84,7 +101,13 @@ export class Board{
     }
 
     nanoBuild(localAppData:string): void {
-        this.options.push("ATmega328P or ATmega328P (Old Bootloader)");          
+        this.options.push("ATmega328P or ATmega328P (Old Bootloader)");  
+        
+        //TODO - these variables should not be hard coded. Use output of US#186, US#177 & US#187 to assign these variables.
+        this.cFlags = '-g -Os -w -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects -ffat-lto-objects -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10607 -DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR';
+        this.cxxFlags = '-g -Os -w -std=gnu++11 -fpermissive -fno-exceptions -ffunction-sections -fdata-sections -flto -fno-fat-lto-objects -ffat-lto-objects -fno-threadsafe-statics -Wno-error=narrowing -MMD -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10607 -DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR';
+        this.cFlagsLinker = '-w -Os -g -fuse-linker-plugin -flto -fno-fat-lto-objects -ffat-lto-objects -Wl,--gc-sections -mmcu=atmega328p';
+
              
         if (localAppData) {
             this.pathToCompiler = path.join(localAppData,"packages","arduino","tools","avr-gcc");
@@ -104,7 +127,6 @@ export class Board{
     dxcoreBuild(localAppData:string): void{
         this.setFlag("-DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L") ;
         this.chipName = "avrdd";
-        this.options.push("ATmega328P or ATmega328P (Old Bootloader)");
 
         const version = parser.getDXCoreVersion();
         
