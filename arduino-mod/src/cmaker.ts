@@ -68,14 +68,15 @@ export class Cmaker {
 		'.elf ${CMAKE_CURRENT_SOURCE_DIR}/build/CMakeFiles/' + this.projName + '.dir/' + this.projName + '.cpp.o ${CMAKE_CURRENT_SOURCE_DIR}/build/libcore.a -L${CMAKE_CURRENT_SOURCE_DIR}/build -lm")\n\n';
 
 		//cmake  adding executable 
-		let cmakeSrcExecutable = "add_executable(" + this.projName + " " + this.srcFileName +")\n";
+		let cmakeSrcExecutable = "add_executable(" + this.projName + '.elf ' + this.srcFileName +")\n";
+		cmakeSrcExecutable = cmakeSrcExecutable + 'set_target_properties(' + this.projName + '.elf PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output)\n';
 		
 		let cmakeDir = 'include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core" "${CMAKE_CURRENT_SOURCE_DIR}/core/eightanaloginputs" "${CMAKE_CURRENT_SOURCE_DIR}/core/standard")\n' +
-		'file(GLOB CORE_SOURCES "${CORE_DIR}/*.cpp" "${CORE_DIR}/*.c")\nadd_library(core STATIC ${CORE_SOURCES})\ntarget_link_libraries(' +  this.projName + ' PRIVATE core)\n\n';
+		'file(GLOB CORE_SOURCES "${CORE_DIR}/*.cpp" "${CORE_DIR}/*.c")\nadd_library(core STATIC ${CORE_SOURCES})\ntarget_link_libraries(' +  this.projName + '.elf PRIVATE core)\n\n';
 		
 		// hex file generator
 		let hex = 'set(HEX_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/output/' + this.projName + '.hex")\n';
-		hex = hex + 'add_custom_command(TARGET ' + this.projName + ' POST_BUILD COMMAND ${CMAKE_OBJCOPY} -O ihex $<TARGET_FILE:' + this.projName + '> ${HEX_FILE_OUTPUT_PATH} COMMENT "Generating HEX file")\n';
+		hex = hex + 'add_custom_command(TARGET ' + this.projName + '.elf POST_BUILD COMMAND ${CMAKE_OBJCOPY} -O ihex $<TARGET_FILE:' + this.projName + '.elf> ${HEX_FILE_OUTPUT_PATH} COMMENT "Generating HEX file")\n';
 		hex = hex + '\n\nadd_custom_target(GenerateHex ALL DEPENDS ${HEX_FILE_OUTPUT_PATH} COMMENT "Building HEX file")\n';
 
 		// set .elf, .map, and .lss files to output folder when these are eventually created
