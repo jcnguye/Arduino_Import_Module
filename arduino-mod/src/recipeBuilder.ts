@@ -12,15 +12,6 @@ export class Recipe {
     constructor(board: Board){
         this.board = board;
         this.initializeReplacements();
-        // this.replacements = {
-        //     '{build.mcu}': 'atmega328p',
-        //     '{runtime.ide.version}': '10607',
-        //     '{build.board}': 'AVR_NANO',
-        //     '{build.arch}': 'AVR',
-        //     '{compiler.c.flags}': 'compiler.c.flags=-c -g -Os compiler.warning_flags=-w -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects',
-        //     '{build.f_cpu}': '16000000L',
-            
-        // };
        
 	}
 
@@ -44,7 +35,6 @@ export class Recipe {
                 originalString = originalString.replace(key, replacement);
             }
         }
-        console.log(originalString);
         return originalString;
     }
 
@@ -55,21 +45,15 @@ export class Recipe {
     */
     formatCCompilerBuild(cRecipeString:String): String {
 
-        console.log(this.board.getTargetBoardFlagHelper( "nano.build.variant",this.board.getBoardflagsNano(this.board.getPathToBoardFile())));
-
 
         let cRecipeStringArr = cRecipeString.split(' ');
         let newFormatStringArr = [];
-        
-        console.log("\nPrinting out recipe \n");
-        for(const line of cRecipeStringArr){
-            console.log(line + "\n")
-        }
+
         for (const str of cRecipeStringArr.slice(1,7)) {
             newFormatStringArr.push(this.replaceStringHelper(str));
         }
         let finalFormat = newFormatStringArr.join(' ');
-        console.log("New formated string " + finalFormat);
+
         return finalFormat;
     }
 

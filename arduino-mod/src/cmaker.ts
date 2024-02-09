@@ -52,11 +52,12 @@ export class Cmaker {
 		cmakeHeader = cmakeHeader + 'project(' + this.projName + ' C CXX)\n\n';
 		cmakeHeader = cmakeHeader + 'set(CORE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/core)\n\n';
 
+		console.log("--------- testing final format to add to Cmaker ----------\n");
 		let recipeString = this.board.getPlatformCCompilerRecipePattern(this.board.getPathToPlatformFile());
 		console.log("testing recipe\n");
 		console.log(this.recipe.formatCCompilerBuild(recipeString));
 		
-		console.log("--------- testing parser board ----------\n");
+		console.log("--------- testing final format to add to Cmaker ----------\n");
 
 
 		cmakeHeader = cmakeHeader + 'set(CMAKE_AR ' + path.join(binPath, "avr-gcc-ar.exe").replace(/\\/g, '/') + ')\n';

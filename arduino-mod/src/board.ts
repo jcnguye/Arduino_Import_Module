@@ -186,11 +186,11 @@ export class Board{
             for(const line of dataArr.slice(192,211)){
                 if(line === 'nano.name=Arduino Nano'){
                     insideSection = true;
-                    console.log("Inside the nano read");
+                   
                 }
                 if(line === '## Arduino Nano w/ ATmega328P'){
                     insideSection = false;
-                    console.log("Outside the nano read");
+                
                 }
                   if(insideSection===true && !(line === '')){
                     cFlagArr.push(line);
@@ -217,11 +217,11 @@ export class Board{
             for(const line of dataArr.slice(213,226)){
                 if(line === 'nano.menu.cpu.atmega328=ATmega328P'){
                     insideSection = true;
-                    console.log("Inside the nano read");
+                  
                 }
                 if(line === '## Arduino Nano w/ ATmega328P (old bootloader)'){
                     insideSection = false;
-                    console.log("Outside the nano read");
+                   
                 }
                   if(insideSection===true && !(line === '')){
                     cFlagArr.push(line);
@@ -248,11 +248,11 @@ export class Board{
             for(const line of dataArr.slice(228,241)){
                 if(line === 'nano.menu.cpu.atmega328old=ATmega328P (Old Bootloader)'){
                     insideSection = true;
-                    console.log("Inside the nano read");
+                   
                 }
                 if(line === '## Arduino Nano w/ ATmega168'){
                     insideSection = false;
-                    console.log("Outside the nano read");
+                 
                 }
                   if(insideSection===true && !(line === '')){
                     cFlagArr.push(line);
@@ -322,18 +322,12 @@ export class Board{
     Function that takes in a flag target along with a string of flags associated with the board information
     */
     getTargetBoardFlagHelper(targetFlag:String,boardFlagsInfo:String): String{
-        console.log(boardFlagsInfo);
         let boardFlagsInfoArr = boardFlagsInfo.split(' ');
-        for (const line of boardFlagsInfoArr){
-            console.log("Testing boardFlagsInfoArr " + line);
-        }
         for (const target of boardFlagsInfoArr){
-            console.log("target variable: " + target);
+        
             let variableFlagArr = target.split("=");
 
             let variableFlag = variableFlagArr[0];
-            console.log(variableFlag);
-            console.log(variableFlagArr[1]);
 
             if(variableFlag === targetFlag){
                 return variableFlagArr[1];
