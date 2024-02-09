@@ -8,28 +8,44 @@ export class Recipe {
     private board: Board;
 
     //key being the variable thats being replaced and value being the update variable thats being placed
-    private replacements: { [key: string]: string }; // Define replacements property
+    private replacements: { [key: string]: string; } | undefined; // Define replacements property
     constructor(board: Board){
         this.board = board;
-        this.replacements = {
-            '{build.mcu}': 'atmega328p',
-            '{runtime.ide.version}': '10607',
-            '{build.board}': 'AVR_NANO',
-            '{build.arch}': 'AVR',
-            '{compiler.c.flags}': 'compiler.c.flags=-c -g -Os {compiler.warning_flags} -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects',
-        };
+        this.initializeReplacements();
+        // this.replacements = {
+        //     '{build.mcu}': 'atmega328p',
+        //     '{runtime.ide.version}': '10607',
+        //     '{build.board}': 'AVR_NANO',
+        //     '{build.arch}': 'AVR',
+        //     '{compiler.c.flags}': 'compiler.c.flags=-c -g -Os compiler.warning_flags=-w -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects',
+        //     '{build.f_cpu}': '16000000L',
+            
+        // };
        
 	}
 
-    public replaceVariables(recipeString: string): string {
-    // Construct a regular expression to match strings within {}
-    const regex = /{([^}]+)}/g;
-    // Replace each matched string with the corresponding value from the replacements object
-    return recipeString.replace(regex, (match, key) => {
-        // If the key exists in replacements, return its value; otherwise, return the original match
-        return this.replacements.hasOwnProperty(key) ? this.replacements[key] : match;
-    });
+    private initializeReplacements(): void {
+        this.replacements = {
+            '{build.mcu}': this.board.getTargetBoardFlagHelper("nano.menu.cpu.atmega328.build.mcu", this.board.getBoardMegaNanoFlag()),
+            '{runtime.ide.version}': '10607',
+            '{build.board}': this.board.getTargetBoardFlagHelper("nano.build.board", this.board.getBoardflagsNano(this.board.getPathToBoardFile())),
+            '{build.arch}': 'AVR',
+            '{compiler.c.flags}': 'compiler.c.flags=-c -g -Os compiler.warning_flags=-w -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects',
+            '{build.f_cpu}': this.board.getTargetBoardFlagHelper("nano.build.f_cpu", this.board.getBoardflagsNano(this.board.getPathToBoardFile()))
+        };
+    }
 
+    
+    //Function that replaces the split string 
+    replaceStringHelper(originalString: string): string {
+        for (const key in this.replacements) {
+            if (this.replacements.hasOwnProperty(key)) {
+                const replacement = this.replacements[key];
+                originalString = originalString.replace(key, replacement);
+            }
+        }
+        console.log(originalString)
+        return originalString;
     }
 
 
@@ -46,16 +62,14 @@ export class Recipe {
         let newFormatStringArr = [];
         
         console.log("\nPrinting out recipe \n");
-
-        for (const str of cRecipeStringArr.slice(2,7)) {
-            let splitStr = str.split("=");
-            if(this.replacements.hasOwnProperty(splitStr[0])){
-                
-            }
-            const replacedString = str.replace("{build.mcu}", "avr");
-            newFormatStringArr.push(str);
-            console.log(str);
+        for(const line of cRecipeStringArr){
+            console.log(line + "\n")
         }
+        for (const str of cRecipeStringArr.slice(1,7)) {
+            newFormatStringArr.push(this.replaceStringHelper(str));
+        }
+        let finalFormat = newFormatStringArr.join(' ');
+        console.log("New formated string " + finalFormat);
         return "";
     }
 

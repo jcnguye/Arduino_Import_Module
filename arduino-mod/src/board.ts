@@ -205,7 +205,7 @@ export class Board{
         return cFlag;
     }
 
-    
+    //Get all flags associated to Arduino Nano w/ ATmega328P
     getBoardMegaNanoFlag(){
         let insideSection = false;
         // Split the content by lines
@@ -236,7 +236,7 @@ export class Board{
         return cFlag;
     }
 
-
+    // Get all flags accosiated to Arduino Nano w/ ATmega328P (old bootloader)
     getBoardMegaNanoBootloaderFlag(filePath:string){
         let insideSection = false;
         // Split the content by lines
@@ -321,7 +321,7 @@ export class Board{
     /*
     Function that takes in a flag target along with a string of flags associated with the board information
     */
-    getTargetBoardFlagHelper(targetFlag:String,boardFlagsInfo:String){
+    getTargetBoardFlagHelper(targetFlag:String,boardFlagsInfo:String): String{
         console.log(boardFlagsInfo);
         let boardFlagsInfoArr = boardFlagsInfo.split(' ');
         for (const line of boardFlagsInfoArr){
@@ -339,7 +339,7 @@ export class Board{
                 return variableFlagArr[1];
             }
         }
-        return null;
+        return "Flag not found";
     }
 
 
