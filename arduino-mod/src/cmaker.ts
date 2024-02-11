@@ -80,9 +80,9 @@ export class Cmaker {
 		hex = hex + '\n\nadd_custom_target(GenerateHex ALL DEPENDS ${HEX_FILE_OUTPUT_PATH} COMMENT "Building HEX file")\n';
 
 		// set .elf, .map, and .lss files to output folder when these are eventually created
-		let elf = 'set(ELF_FILE_OUTPUT_PATH "${HEX_FILE_OUTPUT_PATH}/' + this.projName + '.elf")\n';
-		let map = 'set(MAP_FILE_OUTPUT_PATH "${HEX_FILE_OUTPUT_PATH}/' + this.projName + '.map")\n';
-		let lss = 'set(LSS_FILE_OUTPUT_PATH "${HEX_FILE_OUTPUT_PATH}/' + this.projName + '.lss")\n';
+		let elf = 'set(ELF_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/output/' + this.projName + '.elf")\n';
+		let map = 'set(MAP_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/output/' + this.projName + '.map")\n';
+		let lss = 'set(LSS_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/output' + this.projName + '.lss")\n';
 
 		//resets Cmake File
 		if (fs.existsSync(this.projDir + "/CMakeLists.txt")) {
