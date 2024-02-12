@@ -355,7 +355,7 @@ export async function getAllFlags(board: Board): Promise<string> {
         }
 
         str += hardCodedFlags;
-
+        console.log(str)
         return str;
 
     } catch (error) {

@@ -180,10 +180,13 @@ export class Board{
         // Split the content by lines
         let cFlag = "";
         let cFlagArr = [];
+        const regex = /#/;
+
+
         try {
             const data = fs.readFileSync(filePath, 'utf-8');
             const dataArr = data.split('\n');
-            for(const line of dataArr.slice(192,211)){
+            for(const line of dataArr){
                 if(line === 'nano.name=Arduino Nano'){
                     insideSection = true;
                    
@@ -192,9 +195,14 @@ export class Board{
                     insideSection = false;
                 
                 }
-                  if(insideSection===true && !(line === '')){
+                  if(insideSection===true && !(line === '') && regex.test(line)){
                     cFlagArr.push(line);
+                    console.log('Does not contain #');
                 }
+
+                // if(regex.test(line) && insideSection===true && !(line === '') ){
+                //     console.log(line +  '\n has the #')
+                // }
 
             }
             cFlag = cFlagArr.join(" ");

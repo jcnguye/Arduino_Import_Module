@@ -11,22 +11,30 @@ export class Recipe {
     private replacements: { [key: string]: string; } | undefined; // Define replacements property
     constructor(board: Board){
         this.board = board;
-        this.initializeReplacements();
+        this.initializeReplacementsCflag();
        
 	}
 
-    private initializeReplacements(): void {
+    private initializeReplacementsCflag(): void {
         this.replacements = {
             '{build.mcu}': this.board.getTargetBoardFlagHelper("nano.menu.cpu.atmega328.build.mcu", this.board.getBoardMegaNanoFlag()),
             '{runtime.ide.version}': '10607',
             '{build.board}': this.board.getTargetBoardFlagHelper("nano.build.board", this.board.getBoardflagsNano(this.board.getPathToBoardFile())),
             '{build.arch}': 'AVR',
-            '{compiler.c.flags}': 'compiler.c.flags=-c -g -Os compiler.warning_flags=-w -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects',
+            '{compiler.c.flags}': 'compiler.c.flags=-c -g -Os -w -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects',
             '{build.f_cpu}': this.board.getTargetBoardFlagHelper("nano.build.f_cpu", this.board.getBoardflagsNano(this.board.getPathToBoardFile()))
         };
     }
-
-
+    private initializeReplacementsCPlausflag(): void {
+        this.replacements = {
+            '{build.mcu}': this.board.getTargetBoardFlagHelper("nano.menu.cpu.atmega328.build.mcu", this.board.getBoardMegaNanoFlag()),
+            '{runtime.ide.version}': '10607',
+            '{build.board}': this.board.getTargetBoardFlagHelper("nano.build.board", this.board.getBoardflagsNano(this.board.getPathToBoardFile())),
+            '{build.arch}': 'AVR',
+            '{compiler.c.flags}': 'compiler.c.flags=-c -g -Os -w -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects',
+            '{build.f_cpu}': this.board.getTargetBoardFlagHelper("nano.build.f_cpu", this.board.getBoardflagsNano(this.board.getPathToBoardFile()))
+        };
+    }
     //Function that replaces the split string 
     replaceStringHelper(originalString: string): string {
         for (const key in this.replacements) {
