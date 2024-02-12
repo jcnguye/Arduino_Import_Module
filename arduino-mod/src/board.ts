@@ -180,8 +180,6 @@ export class Board{
         // Split the content by lines
         let cFlag = "";
         let cFlagArr = [];
-
-
         try {
             const data = fs.readFileSync(filePath, 'utf-8');
             const dataArr = data.split('\n');
@@ -201,7 +199,6 @@ export class Board{
                 if(line.includes('#') && insideSection===true && !(line === '') ){
                     console.log(line +  '\n has the #');
                 }
-
             }
             cFlag = cFlagArr.join(" ");
         } catch (error) {
@@ -220,7 +217,7 @@ export class Board{
         try {
             const data = fs.readFileSync(this.getPathToBoardFile(), 'utf-8');
             const dataArr = data.split('\n');
-            for(const line of dataArr.slice(213,226)){
+            for(const line of dataArr){
                 if(line === 'nano.menu.cpu.atmega328=ATmega328P'){
                     insideSection = true;
                   
@@ -229,7 +226,7 @@ export class Board{
                     insideSection = false;
                    
                 }
-                  if(insideSection===true && !(line === '')){
+                  if(insideSection===true && !(line === '') && !line.includes('#')){
                     cFlagArr.push(line);
                 }
 
@@ -251,7 +248,7 @@ export class Board{
         try {
             const data = fs.readFileSync(filePath, 'utf-8');
             const dataArr = data.split('\n');
-            for(const line of dataArr.slice(228,241)){
+            for(const line of dataArr){
                 if(line === 'nano.menu.cpu.atmega328old=ATmega328P (Old Bootloader)'){
                     insideSection = true;
                    
@@ -260,7 +257,7 @@ export class Board{
                     insideSection = false;
                  
                 }
-                  if(insideSection===true && !(line === '')){
+                  if(insideSection===true && !(line === '')&& !line.includes('#')){
                     cFlagArr.push(line);
                 }
 
