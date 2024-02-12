@@ -180,7 +180,6 @@ export class Board{
         // Split the content by lines
         let cFlag = "";
         let cFlagArr = [];
-        const regex = /#/;
 
 
         try {
@@ -189,20 +188,19 @@ export class Board{
             for(const line of dataArr){
                 if(line === 'nano.name=Arduino Nano'){
                     insideSection = true;
-                   
                 }
                 if(line === '## Arduino Nano w/ ATmega328P'){
                     insideSection = false;
                 
                 }
-                  if(insideSection===true && !(line === '') && regex.test(line)){
+                  if(insideSection===true && !(line === '') && !line.includes('#')){
                     cFlagArr.push(line);
-                    console.log('Does not contain #');
+                    console.log('Does not contain # ' + line);
                 }
 
-                // if(regex.test(line) && insideSection===true && !(line === '') ){
-                //     console.log(line +  '\n has the #')
-                // }
+                if(line.includes('#') && insideSection===true && !(line === '') ){
+                    console.log(line +  '\n has the #');
+                }
 
             }
             cFlag = cFlagArr.join(" ");
