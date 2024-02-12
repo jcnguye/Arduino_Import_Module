@@ -35,10 +35,29 @@ export class Cmaker {
 	public setCompilerFlags(compileFlag:string){
 		this.compilerflags = compileFlag;
 	}
-
+	
+	public resetCmake(): void {
+		if (fs.existsSync(this.projDir + "/CMakeLists.txt")) {
+			fs.unlinkSync(this.projDir + "/CMakeLists.txt");
+		}
+		if (fs.existsSync(this.projDir + "/Makefile")) {
+			fs.unlinkSync(this.projDir + "/Makefile");
+		}
+		if (fs.existsSync(this.projDir + "/cmake_install.cmake")) {
+			fs.unlinkSync(this.projDir + "/cmake_install.cmake");
+		}
+		if (fs.existsSync(this.projDir + "/CMakeCache.txt")) {
+			fs.unlinkSync(this.projDir + "/CMakeCache.txt");
+		}
+		if (fs.existsSync(this.projDir + "/CMakeFiles")) {
+			fs.rmSync(this.projDir + "/CMakeFiles", { recursive: true, force: true });
+		}
+	}
 
 	public build(): void{
-
+		// reset all cmake files before creating the new file
+		resetCmake()
+		
 		//sets the cmake version
 		let cmakeHeader = "cmake_minimum_required(VERSION 3.28)\n";
 		
@@ -82,29 +101,14 @@ export class Cmaker {
 		// set .elf, .map, and .lss files to output folder when these are eventually created
 		let elf = 'set(ELF_FILE_OUTPUT_PATH "${HEX_FILE_OUTPUT_PATH}/' + this.projName + '.elf")\n';
 		let map = 'set(MAP_FILE_OUTPUT_PATH "${HEX_FILE_OUTPUT_PATH}/' + this.projName + '.map")\n';
-		let lss = 'set(LSS_FILE_OUTPUT_PATH "${HEX_FILE_OUTPUT_PATH}/' + this.projName + '.lss")\n';
-
-		//resets Cmake File
-		if (fs.existsSync(this.projDir + "/CMakeLists.txt")) {
-			fs.unlinkSync(this.projDir + "/CMakeLists.txt");
-		}
-		if (fs.existsSync(this.projDir + "/Makefile")) {
-			fs.unlinkSync(this.projDir + "/Makefile");
-		}
-		if (fs.existsSync(this.projDir + "/cmake_install.cmake")) {
-			fs.unlinkSync(this.projDir + "/cmake_install.cmake");
-		}
-		if (fs.existsSync(this.projDir + "/CMakeCache.txt")) {
-			fs.unlinkSync(this.projDir + "/CMakeCache.txt");
-		}
-		if (fs.existsSync(this.projDir + "/CMakeFiles")) {
-			fs.rmSync(this.projDir + "/CMakeFiles", { recursive: true, force: true });
-		}
+		let lst = 'set(LST_FILE_OUTPUT_PATH "${HEX_FILE_OUTPUT_PATH}/' + this.projName + '.lst")\n';
 		
-		let output = cmakeHeader + cmakeSrcExecutable + cmakeDir + hex + elf + map + lss
+		
+		
+		// write final output
+		let output = cmakeHeader + cmakeSrcExecutable + cmakeDir + hex + elf + map + lst
 		if(process.platform != "win32") {
 			output = output.replace(/\.exe/g, "")
-			console.log("exe removed?!")
 		}
 		fs.writeFileSync(this.projDir + "/CMakeLists.txt", output);
 		
