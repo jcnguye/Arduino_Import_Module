@@ -56,7 +56,7 @@ export class Cmaker {
 
 	public build(): void{
 		// reset all cmake files before creating the new file
-		resetCmake()
+		this.resetCmake()
 		
 		//sets the cmake version
 		let cmakeHeader = "cmake_minimum_required(VERSION 3.28)\n";
@@ -72,6 +72,7 @@ export class Cmaker {
 		
 		cmakeHeader = cmakeHeader + 'set(CMAKE_AR ' + path.join(binPath, "avr-gcc-ar.exe").replace(/\\/g, '/') +')\n';
 		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJCOPY ' + path.join(binPath, "avr-objcopy.exe").replace(/\\/g, '/') +')\n\n';
+		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJDUMP ' + path.join(binPath, "avr-objdump.exe").replace(/\\/g, '/') +')\n\n';
 
 		let cxxFlags = this.board.getCXXFlags();
 		let cFlags = this.board.getCFlags();
@@ -101,7 +102,12 @@ export class Cmaker {
 		// set .elf, .map, and .lss files to output folder when these are eventually created
 		let elf = 'set(ELF_FILE_OUTPUT_PATH "${HEX_FILE_OUTPUT_PATH}/' + this.projName + '.elf")\n';
 		let map = 'set(MAP_FILE_OUTPUT_PATH "${HEX_FILE_OUTPUT_PATH}/' + this.projName + '.map")\n';
-		let lst = 'set(LST_FILE_OUTPUT_PATH "${HEX_FILE_OUTPUT_PATH}/' + this.projName + '.lst")\n';
+		
+		
+		// generate lst file
+		let lst = 'set(LST_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/output/' + this.projName + '.lst")\n'
+		lst = lst + 'add_custom_command(TARGET ' + this.projName + '.elf POST_BUILD COMMAND ${CMAKE_OBJDUMP} --disassemble --source --line-numbers --demangle --section=.text $<TARGET_FILE:' + this.projName + '.elf> > ${LST_FILE_OUTPUT_PATH} COMMENT "Generating LST file")\n'
+		lst = lst + 'add_custom_target(GenerateLst ALL DEPENDS ${LST_FILE_OUTPUT_PATH} COMMENT "Building LST file")\n'
 		
 		
 		
