@@ -35,10 +35,29 @@ export class Cmaker {
 	public setCompilerFlags(compileFlag:string){
 		this.compilerflags = compileFlag;
 	}
-
+	
+	public resetCmake(): void {
+		if (fs.existsSync(this.projDir + "/CMakeLists.txt")) {
+			fs.unlinkSync(this.projDir + "/CMakeLists.txt");
+		}
+		if (fs.existsSync(this.projDir + "/Makefile")) {
+			fs.unlinkSync(this.projDir + "/Makefile");
+		}
+		if (fs.existsSync(this.projDir + "/cmake_install.cmake")) {
+			fs.unlinkSync(this.projDir + "/cmake_install.cmake");
+		}
+		if (fs.existsSync(this.projDir + "/CMakeCache.txt")) {
+			fs.unlinkSync(this.projDir + "/CMakeCache.txt");
+		}
+		if (fs.existsSync(this.projDir + "/CMakeFiles")) {
+			fs.rmSync(this.projDir + "/CMakeFiles", { recursive: true, force: true });
+		}
+	}
 
 	public build(): void{
-
+		// reset all cmake files before creating the new file
+		this.resetCmake();
+		
 		//sets the cmake version
 		let cmakeHeader = "cmake_minimum_required(VERSION 3.28)\n";
 		
@@ -53,6 +72,7 @@ export class Cmaker {
 		
 		cmakeHeader = cmakeHeader + 'set(CMAKE_AR ' + path.join(binPath, "avr-gcc-ar.exe").replace(/\\/g, '/') +')\n';
 		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJCOPY ' + path.join(binPath, "avr-objcopy.exe").replace(/\\/g, '/') +')\n\n';
+		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJDUMP ' + path.join(binPath, "avr-objdump.exe").replace(/\\/g, '/') +')\n\n';
 
 		let cxxFlags = this.board.getCXXFlags();
 		let cFlags = this.board.getCFlags();
@@ -79,37 +99,24 @@ export class Cmaker {
 		hex = hex + 'add_custom_command(TARGET ' + this.projName + '.elf POST_BUILD COMMAND ${CMAKE_OBJCOPY} -O ihex $<TARGET_FILE:' + this.projName + '.elf> ${HEX_FILE_OUTPUT_PATH} COMMENT "Generating HEX file")\n';
 		hex = hex + '\n\nadd_custom_target(GenerateHex ALL DEPENDS ${HEX_FILE_OUTPUT_PATH} COMMENT "Building HEX file")\n';
 
-		// set .elf, .map, and .lss files to output folder when these are eventually created
+		// set .elf and .map to go to output folder
 		let elf = 'set(ELF_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/output/' + this.projName + '.elf")\n';
 		let map = 'set(MAP_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/output/' + this.projName + '.map")\n';
-		let lss = 'set(LSS_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/output' + this.projName + '.lss")\n';
-
-		//resets Cmake File
-		if (fs.existsSync(this.projDir + "/CMakeLists.txt")) {
-			fs.unlinkSync(this.projDir + "/CMakeLists.txt");
+		
+		
+		// generate lst file
+		let lst = 'set(LST_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/output/' + this.projName + '.lst")\n';
+		lst = lst + 'add_custom_command(TARGET ' + this.projName + '.elf POST_BUILD COMMAND ${CMAKE_OBJDUMP} --disassemble --source --line-numbers --demangle --section=.text $<TARGET_FILE:' + this.projName + '.elf> > ${LST_FILE_OUTPUT_PATH} COMMENT "Generating LST file")\n';
+		lst = lst + 'add_custom_target(GenerateLst ALL DEPENDS ${LST_FILE_OUTPUT_PATH} COMMENT "Building LST file")\n';
+		
+		
+		
+		// write final output
+		let output = cmakeHeader + cmakeSrcExecutable + cmakeDir + hex + elf + map + lst;
+		if(process.platform !== "win32") {
+			output = output.replace(/\.exe/g, "");
 		}
-		if (fs.existsSync(this.projDir + "/Makefile")) {
-			fs.unlinkSync(this.projDir + "/Makefile");
-		}
-		if (fs.existsSync(this.projDir + "/cmake_install.cmake")) {
-			fs.unlinkSync(this.projDir + "/cmake_install.cmake");
-		}
-		if (fs.existsSync(this.projDir + "/CMakeCache.txt")) {
-			fs.unlinkSync(this.projDir + "/CMakeCache.txt");
-		}
-		if (fs.existsSync(this.projDir + "/CMakeFiles")) {
-			fs.rmSync(this.projDir + "/CMakeFiles", { recursive: true, force: true });
-		}
-
-		fs.writeFileSync(this.projDir + "/CMakeLists.txt", cmakeHeader);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeSrcExecutable);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeDir);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", hex);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", elf);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", map);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", lss);
-
-		// use fs.appendFileSync(projDir + "/CMakeLists.txt", data); for future appends
+		fs.writeFileSync(this.projDir + "/CMakeLists.txt", output);
 
 	}
 }

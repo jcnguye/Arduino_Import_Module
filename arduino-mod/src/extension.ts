@@ -40,7 +40,7 @@ function* getAllFilePaths(directoryPath: string): Iterable<string> {
  * @returns Iterable object with the absolute name of all files in a directory
  */
 function* getAllFilePathsArray(directoryPaths: string[]): Iterable<string> {
-	for (const dir in directoryPaths) {
+	for (const dir of directoryPaths) {
 		yield* getAllFilePaths(dir);
 	}
 }
