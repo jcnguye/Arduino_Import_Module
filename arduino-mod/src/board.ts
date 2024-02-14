@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as parser from './parser';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as flagParser from './flagParser';
 
 export const UNO = "UNO"; //none 
 export const NANO = "Nano"; //ATmega328P or ATmega328P (Old Bootloader) 
@@ -104,9 +105,9 @@ export class Board{
         this.options.push("ATmega328P or ATmega328P (Old Bootloader)");  
         
         //TODO - these variables should not be hard coded. Use output of US#186, US#177 & US#187 to assign these variables.
-        this.cFlags = '-g -Os -w -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects -ffat-lto-objects -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10607 -DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR';
-        this.cxxFlags = '-g -Os -w -std=gnu++11 -fpermissive -fno-exceptions -ffunction-sections -fdata-sections -flto -fno-fat-lto-objects -ffat-lto-objects -fno-threadsafe-statics -Wno-error=narrowing -MMD -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10607 -DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR';
-        this.cFlagsLinker = '-w -Os -g -fuse-linker-plugin -flto -fno-fat-lto-objects -ffat-lto-objects -Wl,--gc-sections -mmcu=atmega328p';
+    //    this.cFlags = '-g -Os -w -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects -ffat-lto-objects -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10607 -DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR';
+    //    this.cxxFlags = '-g -Os -w -std=gnu++11 -fpermissive -fno-exceptions -ffunction-sections -fdata-sections -flto -fno-fat-lto-objects -ffat-lto-objects -fno-threadsafe-statics -Wno-error=narrowing -MMD -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10607 -DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR';
+    //    this.cFlagsLinker = '-w -Os -g -fuse-linker-plugin -flto -fno-fat-lto-objects -ffat-lto-objects -Wl,--gc-sections -mmcu=atmega328p';
 
              
         if (localAppData) {
@@ -119,6 +120,15 @@ export class Board{
             this.corePaths.push([path.join(basepath, "cores", "arduino"), "core"]);
             this.corePaths.push([path.join(basepath, "variants", "eightanaloginputs"), path.join("core", "eightanaloginputs")]);
             this.corePaths.push([path.join(basepath, "variants", "standard"), path.join("core", "standard")]);
+
+            // get flags
+            const platformPath = path.join(basepath, 'platform.txt');
+	        const boardPath = path.join(basepath, 'boards.txt');
+            const boardOptionsAndName: string[] = ['nano.menu.cpu.atmega328.', 'nano.'];
+
+	        this.cFlags = flagParser.obtainFlags('recipe.c.o.pattern', boardOptionsAndName, platformPath, boardPath);
+            this.cxxFlags = flagParser.obtainFlags('recipe.cpp.o.pattern', boardOptionsAndName, platformPath, boardPath);
+            this.cFlagsLinker = flagParser.obtainFlags('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath);
         }
 
     }
