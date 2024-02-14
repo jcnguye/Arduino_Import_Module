@@ -1,19 +1,35 @@
 import * as vscode from 'vscode';
-import * as readline from 'readline';
 import * as fs from 'fs';
-import * as path from 'path';
 
-export function obtainFlags(recipeName: string, boardOptionsAndName: string[], platformPath: string, boardPath: string): string {
-
+/**
+ * Function to obtain and return the compiler flags in platform.txt and boards.txt for a 
+ * given recipe. This function should work for all Arduino boards. 
+ * 
+ * @param recipeName The name of the recipe to obtain in platform.txt
+ * @param boardOptionsAndName An array of the board name and options. Must match the start of
+ * the all relevant flags from boards.txt. Must contain a period at the end of each string. 
+ * (Ex. 'nano.' or 'nano.menu.cpu.atmega328.')
+ * @param platformPath The path to platform.txt 
+ * @param boardPath The path to boards.txt
+ * @param hardcodedFlags A map of any hardcoded flags that are not supplied in boards.txt or
+ * platform.txt
+ * @returns Compiler flags for the given recipe
+ */
+export function obtainFlags(recipeName: string, boardOptionsAndName: string[], platformPath: string, boardPath: string, hardcodedFlags?: Map<string, string>): string {
     let recipeTemplate = obtainRecipeTemplate(recipeName, platformPath);
-	const flagMap = obtainFlagMap(platformPath, boardPath, boardOptionsAndName);
+	let flagMap = obtainFlagMap(platformPath, boardPath, boardOptionsAndName);
+
+	// if there are hardcoded flags, add them to the flagMap
+	if (hardcodedFlags) {
+		flagMap = new Map([...flagMap, ...hardcodedFlags]);
+	}
 	const flags = interpretRecipe(recipeTemplate, flagMap);
-
-	console.log("Final recipe: " + flags);
-
     return flags;
 }
 
+/** 
+ * Private helper function. Returns recipe template from platform.txt.
+ */ 
 function obtainRecipeTemplate(recipeName: string, platformPath:string): string {
 	let result = '';
 	try {
@@ -31,6 +47,9 @@ function obtainRecipeTemplate(recipeName: string, platformPath:string): string {
 	return result;
 }
 
+/**
+ * Private helper function. Parses platform.txt and board.txt and returns a map of all relevant flags.
+ */
 function obtainFlagMap(platformPath: string, boardPath: string, boardOptionsAndName: string[]): Map<string, string>{
 	const flagMap = new Map<string, string>();
 	let platformData = '';
@@ -43,8 +62,10 @@ function obtainFlagMap(platformPath: string, boardPath: string, boardOptionsAndN
 	if (platformData) {
 		const lines = platformData.split('\n');
 		lines.forEach(line => {
-			if (line.includes('=')) {
-				const [key, value] = line.split('=');
+			const index = line.indexOf('=');
+			if (index !== -1) {
+  				const key = line.substring(0, index);
+  				const value = line.substring(index + 1);
         		flagMap.set(key, value);
 			}
 		});
@@ -59,11 +80,13 @@ function obtainFlagMap(platformPath: string, boardPath: string, boardOptionsAndN
 	if (boardData) {
 		const lines = boardData.split('\n');
 		lines.forEach(line => {
-			if (line.includes('=')) {
+			const index = line.indexOf('=');  				
+			if (index !== -1) {
 				boardOptionsAndName.forEach(opt => {
 					if (line.startsWith(opt)) {
-						const substring = line.replace(opt, ''); //remove the board or option from the beginning of they key 
-						const [key, value] = substring.split('=');
+						let key = line.substring(0, index);
+  						const value = line.substring(index + 1);
+						key = key.replace(opt, ''); //remove the board or option from the beginning of they key 
         				flagMap.set(key, value);
 					}
 				});
@@ -74,6 +97,12 @@ function obtainFlagMap(platformPath: string, boardPath: string, boardOptionsAndN
 	return flagMap;
 }
 
+/**
+ * Private helper function. Replaces all variables in the recipe template with the appropriate value
+ * from the flagMap. Not recurrsive. Continues iterating through flag map until no replacements are 
+ * made for a full iteration.
+ * (Ex. replace {compiler.c.flags} with '-c -g ...' )
+ */
 function interpretRecipe(recipeTemplate: string, flagMap: Map<string, string>): string {
 	let recipe = recipeTemplate;
 	let replacementCount = 1; // initialize to an arbitrary value greater than 0

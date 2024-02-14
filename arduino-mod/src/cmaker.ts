@@ -64,7 +64,7 @@ export class Cmaker {
 		cmakeHeader = cmakeHeader + 'set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ' + cFlags + '")\n';
 
 		cmakeHeader = cmakeHeader + 'set(CMAKE_STATIC_LIBRARY_FLAGS "rcs")\n';
-		cmakeHeader = cmakeHeader + 'set(CMAKE_C_FLAGS_LINKER "${CMAKE_C_FLAGS_LINKER} ' + this.board.getCFlagsLinker() +  ' -o ${CMAKE_CURRENT_SOURCE_DIR}/build/CMakeFiles/' + this.projName + '.dir/' + this.projName + 
+		cmakeHeader = cmakeHeader + 'set(CMAKE_C_FLAGS_LINKER "${CMAKE_C_FLAGS_LINKER} ' + this.board.getCFlagsLinker() +  '${CMAKE_CURRENT_SOURCE_DIR}/build/CMakeFiles/' + this.projName + '.dir/' + this.projName + 
 		'.elf ${CMAKE_CURRENT_SOURCE_DIR}/build/CMakeFiles/' + this.projName + '.dir/' + this.projName + '.cpp.o ${CMAKE_CURRENT_SOURCE_DIR}/build/libcore.a -L${CMAKE_CURRENT_SOURCE_DIR}/build -lm")\n\n';
 
 		//cmake  adding executable 
