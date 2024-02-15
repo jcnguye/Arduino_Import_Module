@@ -53,9 +53,12 @@ export class Cmaker {
 		cmakeHeader = cmakeHeader + 'set(CORE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/core)\n\n';
 
 		console.log("--------- testing final format to add to Cmaker ----------\n");
-		let recipeString = this.board.getPlatformCCompilerRecipePattern(this.board.getPathToPlatformFile());
+		let recipeString = this.board.getPlatformCCompilerRecipePattern();
 		console.log("testing recipe\n");
 		console.log(this.recipe.formatCCompilerBuild(recipeString));
+		console.log("Get compiler c flag default \n")
+		this.recipe.getCompilerCFlagDefault();
+		//console.log(this.board.getCompilerDefaultFlagsPlatform())
 		
 		console.log("--------- testing final format to add to Cmaker ----------\n");
 

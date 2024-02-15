@@ -8,7 +8,8 @@ export class Recipe {
     private board: Board;
 
     //key being the variable thats being replaced and value being the update variable thats being placed
-    private replacements: { [key: string]: string; } | undefined; // Define replacements property
+    private replacementsCrecipe: { [key: string]: string; } | undefined; // Define replacements property
+    private replacementsCPlusrecipe: { [key: string]: string; } | undefined;
     constructor(board: Board){
         this.board = board;
         this.initializeReplacementsCflag();
@@ -16,17 +17,20 @@ export class Recipe {
 	}
 
     private initializeReplacementsCflag(): void {
-        this.replacements = {
+        this.replacementsCrecipe = {
             '{build.mcu}': this.board.getTargetBoardFlagHelper("nano.menu.cpu.atmega328.build.mcu", this.board.getBoardMegaNanoFlag()),
-            '{runtime.ide.version}': '10607',
+            '{runtime.ide.version}': '10607', //these are hardcoded
             '{build.board}': this.board.getTargetBoardFlagHelper("nano.build.board", this.board.getBoardflagsNano(this.board.getPathToBoardFile())),
-            '{build.arch}': 'AVR',
-            '{compiler.c.flags}': 'compiler.c.flags=-c -g -Os -w -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects',
+            '{build.arch}': 'AVR', //these are hardcoded
+            //'{compiler.c.flags}': 'compiler.c.flags=-c -g -Os -w -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects',
+            //'{build.arch}': this.board.getTargetBoardFlagHelper("compiler.c.flags",),
             '{build.f_cpu}': this.board.getTargetBoardFlagHelper("nano.build.f_cpu", this.board.getBoardflagsNano(this.board.getPathToBoardFile()))
         };
     }
-    private initializeReplacementsCPlausflag(): void {
-        this.replacements = {
+
+    //in progress
+    private initializeReplacementsCPlusflag(): void {
+        this.replacementsCPlusrecipe = {
             '{build.mcu}': this.board.getTargetBoardFlagHelper("nano.menu.cpu.atmega328.build.mcu", this.board.getBoardMegaNanoFlag()),
             '{runtime.ide.version}': '10607',
             '{build.board}': this.board.getTargetBoardFlagHelper("nano.build.board", this.board.getBoardflagsNano(this.board.getPathToBoardFile())),
@@ -37,23 +41,19 @@ export class Recipe {
     }
     //Function that replaces the split string 
     replaceStringHelper(originalString: string): string {
-        for (const key in this.replacements) {
-            if (this.replacements.hasOwnProperty(key)) {
-                const replacement = this.replacements[key];
+        for (const key in this.replacementsCrecipe) {
+            if (this.replacementsCrecipe.hasOwnProperty(key)) {
+                const replacement = this.replacementsCrecipe[key];
                 originalString = originalString.replace(key, replacement);
             }
         }
         return originalString;
     }
 
-
-
     /*
     funtion that will format the C compiler recipe with all needed flags
     */
     formatCCompilerBuild(cRecipeString:String): String {
-
-
         let cRecipeStringArr = cRecipeString.split(' ');
         let newFormatStringArr = [];
 
@@ -61,9 +61,31 @@ export class Recipe {
             newFormatStringArr.push(this.replaceStringHelper(str));
         }
         let finalFormat = newFormatStringArr.join(' ');
-
+        finalFormat = finalFormat.replace('compiler.c.flags=','');
         return finalFormat;
     }
+    //gets the compiler.c.flags along wtih getting the warning flag 
+    getCompilerCFlagDefault(){
+        let defaultFlag = this.board.getCompilerDefaultFlagsPlatform();
+        let defaultFlagArr = defaultFlag.split('\n');
+        let finalCflag = "";
+        for(const line of defaultFlagArr){
+            console.log("Default flag " + line + "\n");
+            let flagVar = line.split('=');
+            if(flagVar[0] === "compiler.c.flags"){
+                console.log(flagVar)
+                finalCflag = flagVar[1] + "=" + flagVar[2];
+                
+            }
+
+            console.log(defaultFlagArr.length);
+        }
+        // this.board.getTargetBoardFlagHelper();
+
+        console.log("Final flag \n" + finalCflag);
+    }
+
+    
 
 
 }
