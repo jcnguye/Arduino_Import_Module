@@ -219,6 +219,8 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     fs.renameSync(path.join(destDir, "core", "wiring_pulse.S"), path.join(destDir, "core", "wiring_pulse_asm.S"));
     console.log("Core import complete");
 
+    parser.getOverrideFlags(destDir,board);
+
     const cmake= new Cmaker(board, debuggingOptimization);
     cmake.setProjectDirectory(destDir);
     cmake.setProjectName(cFile.replace(".cpp", ""));

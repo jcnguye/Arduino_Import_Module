@@ -451,3 +451,62 @@ export function getNanoVersion(): string {
 	});
 	return mostRecentDirectory.name;
 }
+
+export function getOverrideFlags(destinationDirectory: string, board: Board) {
+    let filepath = path.join(destinationDirectory, "flag_override.txt");
+
+    if(fs.existsSync(filepath)) {
+        let platformData = '';
+        try {
+            platformData = fs.readFileSync(filepath, 'utf8');
+        } catch (err) {
+            console.error('Error reading file:', err);
+        }
+
+        if (platformData) {
+            const lines = platformData.split('\n');
+            lines.forEach(line => {
+                let splitArray = line.split('=');
+                let flagsRead = '';
+
+                if(splitArray.length >= 1)
+                    flagsRead = splitArray[1];
+
+
+                if(flagsRead == '' || flagsRead == ' ') {
+                    console.log('No flag found');
+                } else {
+                    if(line.includes("REPLACE")) {
+                        let replacements = flagsRead.split(" ");
+                        for(let i = 0; i < replacements.length; i++) {
+                            if(replacements[i].includes(":")) {
+                                let separated = replacements[i].split(":");
+                                
+                                if(line.includes("CXX")) {
+                                    board.replaceCXXFlag(replacements[0],replacements[1]);
+                                } else if(line.includes("LINKER")) {
+                                    board.replaceLinkerFlag(replacements[0],replacements[1]);
+                                } else {
+                                    board.replaceCFlag(replacements[0],replacements[1]);
+                                }
+                            }                            
+                        }
+
+                    } else if(line.includes("ADDITIONAL")) {
+                        console.log("Adding: " + flagsRead);
+
+                        if(line.includes("CXX")) 
+                            board.addCXXFlag(flagsRead);
+                        else if(line.includes("LINKER")) 
+                            board.addLinkerFlags(flagsRead);
+                        else   
+                            board.addCFlags(flagsRead);
+                    }
+
+                }
+            });
+        }
+    } else  {
+        console.log("No override file");
+    }
+}
