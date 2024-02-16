@@ -16,7 +16,6 @@ export class MainPanel {
   private selectedBoard: string = "";
   private selectedOption: string = "";
 
-  private board: Board;
   private readyForImport: boolean = false;
   private debuggingOptimization = false; 
 
@@ -189,11 +188,11 @@ export class MainPanel {
   private getBoardOptionsContent(){
     let result = '';
     if (this.selectedBoard.length > 0) {
-      this.board = boardsInfo.getBoard(this.selectedBoard);
+      const options = boardsInfo.getBoardOptions(this.selectedBoard);
 
-      if (this.board.options.length > 0 ) {
+      if (options.length > 0 ) {
         result = `<vscode-radio-group id="boardOpt" orientation="vertical"><label slot="label">Select Board Option</label>`;
-        for (const opt of this.board.options) {
+        for (const opt of options) {
           result = result + `<vscode-radio value="${opt}">${opt}</vscode-radio>`;
         }
         result = result + `</vscode-radio-group>`;
@@ -275,7 +274,8 @@ export class MainPanel {
             }
             return;
           case "import":
-            ex.startImport(this.sketchFile, this.destinationDirectory, this.board, this.debuggingOptimization);
+            const board = new Board(this.selectedBoard);
+            ex.startImport(this.sketchFile, this.destinationDirectory, board, this.debuggingOptimization);
         }
       },
       undefined,
@@ -283,23 +283,11 @@ export class MainPanel {
     );
   }
 
-  //TODO - fix so import button appears correctly
   private allSelectionsMade() {
-    if(this.board === undefined) {
-      if(this.selectedBoard === undefined) {
-        console.log("Undefined Selection");
-      }
-      this.board = new Board(this.selectedBoard);
-    }
-
     if (this.sketchFile.length > 0 && this.destinationDirectory.length > 0 && this.selectedBoard.length > 0) {
-      if (this.board.options.length > 0 && this.selectedOption.length > 0) {
-        this.readyForImport = true;
-      } else if (this.board.options.length === 0) {
-        this.readyForImport = true;
-      }
+      this.readyForImport = true;
       this.refresh();
-      }
     }
-
   }
+
+}

@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as parser from './parser';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as flagParser from './flagParser';
 
 export const UNO = "UNO"; //none 
 export const NANO = "Nano"; //ATmega328P or ATmega328P (Old Bootloader) 
@@ -9,12 +10,31 @@ export const MEGA = "Mega or Mega2560"; //ATMega2560; ATMega1280
 export const PRO = "Pro or Pro Mini"; //ATmega328P (5V, 16 MHz); ATmega328P (3.3V, 8 MHz) 
 export const DXCORE = "DxCore";
 
+const unoOptions: string [] = [];
+const nanoOptions: string [] = ["ATmega328P or ATmega328P (Old Bootloader)"];
+const megaOptions: string [] = ["ATMega2560", "ATMega1280"];
+const proOptions: string [] = ["ATmega328P (5V, 16 MHz)", "ATmega328P (3.3V, 8 MHz)"];
+const dxcoreOptions: string [] = [];
+
 export function getAllBoards(): string[] {
     const result = [UNO, NANO, MEGA, PRO, DXCORE];
     return result;
 }
 export function getBoard(boardName: string): Board {
     return new Board(boardName);
+}
+export function getBoardOptions(boardName: string): string[] {
+    if (boardName === UNO ) {
+        return unoOptions;
+    } else if (boardName === NANO ) {
+        return nanoOptions;
+    } else if (boardName === MEGA ) {
+        return megaOptions;
+    } else if (boardName === PRO ) {
+        return proOptions;
+    } else {
+        return dxcoreOptions;
+    }
 }
 
 /**
@@ -24,7 +44,6 @@ export class Board{
     boardName: string;
     private flags: string = "";
     private chipName: string = "";
-    options: string[] = [];
     private corePaths: [string, string][] = []; // tuple of core lib path and ./core/ dest
     private pathToCompiler: string = "";
 
@@ -100,14 +119,7 @@ export class Board{
         this.chipName = chipName;
     }
 
-    nanoBuild(localAppData:string): void {
-        this.options.push("ATmega328P or ATmega328P (Old Bootloader)");  
-        
-        //TODO - these variables should not be hard coded. Use output of US#186, US#177 & US#187 to assign these variables.
-        this.cFlags = '-g -Os -w -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects -ffat-lto-objects -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10607 -DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR';
-        this.cxxFlags = '-g -Os -w -std=gnu++11 -fpermissive -fno-exceptions -ffunction-sections -fdata-sections -flto -fno-fat-lto-objects -ffat-lto-objects -fno-threadsafe-statics -Wno-error=narrowing -MMD -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10607 -DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR';
-        this.cFlagsLinker = '-w -Os -g -fuse-linker-plugin -flto -fno-fat-lto-objects -ffat-lto-objects -Wl,--gc-sections -mmcu=atmega328p';
-
+    nanoBuild(localAppData:string): void { 
              
         if (localAppData) {
             this.pathToCompiler = path.join(localAppData,"packages","arduino","tools","avr-gcc");
@@ -119,6 +131,25 @@ export class Board{
             this.corePaths.push([path.join(basepath, "cores", "arduino"), "core"]);
             this.corePaths.push([path.join(basepath, "variants", "eightanaloginputs"), path.join("core", "eightanaloginputs")]);
             this.corePaths.push([path.join(basepath, "variants", "standard"), path.join("core", "standard")]);
+
+            // get flags
+            const platformPath = path.join(basepath, 'platform.txt');
+	        const boardPath = path.join(basepath, 'boards.txt');
+            const boardOptionsAndName: string[] = ['nano.menu.cpu.atmega328.', 'nano.'];
+            const hardcodedFlags = new Map<string, string>();
+	        hardcodedFlags.set('build.arch','AVR');
+	        hardcodedFlags.set('includes','');
+	        hardcodedFlags.set('runtime.ide.version','10607');
+
+	        this.cFlags = flagParser.obtainFlags('recipe.c.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.cxxFlags = flagParser.obtainFlags('recipe.cpp.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.cFlagsLinker = flagParser.obtainFlags('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+
+            // modify flags so they work with cmake
+            this.cFlags = this.cFlags.replace('-c ', '');
+            this.cFlags = this.cFlags.replace('-fno-fat-lto-objects','-fno-fat-lto-objects -ffat-lto-objects');
+            this.cxxFlags = this.cxxFlags.replace('-c ', '');
+            this.cxxFlags = this.cxxFlags.replace('-flto','-flto -fno-fat-lto-objects -ffat-lto-objects');
         }
 
     }
@@ -143,13 +174,11 @@ export class Board{
     }
 
     megaBuild(localAppData:string): void{
-        this.options.push("ATMega2560");
-        this.options.push("ATMega1280");
+
     }
 
     proBuild(localAppData:string): void{
-        this.options.push("ATmega328P (5V, 16 MHz)");
-        this.options.push("ATmega328P (3.3V, 8 MHz)");
+
     }
 
     /**
