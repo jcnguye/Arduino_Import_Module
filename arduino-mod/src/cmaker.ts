@@ -3,99 +3,45 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { Board } from './board';
 import { Recipe } from './recipeBuilder';
-import * as parser from './parser';
 
 export class Cmaker {
 	public projDir: string;
 	public projName: string;
 	public srcFileName: string;
 	public compilerflags: string;
-	public linkerflags: string;
 	private board: Board;
 	private recipe: Recipe;
+	private debuggingOptimization: boolean; 
 
-	constructor(board: Board) {
+
+	//CONSTANTS
+	private debugOptimizeFlag: string = "-Og -g2";
+	private codeSizeOptimizeFlag: string = "-Os";
+	
+	constructor(board: Board, debuggingOptimization: boolean){
 		this.projDir = "";
 		this.projName = "";
 		this.srcFileName = "";
 		this.compilerflags = "";
-		this.linkerflags = "";
-		this.board = board;
+		this.board = board; 
+		this.debuggingOptimization = debuggingOptimization;
 		this.recipe = new Recipe(board);
+		
 	}
-	public setProjectDirectory(projectDirectory: string) {
+	public setProjectDirectory(projectDirectory:string){
 		this.projDir = projectDirectory;
 	}
-	public setProjectName(projectName: string) {
+	public setProjectName(projectName:string){
 		this.projName = projectName;
 	}
-	public setSourceName(sourceFileName: string) {
+	public setSourceName(sourceFileName:string){
 		this.srcFileName = sourceFileName;
 	}
-	public setCompilerFlags(compileFlag: string) {
+	public setCompilerFlags(compileFlag:string){
 		this.compilerflags = compileFlag;
 	}
-	public setLinkerFlags(linkerFlags: string) {
-		this.linkerflags = linkerFlags;
-	}
-
-
-	public build(): void {
-
-		//sets the cmake version
-		let cmakeHeader = "cmake_minimum_required(VERSION 3.8)\n";
-
-		const binPath = path.join(this.board.getPathToCompiler(), "bin");
-		cmakeHeader = cmakeHeader + 'set(CMAKE_C_COMPILER ' + path.join(binPath, "avr-gcc.exe").replace(/\\/g, '/') + ')\n';
-		cmakeHeader = cmakeHeader + 'set(CMAKE_CXX_COMPILER ' + path.join(binPath, "avr-g++.exe").replace(/\\/g, '/') + ')\n';
-
-		cmakeHeader = cmakeHeader + 'project(' + this.projName + ' C CXX)\n\n';
-		cmakeHeader = cmakeHeader + 'set(CORE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/core)\n\n';
-
-		console.log("--------- testing final format to add to Cmaker ----------\n");
-		let recipeString = this.board.getPlatformCCompilerRecipePattern();
-		console.log("testing recipe\n");
-		console.log(this.recipe.formatCCompilerBuild(recipeString));		
-		console.log("--------- testing final format to add to Cmaker ----------\n");
-
-
-		cmakeHeader = cmakeHeader + 'set(CMAKE_AR ' + path.join(binPath, "avr-gcc-ar.exe").replace(/\\/g, '/') + ')\n';
-		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJCOPY ' + path.join(binPath, "avr-objcopy.exe").replace(/\\/g, '/') + ')\n\n';
-
-		cmakeHeader = cmakeHeader + 'set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -c -g -Os -w -std=gnu++11 -fpermissive -fno-exceptions ' +
-			'-ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -MMD -flto -mmcu=atmega328p -DF_CPU=16000000L ' +
-			'-DARDUINO=10607 -DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR")\n';
-
-		// cmakeHeader = cmakeHeader + 'set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -c -g -Os -w -std=gnu11 -ffunction-sections -fdata-sections -MMD ' +
-		// 	'-flto -fno-fat-lto-objects -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10607 -DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR")\n';
-
-		cmakeHeader = cmakeHeader + 'set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ' + this.recipe.formatCCompilerBuild(recipeString) + '")\n';
-
-		cmakeHeader = cmakeHeader + 'set(CMAKE_STATIC_LIBRARY_FLAGS "rcs")\n';
-		cmakeHeader = cmakeHeader + 'set(CMAKE_C_FLAGS_LINKER "${CMAKE_C_FLAGS_LINKER} -w -Os -g -flto -fuse-linker-plugin -Wl,--gc-sections ' +
-			'-mmcu=atmega328p -o ${CMAKE_CURRENT_SOURCE_DIR}/build/CMakeFiles/' + this.projName + '.dir/' + this.projName +
-			'.elf ${CMAKE_CURRENT_SOURCE_DIR}/build/CMakeFiles/' + this.projName + '.dir/' + this.projName + '.cpp.o ${CMAKE_CURRENT_SOURCE_DIR}/build/libcore.a -L${CMAKE_CURRENT_SOURCE_DIR}/build -lm")\n\n';
-
-		//cmake  adding executable 
-		let cmakeSrcExecutable = "add_executable(" + this.projName + " " + this.srcFileName + ")\n";
-		// cmake adding compile option
-		let cmakeSrcCompileOpt = "target_compile_options(" + this.projName + " PRIVATE " + this.compilerflags + ")\n";
-		// cmake link libary
-		let cmakeSrcLinkLib = "target_link_libraries(" + this.projName + " " + this.linkerflags + ")\n";
-		// cmake include directories, file, and add library
-		let cmakeDir = 'include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core" "${CMAKE_CURRENT_SOURCE_DIR}/core/eightanaloginputs" "${CMAKE_CURRENT_SOURCE_DIR}/core/standard")\n' +
-			'file(GLOB CORE_SOURCES "${CORE_DIR}/*.cpp" "${CORE_DIR}/*.c")\nadd_library(core STATIC ${CORE_SOURCES})\n\n';
-		// hex file generator
-		let hex = "add_custom_command(TARGET " + this.projName + " POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O ihex -R .eeprom " + this.projName + " " + this.projName + ".hex)\n";
-		hex = hex + 'set(HEX_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/' + this.projName + '/output/hex_file.hex")\n';
-		// bin file generator
-		let bin = "add_custom_command(TARGET " + this.projName + " POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O binary -R .eeprom " + this.projName + " " + this.projName + ".bin)\n";
-		// set .elf, .map, and .lss files to output folder when these are eventually created
-		let elf = 'set(ELF_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/' + this.projName + '/output/elf_file.elf")\n';
-		let map = 'set(MAP_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/' + this.projName + '/output/map_file.map")\n';
-		let lss = 'set(LSS_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/' + this.projName + '/output/lss_file.lss")\n';
-
-		//resets Cmake File
+	
+	public resetCmake(): void {
 		if (fs.existsSync(this.projDir + "/CMakeLists.txt")) {
 			fs.unlinkSync(this.projDir + "/CMakeLists.txt");
 		}
@@ -111,20 +57,87 @@ export class Cmaker {
 		if (fs.existsSync(this.projDir + "/CMakeFiles")) {
 			fs.rmSync(this.projDir + "/CMakeFiles", { recursive: true, force: true });
 		}
+	}
 
-		fs.writeFileSync(this.projDir + "/CMakeLists.txt", cmakeHeader);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeSrcExecutable);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeSrcCompileOpt);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeSrcLinkLib);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeDir);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", hex);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", bin);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", elf);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", map);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", lss);
+	public build(): void{
+		// reset all cmake files before creating the new file
+		this.resetCmake();
+		
+		//sets the cmake version
+		let cmakeHeader = "cmake_minimum_required(VERSION 3.28)\n";
+		
+		const binPath = path.join(this.board.getPathToCompiler(), "bin");
 
-		// use fs.appendFileSync(projDir + "/CMakeLists.txt", data); for future appends
+		cmakeHeader = cmakeHeader + 'set(CMAKE_C_COMPILER ' + path.join(binPath, "avr-gcc.exe").replace(/\\/g, '/') + ')\n';
+		cmakeHeader = cmakeHeader + 'set(CMAKE_CXX_COMPILER ' + path.join(binPath, "avr-g++.exe").replace(/\\/g, '/') +')\n';
+		cmakeHeader = cmakeHeader + 'set(CMAKE_SYSTEM_NAME Generic)\n\n';
 
+		cmakeHeader = cmakeHeader + 'project(' + this.projName + ' C CXX)\n\n';
+
+		cmakeHeader = cmakeHeader + 'set(CORE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/core)\n\n';
+		
+		cmakeHeader = cmakeHeader + 'set(CMAKE_AR ' + path.join(binPath, "avr-gcc-ar.exe").replace(/\\/g, '/') +')\n';
+		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJCOPY ' + path.join(binPath, "avr-objcopy.exe").replace(/\\/g, '/') +')\n\n';
+		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJDUMP ' + path.join(binPath, "avr-objdump.exe").replace(/\\/g, '/') +')\n\n';
+
+
+		//testing here 
+		console.log("--------- testing final format to add to Cmaker ----------\n");
+		let recipeString = this.board.getPlatformCCompilerRecipePattern();
+		console.log("testing recipe\n");
+		console.log(this.recipe.formatCCompilerBuild(recipeString));
+		console.log("Get compiler c flag default \n");
+		//console.log(this.board.getCompilerDefaultFlagsPlatform())
+		console.log("--------- testing final format to add to Cmaker ----------\n");
+
+
+		this.board.setcFlags(this.recipe.formatCCompilerBuild(recipeString));
+		let cxxFlags = this.board.getCXXFlags();
+		let cFlags = this.board.getCFlags();
+
+
+		if(this.debuggingOptimization) {
+			cxxFlags = cxxFlags.replace(this.codeSizeOptimizeFlag, this.debugOptimizeFlag);
+			cFlags = cFlags.replace(this.codeSizeOptimizeFlag, this.debugOptimizeFlag);
+		}
+		cmakeHeader = cmakeHeader + 'set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ' + cxxFlags + '")\n';
+		cmakeHeader = cmakeHeader + 'set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ' + cFlags + '")\n';
+
+		cmakeHeader = cmakeHeader + 'set(CMAKE_STATIC_LIBRARY_FLAGS "rcs")\n';
+		cmakeHeader = cmakeHeader + 'set(CMAKE_C_FLAGS_LINKER "${CMAKE_C_FLAGS_LINKER} ' + this.board.getCFlagsLinker() +  ' -o ${CMAKE_CURRENT_SOURCE_DIR}/build/CMakeFiles/' + this.projName + '.dir/' + this.projName + 
+		'.elf ${CMAKE_CURRENT_SOURCE_DIR}/build/CMakeFiles/' + this.projName + '.dir/' + this.projName + '.cpp.o ${CMAKE_CURRENT_SOURCE_DIR}/build/libcore.a -L${CMAKE_CURRENT_SOURCE_DIR}/build -lm")\n\n';
+
+		//cmake  adding executable 
+		let cmakeSrcExecutable = "add_executable(" + this.projName + '.elf ' + this.srcFileName +")\n";
+		cmakeSrcExecutable = cmakeSrcExecutable + 'set_target_properties(' + this.projName + '.elf PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output)\n';
+		
+		let cmakeDir = 'include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core" "${CMAKE_CURRENT_SOURCE_DIR}/core/eightanaloginputs" "${CMAKE_CURRENT_SOURCE_DIR}/core/standard")\n' +
+		'file(GLOB CORE_SOURCES "${CORE_DIR}/*.cpp" "${CORE_DIR}/*.c")\nadd_library(core STATIC ${CORE_SOURCES})\ntarget_link_libraries(' +  this.projName + '.elf PRIVATE core)\n\n';
+		
+		// hex file generator
+		let hex = 'set(HEX_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/output/' + this.projName + '.hex")\n';
+		hex = hex + 'add_custom_command(TARGET ' + this.projName + '.elf POST_BUILD COMMAND ${CMAKE_OBJCOPY} -O ihex $<TARGET_FILE:' + this.projName + '.elf> ${HEX_FILE_OUTPUT_PATH} COMMENT "Generating HEX file")\n';
+		hex = hex + '\n\nadd_custom_target(GenerateHex ALL DEPENDS ${HEX_FILE_OUTPUT_PATH} COMMENT "Building HEX file")\n';
+
+		// set .elf, .map, and .lss files to output folder when these are eventually created
+		let elf = 'set(ELF_FILE_OUTPUT_PATH "${HEX_FILE_OUTPUT_PATH}/' + this.projName + '.elf")\n';
+		let map = 'set(MAP_FILE_OUTPUT_PATH "${HEX_FILE_OUTPUT_PATH}/' + this.projName + '.map")\n';
+		
+		
+		// generate lst file
+		let lst = 'set(LST_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/output/' + this.projName + '.lst")\n'
+		lst = lst + 'add_custom_command(TARGET ' + this.projName + '.elf POST_BUILD COMMAND ${CMAKE_OBJDUMP} --disassemble --source --line-numbers --demangle --section=.text $<TARGET_FILE:' + this.projName + '.elf> > ${LST_FILE_OUTPUT_PATH} COMMENT "Generating LST file")\n'
+		lst = lst + 'add_custom_target(GenerateLst ALL DEPENDS ${LST_FILE_OUTPUT_PATH} COMMENT "Building LST file")\n'
+		
+		
+		
+		// write final output
+		let output = cmakeHeader + cmakeSrcExecutable + cmakeDir + hex + elf + map + lst
+		if(process.platform != "win32") {
+			output = output.replace(/\.exe/g, "")
+		}
+		fs.writeFileSync(this.projDir + "/CMakeLists.txt", output);
+		
 	}
 }
 

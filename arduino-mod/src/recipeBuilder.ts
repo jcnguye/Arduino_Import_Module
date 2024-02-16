@@ -53,7 +53,7 @@ export class Recipe {
     /*
     funtion that will format the C compiler recipe with all needed flags
     */
-    formatCCompilerBuild(cRecipeString:String): String {
+    formatCCompilerBuild(cRecipeString:String): string {
         let cRecipeStringArr = cRecipeString.split(' ');
         let newFormatStringArr = [];
 
@@ -65,7 +65,7 @@ export class Recipe {
         return finalFormat;
     }
 
-    
+
     //Returns the format of the compiler.c.flags
     getCompilerCFlagDefault(){
         let defaultFlag = this.board.getCompilerDefaultFlagsPlatform();

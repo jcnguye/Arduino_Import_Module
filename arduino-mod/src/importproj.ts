@@ -117,7 +117,6 @@ export function copyDirectoriesPaired(pairs: [string, string][], basePath: strin
 	// Read the source directory
 	for (const src of pairs) {
 		const truePath = path.join(basePath, src[1])
-		console.log("pair:" + src[0] + src[1])
 		if (!fs.existsSync(truePath)) {
 			fs.mkdirSync(truePath);
 		}
