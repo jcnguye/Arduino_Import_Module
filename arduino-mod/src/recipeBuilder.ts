@@ -18,25 +18,25 @@ export class Recipe {
 
     private initializeReplacementsCflag(): void {
         this.replacementsCrecipe = {
-            '{build.mcu}': this.board.getTargetBoardFlagHelper("nano.menu.cpu.atmega328.build.mcu", this.board.getBoardMegaNanoFlag()),
+            '{build.mcu}': this.board.getTargetFlagHelper("nano.menu.cpu.atmega328.build.mcu", this.board.getBoardMegaNanoFlag()),
             '{runtime.ide.version}': '10607', //these are hardcoded
-            '{build.board}': this.board.getTargetBoardFlagHelper("nano.build.board", this.board.getBoardflagsNano(this.board.getPathToBoardFile())),
+            '{build.board}': this.board.getTargetFlagHelper("nano.build.board", this.board.getBoardflagsNano(this.board.getPathToBoardFile())),
             '{build.arch}': 'AVR', //these are hardcoded
-            //'{compiler.c.flags}': 'compiler.c.flags=-c -g -Os -w -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects',
+            '{compiler.c.flags}':  this.getCompilerCFlagDefault(),
             //'{build.arch}': this.board.getTargetBoardFlagHelper("compiler.c.flags",),
-            '{build.f_cpu}': this.board.getTargetBoardFlagHelper("nano.build.f_cpu", this.board.getBoardflagsNano(this.board.getPathToBoardFile()))
+            '{build.f_cpu}': this.board.getTargetFlagHelper("nano.build.f_cpu", this.board.getBoardflagsNano(this.board.getPathToBoardFile()))
         };
     }
 
-    //in progress
+    //in progress to be updated
     private initializeReplacementsCPlusflag(): void {
         this.replacementsCPlusrecipe = {
-            '{build.mcu}': this.board.getTargetBoardFlagHelper("nano.menu.cpu.atmega328.build.mcu", this.board.getBoardMegaNanoFlag()),
+            '{build.mcu}': this.board.getTargetFlagHelper("nano.menu.cpu.atmega328.build.mcu", this.board.getBoardMegaNanoFlag()),
             '{runtime.ide.version}': '10607',
-            '{build.board}': this.board.getTargetBoardFlagHelper("nano.build.board", this.board.getBoardflagsNano(this.board.getPathToBoardFile())),
+            '{build.board}': this.board.getTargetFlagHelper("nano.build.board", this.board.getBoardflagsNano(this.board.getPathToBoardFile())),
             '{build.arch}': 'AVR',
             '{compiler.c.flags}': 'compiler.c.flags=-c -g -Os -w -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects',
-            '{build.f_cpu}': this.board.getTargetBoardFlagHelper("nano.build.f_cpu", this.board.getBoardflagsNano(this.board.getPathToBoardFile()))
+            '{build.f_cpu}': this.board.getTargetFlagHelper("nano.build.f_cpu", this.board.getBoardflagsNano(this.board.getPathToBoardFile()))
         };
     }
     //Function that replaces the split string 
@@ -64,25 +64,30 @@ export class Recipe {
         finalFormat = finalFormat.replace('compiler.c.flags=','');
         return finalFormat;
     }
-    //gets the compiler.c.flags along wtih getting the warning flag 
+
+    
+    //Returns the format of the compiler.c.flags
     getCompilerCFlagDefault(){
         let defaultFlag = this.board.getCompilerDefaultFlagsPlatform();
         let defaultFlagArr = defaultFlag.split('\n');
-        let finalCflag = "";
+        let Cflag = "";
         for(const line of defaultFlagArr){
-            console.log("Default flag " + line + "\n");
             let flagVar = line.split('=');
             if(flagVar[0] === "compiler.c.flags"){
-                console.log(flagVar)
-                finalCflag = flagVar[1] + "=" + flagVar[2];
-                
+                Cflag = flagVar[1] + "=" + flagVar[2];
             }
-
-            console.log(defaultFlagArr.length);
         }
-        // this.board.getTargetBoardFlagHelper();
-
-        console.log("Final flag \n" + finalCflag);
+        let targetValue = "";
+        let warningArr = this.board.getCompilerWarningFlagsPlatform().split("\n")
+        for (const line of warningArr){
+            let flag = line.split("=");
+            if(flag[0] === "compiler.warning_flags"){
+                targetValue = flag[1];
+            }
+        }
+        let newFormat = Cflag.replace("{compiler.warning_flags}",targetValue);
+       
+        return newFormat;
     }
 
     

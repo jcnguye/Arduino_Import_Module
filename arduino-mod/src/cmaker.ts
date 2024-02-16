@@ -55,11 +55,7 @@ export class Cmaker {
 		console.log("--------- testing final format to add to Cmaker ----------\n");
 		let recipeString = this.board.getPlatformCCompilerRecipePattern();
 		console.log("testing recipe\n");
-		console.log(this.recipe.formatCCompilerBuild(recipeString));
-		console.log("Get compiler c flag default \n")
-		this.recipe.getCompilerCFlagDefault();
-		//console.log(this.board.getCompilerDefaultFlagsPlatform())
-		
+		console.log(this.recipe.formatCCompilerBuild(recipeString));		
 		console.log("--------- testing final format to add to Cmaker ----------\n");
 
 

@@ -234,7 +234,7 @@ export class Board {
         return cFlag;
     }
 
-    // Get all flags accosiated to Arduino Nano w/ ATmega328P (old bootloader)
+    // Get all flags associated to Arduino Nano w/ ATmega328P (old bootloader)
     getBoardMegaNanoBootloaderFlag(filePath: string) {
         let insideSection = false;
         // Split the content by lines
@@ -326,12 +326,15 @@ export class Board {
         return cFlag;
     }
 
-    /*
-    Function that takes in a flag target along with a string of flags associated with the board information
-    */
-    getTargetBoardFlagHelper(targetFlag: String, boardFlagsInfo: String): String {
-        let boardFlagsInfoArr = boardFlagsInfo.split(' ');
-        for (const target of boardFlagsInfoArr) {
+        /**
+* Function that returns the target value of flags
+* @param targetFlag string of target flag
+* @param flagsString string that takes in all the flags
+* @returns a string of the recipe pattern of C
+*/
+    getTargetFlagHelper(targetFlag: String, flagsString: String){
+        let FlagsInfoArr = flagsString.split(' ');
+        for (const target of FlagsInfoArr) {
 
             let variableFlagArr = target.split("=");
 
@@ -343,7 +346,7 @@ export class Board {
         }
         return "Flag not found";
     }
-
+    //Gets all default flags of platform.txt
     getCompilerDefaultFlagsPlatform() {
         // Split the content by lines
         let cFlag = "";
@@ -357,6 +360,36 @@ export class Board {
                     insideSection = true;
 
                 } else if (line === '') {
+                    insideSection = false;
+
+                }
+
+                if (!(line === '') && insideSection === true && !line.includes('#')) {
+
+                    cFlagArr.push(line);
+                }
+            }
+            cFlag = cFlagArr.join("\n");
+        } catch (error) {
+            cFlag = "Error occurred while reading the file.";
+        }
+        
+        return cFlag;
+    }
+    //Gets all warning flags from platform.txt
+    getCompilerWarningFlagsPlatform() {
+        // Split the content by lines
+        let cFlag = "";
+        let cFlagArr = [];
+        let insideSection = false;
+        try {
+            const data = fs.readFileSync(this.pathToPlatformFile, 'utf-8');
+            const dataArr = data.split('\n');
+            for (const line of dataArr) {
+                if (line === '# AVR compile variables') {
+                    insideSection = true;
+
+                } else if (line === '# Default "compiler.path" is correct, change only if you want to override the initial value') {
                     insideSection = false;
 
                 }
