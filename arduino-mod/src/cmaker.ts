@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { Board } from './board';
-import { Recipe } from './recipeBuilder';
 
 export class Cmaker {
 	public projDir: string;
@@ -10,9 +9,7 @@ export class Cmaker {
 	public srcFileName: string;
 	public compilerflags: string;
 	private board: Board;
-	private recipe: Recipe;
 	private debuggingOptimization: boolean; 
-
 
 	//CONSTANTS
 	private debugOptimizeFlag: string = "-Og -g2";
@@ -25,8 +22,6 @@ export class Cmaker {
 		this.compilerflags = "";
 		this.board = board; 
 		this.debuggingOptimization = debuggingOptimization;
-		this.recipe = new Recipe(board);
-		
 	}
 	public setProjectDirectory(projectDirectory:string){
 		this.projDir = projectDirectory;
@@ -67,7 +62,6 @@ export class Cmaker {
 		let cmakeHeader = "cmake_minimum_required(VERSION 3.28)\n";
 		
 		const binPath = path.join(this.board.getPathToCompiler(), "bin");
-
 		cmakeHeader = cmakeHeader + 'set(CMAKE_C_COMPILER ' + path.join(binPath, "avr-gcc.exe").replace(/\\/g, '/') + ')\n';
 		cmakeHeader = cmakeHeader + 'set(CMAKE_CXX_COMPILER ' + path.join(binPath, "avr-g++.exe").replace(/\\/g, '/') +')\n';
 		cmakeHeader = cmakeHeader + 'set(CMAKE_SYSTEM_NAME Generic)\n\n';
@@ -80,22 +74,8 @@ export class Cmaker {
 		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJCOPY ' + path.join(binPath, "avr-objcopy.exe").replace(/\\/g, '/') +')\n\n';
 		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJDUMP ' + path.join(binPath, "avr-objdump.exe").replace(/\\/g, '/') +')\n\n';
 
-
-		//testing here 
-		console.log("--------- testing final format to add to Cmaker ----------\n");
-		let recipeString = this.board.getPlatformCCompilerRecipePattern();
-		console.log("testing recipe\n");
-		console.log(this.recipe.formatCCompilerBuild(recipeString));
-		console.log("Get compiler c flag default \n");
-		//console.log(this.board.getCompilerDefaultFlagsPlatform())
-		console.log("--------- testing final format to add to Cmaker ----------\n");
-
-
-		this.board.setcFlags(this.recipe.formatCCompilerBuild(recipeString));
 		let cxxFlags = this.board.getCXXFlags();
 		let cFlags = this.board.getCFlags();
-
-
 		if(this.debuggingOptimization) {
 			cxxFlags = cxxFlags.replace(this.codeSizeOptimizeFlag, this.debugOptimizeFlag);
 			cFlags = cFlags.replace(this.codeSizeOptimizeFlag, this.debugOptimizeFlag);
