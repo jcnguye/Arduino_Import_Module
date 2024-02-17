@@ -91,7 +91,6 @@ export class Cmaker {
 		// console.log("--------- testing final format to add to Cmaker ----------\n");
 
 
-		this.board.setcFlags(this.recipe.formatCCompilerBuild(recipeString));
 		let cFlags = this.board.getCFlags();
 
 
