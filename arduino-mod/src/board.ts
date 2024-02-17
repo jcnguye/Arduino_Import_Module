@@ -134,7 +134,7 @@ export class Board {
     setChipName(chipName: string): void {
         this.chipName = chipName;
     }
-    
+
     //sets the cFlag
     setcFlags(cFlags: string): void{
         this.cFlags = cFlags;
@@ -162,7 +162,7 @@ export class Board {
 	        hardcodedFlags.set('includes','');
 	        hardcodedFlags.set('runtime.ide.version','10607');
 
-	        this.cFlags = flagParser.obtainFlags('recipe.c.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+	        // this.cFlags = flagParser.obtainFlags('recipe.c.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
             this.cxxFlags = flagParser.obtainFlags('recipe.cpp.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
             this.cFlagsLinker = flagParser.obtainFlags('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
 
@@ -390,7 +390,7 @@ export class Board {
 * Function that returns the target value of flags
 * @param targetFlag string of target flag
 * @param flagsString string that takes in all the flags
-* @returns a string of the recipe pattern of C
+* @returns the value of the targeted flag
 */
     getTargetFlagHelper(targetFlag: String, flagsString: String){
         let FlagsInfoArr = flagsString.split(' ');
