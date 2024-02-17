@@ -10,10 +10,8 @@ export class Cmaker {
 	public srcFileName: string;
 	public compilerflags: string;
 	private board: Board;
-	private recipe: Recipe;
 	private debuggingOptimization: boolean; 
-
-
+	private recipe: Recipe;
 	//CONSTANTS
 	private debugOptimizeFlag: string = "-Og -g2";
 	private codeSizeOptimizeFlag: string = "-Os";
@@ -26,7 +24,6 @@ export class Cmaker {
 		this.board = board; 
 		this.debuggingOptimization = debuggingOptimization;
 		this.recipe = new Recipe(board);
-		
 	}
 	public setProjectDirectory(projectDirectory:string){
 		this.projDir = projectDirectory;
@@ -67,7 +64,6 @@ export class Cmaker {
 		let cmakeHeader = "cmake_minimum_required(VERSION 3.28)\n";
 		
 		const binPath = path.join(this.board.getPathToCompiler(), "bin");
-
 		cmakeHeader = cmakeHeader + 'set(CMAKE_C_COMPILER ' + path.join(binPath, "avr-gcc.exe").replace(/\\/g, '/') + ')\n';
 		cmakeHeader = cmakeHeader + 'set(CMAKE_CXX_COMPILER ' + path.join(binPath, "avr-g++.exe").replace(/\\/g, '/') +')\n';
 		cmakeHeader = cmakeHeader + 'set(CMAKE_SYSTEM_NAME Generic)\n\n';
