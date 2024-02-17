@@ -10,7 +10,6 @@ import { MainPanel } from "./panels/MainPanel";
 import { Board } from './board';
 import Cmaker from './cmaker';
 import * as importproj from './importproj';
-import { Console } from 'console';
 
 
 /**
@@ -242,7 +241,6 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
         vscode.window.showInformationMessage("Error using CMake. See console for more info.");
     }
     
-
     try {
         const command = process.platform === 'win32' ? `start "" "${outputPath}"` : `open "${outputPath}"`;
         execSync(command);
@@ -250,7 +248,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
         console.error(error);
         vscode.window.showInformationMessage("Error opening project directory. See console for more info.");
     }
-
+    
 }
 
 
