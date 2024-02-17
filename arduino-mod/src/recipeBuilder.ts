@@ -1,7 +1,7 @@
 import { Board } from './board';
 
 
-//Purpose of this class is to read the platform.txt and board.txt file 
+//Purpose of this class is to read the platform.txt and board.txt file and manages the format of Recipe
 //and return the format of the recipes in the platform.txt 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export class Recipe {

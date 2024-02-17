@@ -81,19 +81,21 @@ export class Cmaker {
 		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJDUMP ' + path.join(binPath, "avr-objdump.exe").replace(/\\/g, '/') +')\n\n';
 
 
-		//testing here 
-		console.log("--------- testing final format to add to Cmaker ----------\n");
-		let recipeString = this.board.getPlatformCCompilerRecipePattern();
-		console.log("testing recipe\n");
-		console.log(this.recipe.formatCCompilerBuild(recipeString));
-		console.log("Get compiler c flag default \n");
-		//console.log(this.board.getCompilerDefaultFlagsPlatform())
-		console.log("--------- testing final format to add to Cmaker ----------\n");
+		// //testing here 
+		// console.log("--------- testing final format to add to Cmaker ----------\n");
+		// let recipeString = this.board.getPlatformCCompilerRecipePattern();
+		// console.log("testing recipe\n");
+		// console.log(this.recipe.formatCCompilerBuild(recipeString));
+		// console.log("Get compiler c flag default \n");
+		// //console.log(this.board.getCompilerDefaultFlagsPlatform())
+		// console.log("--------- testing final format to add to Cmaker ----------\n");
 
 
 		this.board.setcFlags(this.recipe.formatCCompilerBuild(recipeString));
-		let cxxFlags = this.board.getCXXFlags();
 		let cFlags = this.board.getCFlags();
+
+
+		let cxxFlags = this.board.getCXXFlags();
 
 
 		if(this.debuggingOptimization) {
