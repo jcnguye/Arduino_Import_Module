@@ -10,64 +10,14 @@ import { MainPanel } from "./panels/MainPanel";
 import { Board } from './board';
 import Cmaker from './cmaker';
 import * as importproj from './importproj';
-import { Console } from 'console';
+
 
 /**
- * Gets the compiler flags out of the platform.txt file
+ * Returns an iterable object containing the absolute name of all files in a given directory,
+ * including files in subfolders.
+ * @param directoryPath - the absolute path to the directory
+ * @returns Iterable object with the absolute name of all files in a directory
  */
-async function getCompileFlags() {
-    // get platform.txt file to parse
-    const filePath = await vscode.window.showInputBox({
-        placeHolder: "Compiler Flags",
-        prompt: "Enter path to 'platform.txt' file",
-    });
-    if (filePath){
-        // make sure file is valid
-        var flagArr = await parsePlatform(filePath);
-        var flagStr = "";
-        for (var i = 0; i < flagArr.length; i++) {flagStr += flagArr[i] + ',\n';}
-        vscode.window.showInformationMessage(flagStr, {modal: true});
-    } else {
-        vscode.window.showInformationMessage("Not a valid path or directory does not contain platform.txt file.");
-    }
-}
-/**
- * Parses the platform.txt file and pulls out all the compiler flags
- * @param filePath - directory to platform.txt file
- * @returns Array of all the compiler flags
- */
-async function parsePlatform(filePath:string) {
-    var flagArr: string[] = [];
-    try {
-        ////// separate text file into readable lines
-        const lines: string[] = [];
-        const fileStream = fs.createReadStream(path.join(filePath, 'platform.txt'));
-        const rl = readline.createInterface({
-            input: fileStream,
-            crlfDelay: Infinity,
-        });
-        for await (const line of rl) {
-            lines.push(line);
-        }
-        ////// get all the compiler flag lines
-        for (var i = 0; i < lines.length; i++) {
-            var line = lines[i].substring(0, lines[i].indexOf('='));
-            if (line.includes("compiler.") && line.includes(".flags")) {
-                flagArr.push(lines[i]);
-            }
-        }
-    } catch (error) {
-        flagArr = ["Error occurred while reading the file."];
-    }
-    return flagArr;
-}
-
-/**
-     * Returns an iterable object containing the absolute name of all files in a given directory,
-	 * including files in subfolders. 
-     * @param directoryPath - the absolute path to the directory
-	 * @returns Iterable object with the absolute name of all files in a directory
-     */
 function* getAllFilePaths(directoryPath: string): Iterable<string> {
     const files = fs.readdirSync(directoryPath);
 
@@ -82,6 +32,19 @@ function* getAllFilePaths(directoryPath: string): Iterable<string> {
         }
     }
 }
+
+/**
+ * Returns an iterable object containing the absolute name of all files in all given directories,
+ * including files in subfolders.
+ * @param directoryPaths - an array of absolute paths to directories
+ * @returns Iterable object with the absolute name of all files in a directory
+ */
+function* getAllFilePathsArray(directoryPaths: string[]): Iterable<string> {
+	for (const dir of directoryPaths) {
+		yield* getAllFilePaths(dir);
+	}
+}
+
 
 /**
  * This function scans a file's include statements to retrive
@@ -192,8 +155,10 @@ async function copyLibraries(newDirectory: string, sketchFile: string) {
         console.error(error);
         return;
     }
-
-    const iterable = getAllFilePaths(libraryFilePath);
+	
+	const downloadedLibraries = path.join(process.env.HOME!, "Documents", "Arduino", "libraries");
+	
+    const iterable = getAllFilePathsArray([libraryFilePath, downloadedLibraries]);
     
     //copying files to new directory if their directory name matches .ino file
     for await(const scanned of iterable) {
@@ -211,6 +176,7 @@ async function copyLibraries(newDirectory: string, sketchFile: string) {
     }
 }
 
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -222,7 +188,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 
-export async function startImport(sketchPath: string, destDir: string, board: Board) {
+export async function startImport(sketchPath: string, destDir: string, board: Board, debuggingOptimization: boolean) {
     vscode.window.showInformationMessage("Starting import.");
     //rename .ino as .cpp and copy it to the destination directory
     const file = path.basename(sketchPath);
@@ -250,70 +216,23 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     }
     console.log("Starting to copy code device library files...");
     importproj.copyDirectoriesPaired(board.getCorePaths(), destDir);
-    fs.renameSync(path.join(destDir, "core", "wiring_pulse.S"), path.join(destDir, "core", "wiring_pulse_asm.S"))
+    fs.renameSync(path.join(destDir, "core", "wiring_pulse.S"), path.join(destDir, "core", "wiring_pulse_asm.S"));
     console.log("Core import complete");
 
-
-    //copy avr-gcc compiler 
-    const compilerPath = path.join(destDir, 'compiler');
-    if (!fs.existsSync(compilerPath)) {
-        fs.mkdirSync(compilerPath);
-    }
-    importproj.copyDirectory(board.getPathToCompiler(), compilerPath);
-    
-    console.log("Compiler copy complete");
-
-    // create makefile
-    console.log("Creating makefile...");
-    const makefileContent = `
-# Makefile
-# Compiler
-CC = core/compiler/bin/avr-gcc.exe
-
-# Compiler flags
-CFLAGS = -Wall -g -Icore/ -c -g -Os -std=gnu++17 -fpermissive -Wno-sized-deallocation -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -MMD -flto -mrelax -DARDUINO_avrdd -mmcu=avr64dd32 -DCLOCK_SOURCE=0 -DMILLIS_USE_TIMERB2 -DCORE_ATTACH_ALL -DTWI_MORS_SINGLE -DLOCK_FLMAP -DFLMAPSECTION1 -DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L -DDXCORE_MAJOR=1UL -DDXCORE_MINOR=5UL -DDXCORE_PATCH=11UL -DDXCORE_RELEASED=1 -DMVIO_ENABLED 
-
-# Source files
-SOURCES = src/${cFile}
-
-# Output executable
-EXECUTABLE = arduino-import
-
-# Library path
-LIB_PATH = -L./lib
-
-# Wildcard to find all shared libraries
-LIBS = $(wildcard ./lib/*.h)
-
-# Build rule
-$(EXECUTABLE): $(SOURCES)
-\t$(CC) $(CFLAGS) $^ -o $@ $(LIB_PATH) $(LIBS)
-
-# Clean rule
-clean:
-\trm -f $(EXECUTABLE)
-`;
-
-    const makefilePath = path.join(__dirname, 'Makefile');
-    console.log("Make file is here temporarily: " + makefilePath);
-    fs.writeFileSync(makefilePath, makefileContent.trim());
-    console.log("Makefile created");
-
-
-    const cmake= new Cmaker(board);
+    const cmake= new Cmaker(board, debuggingOptimization);
     cmake.setProjectDirectory(destDir);
     cmake.setProjectName(cFile.replace(".cpp", ""));
     cmake.setSourceName('src/' + cFile);
     cmake.setCompilerFlags(await parser.getAllFlags(board));
-
-
-
-    //TODO - this needs to be fixed to link correct files
-    cmake.setLinkerFlags('-Wall -Wextra -Os -g -flto -fuse-linker-plugin -mrelax -Wl,--gc-sections,--section-start=.text=0x0,--section-start=.FLMAP_SECTION1=0x8000,--section-start=.FLMAP_SECTION2=0x10000,--section-start=.FLMAP_SECTION3=0x18000 -mmcu=avr64dd32');
     cmake.build();
 
 
-    vscode.window.showInformationMessage("Import complete! Building project.");
+    //create ouptput directory
+    const outputPath = path.join(destDir, 'output');
+    if (!fs.existsSync(outputPath)) {
+        fs.mkdirSync(outputPath);
+    }
+    vscode.window.showInformationMessage("Import complete! Building project...");
     try {
         execSync('cmake -G "Unix Makefiles"', {cwd: destDir});
         execSync('make', {cwd: destDir});    
@@ -322,15 +241,14 @@ clean:
         vscode.window.showInformationMessage("Error using CMake. See console for more info.");
     }
     
-
     try {
-        const command = process.platform === 'win32' ? `start "" "${destDir}"` : `open "${destDir}"`;
+        const command = process.platform === 'win32' ? `start "" "${outputPath}"` : `open "${outputPath}"`;
         execSync(command);
     } catch (error) {
         console.error(error);
         vscode.window.showInformationMessage("Error opening project directory. See console for more info.");
     }
-
+    
 }
 
 

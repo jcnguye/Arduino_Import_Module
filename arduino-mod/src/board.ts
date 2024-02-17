@@ -2,18 +2,39 @@ import * as vscode from 'vscode';
 import * as parser from './parser';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as flagParser from './flagParser';
 
 export const UNO = "UNO"; //none 
 export const NANO = "Nano"; //ATmega328P or ATmega328P (Old Bootloader) 
 export const MEGA = "Mega or Mega2560"; //ATMega2560; ATMega1280 
 export const PRO = "Pro or Pro Mini"; //ATmega328P (5V, 16 MHz); ATmega328P (3.3V, 8 MHz) 
+export const DXCORE = "DxCore";
+
+const unoOptions: string [] = [];
+const nanoOptions: string [] = ["ATmega328P or ATmega328P (Old Bootloader)"];
+const megaOptions: string [] = ["ATMega2560", "ATMega1280"];
+const proOptions: string [] = ["ATmega328P (5V, 16 MHz)", "ATmega328P (3.3V, 8 MHz)"];
+const dxcoreOptions: string [] = [];
 
 export function getAllBoards(): string[] {
-    const result = [UNO, NANO, MEGA, PRO];
+    const result = [UNO, NANO, MEGA, PRO, DXCORE];
     return result;
 }
 export function getBoard(boardName: string): Board {
     return new Board(boardName);
+}
+export function getBoardOptions(boardName: string): string[] {
+    if (boardName === UNO ) {
+        return unoOptions;
+    } else if (boardName === NANO ) {
+        return nanoOptions;
+    } else if (boardName === MEGA ) {
+        return megaOptions;
+    } else if (boardName === PRO ) {
+        return proOptions;
+    } else {
+        return dxcoreOptions;
+    }
 }
 
 /**
@@ -23,21 +44,36 @@ export class Board{
     boardName: string;
     private flags: string = "";
     private chipName: string = "";
-    options: string[] = [];
     private corePaths: [string, string][] = []; // tuple of core lib path and ./core/ dest
     private pathToCompiler: string = "";
+
+    //used by cmaker class
+    private cFlags: string = "";
+    private cxxFlags: string = "";
+    private cFlagsLinker: string = "";
 
 
     constructor(boardName: string) {
         this.boardName = boardName;
 
+        var localAppData = "???";
+		if(process.platform === "win32") {
+			localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15");
+		} else if(process.platform === "darwin") {
+			localAppData = path.join(process.env.HOME!, "Library", "Arduino15");
+		} else if(process.platform === "linux") {
+			localAppData = path.join(process.env.HOME!, ".arduino15");
+		}
+
 
         if(boardName === NANO) {
-            this.nanoBuild();
-        } else if (boardName === MEGA) {
-            this.megaBuild();
+            this.nanoBuild(localAppData);
+        } else if (boardName === DXCORE) {
+            this.dxcoreBuild(localAppData);
+        }else if (boardName === MEGA) {
+            this.megaBuild(localAppData);
         } else if (boardName === PRO) {
-            this.proBuild();
+            this.proBuild(localAppData);
         }
     }
 
@@ -60,6 +96,19 @@ export class Board{
     getPathToCompiler() {
         return this.pathToCompiler;
     }
+
+    getCFlags(): string {
+        return this.cFlags;
+    }
+
+    getCXXFlags(): string {
+        return this.cxxFlags;
+    }
+
+    getCFlagsLinker(): string {
+        return this.cFlagsLinker;
+    }
+
     setBoardName(boardName:string):void{
         this.boardName = boardName;
     }
@@ -70,17 +119,7 @@ export class Board{
         this.chipName = chipName;
     }
 
-    nanoBuild(): void {
-        var localAppData = "???";
-		if(process.platform === "win32") {
-			localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15");
-		} else if(process.platform === "darwin") {
-			localAppData = path.join(process.env.HOME!, "Library", "Arduino15");
-		} else if(process.platform === "linux") {
-			localAppData = path.join(process.env.HOME!, ".arduino15");
-		}
-
-        this.options.push("ATmega328P or ATmega328P (Old Bootloader)");          
+    nanoBuild(localAppData:string): void { 
              
         if (localAppData) {
             this.pathToCompiler = path.join(localAppData,"packages","arduino","tools","avr-gcc");
@@ -88,67 +127,58 @@ export class Board{
             this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion); 
             
           	const basepath = path.join(localAppData, "packages", "arduino", "hardware", "avr", parser.getNanoVersion());
+            	
             this.corePaths.push([path.join(basepath, "cores", "arduino"), "core"]);
             this.corePaths.push([path.join(basepath, "variants", "eightanaloginputs"), path.join("core", "eightanaloginputs")]);
             this.corePaths.push([path.join(basepath, "variants", "standard"), path.join("core", "standard")]);
 
-            var arduinoPackagePathBoard = path.join(basepath, 'boards.txt');
-            var arduinoPackagePathPlatform = path.join(basepath, 'platform.txt');
-            //testing getting c flag board.txt
-            // let arduinoPackagePath = ' ';
-            console.log("---------- Nano board.txt flag -------");
-            console.log(this.getBoardflagsNano(arduinoPackagePathBoard));
-            console.log("---------- END OF Nano board.txt flag -------");
-            //testing getBoardMegaNanoFlag function 
-            console.log("---------- Nano Mega nano board.txt flag -------");
-            console.log(this.getBoardMegaNanoFlag(arduinoPackagePathBoard));
-            console.log("---------- END OF Mega nano board.txt flag -------");
-            //testing getBoardMegaNanoFlagBootLoader
-            console.log("---------- Nano Mega nano Bootloader board.txt flag -------");
-            console.log(this.getBoardMegaNanoBootloaderFlag(arduinoPackagePathBoard));
-            console.log("---------- END OF Mega nano Bootloader board.txt flag -------");
+            // get flags
+            const platformPath = path.join(basepath, 'platform.txt');
+	        const boardPath = path.join(basepath, 'boards.txt');
+            const boardOptionsAndName: string[] = ['nano.menu.cpu.atmega328.', 'nano.'];
+            const hardcodedFlags = new Map<string, string>();
+	        hardcodedFlags.set('build.arch','AVR');
+	        hardcodedFlags.set('includes','');
+	        hardcodedFlags.set('runtime.ide.version','10607');
 
-            //testing platform file c++ flag
-            console.log("--------- Nano platform.txt C++ flag ----------");
-            console.log(this.getPlatformCPlusCompilerFlag(arduinoPackagePathPlatform));
-            console.log("--------- END OF Nano platform.txt C++ flag ----------");
-            //testing platform file c flag
-            console.log("--------- Nano platform.txt C flag ----------");
-            console.log(this.getPlatformCCompilerFlag(arduinoPackagePathPlatform));
-            console.log("--------- END OF Nano platform.txt C flag ----------");
+	        this.cFlags = flagParser.obtainFlags('recipe.c.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.cxxFlags = flagParser.obtainFlags('recipe.cpp.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.cFlagsLinker = flagParser.obtainFlags('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+
+            // modify flags so they work with cmake
+            this.cFlags = this.cFlags.replace('-c ', '');
+            this.cFlags = this.cFlags.replace('-fno-fat-lto-objects','-fno-fat-lto-objects -ffat-lto-objects');
+            this.cxxFlags = this.cxxFlags.replace('-c ', '');
+            this.cxxFlags = this.cxxFlags.replace('-flto','-flto -fno-fat-lto-objects -ffat-lto-objects');
         }
 
     }
    
 
-    dxCoreBuild(): void{
+    dxcoreBuild(localAppData:string): void{
         this.setFlag("-DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L") ;
-        this.setChipName("avrdd");
-        this.options.push("ATmega328P or ATmega328P (Old Bootloader)");
+        this.chipName = "avrdd";
 
-        const localAppData = process.env.LOCALAPPDATA;
         const version = parser.getDXCoreVersion();
         
-            if (localAppData) {
-                this.pathToCompiler = path.join(localAppData,"Arduino15","packages","DxCore","tools","avr-gcc");
-                const compilerVersion = this.mostRecentDirectory(this.pathToCompiler);
-                this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion);
-                this.corePaths.push([path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"cores","dxcore"), "core"]);
-                
-                //TODO - determine which variants are needed & correct path
-                //this.corePaths.push(path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"variants","32pin-ddseries"));
-                //this.corePaths.push(path.join(localAppData, "packages", "DxCore","tools","avr-gcc",compilerVersion,"avr","include"));
-            }
+        if (localAppData) {
+            this.pathToCompiler = path.join(localAppData,"packages","DxCore","tools","avr-gcc");
+            const compilerVersion = this.mostRecentDirectory(this.pathToCompiler);
+            this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion);
+            
+            this.corePaths.push([path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"cores","dxcore"), "core"]);
+            //TODO - determine which variants are needed & correct path
+            //this.corePaths.push(path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"variants","32pin-ddseries"));
+            //this.corePaths.push(path.join(localAppData, "packages", "DxCore","tools","avr-gcc",compilerVersion,"avr","include"));
+        }
     }
 
-    megaBuild(): void{
-        this.options.push("ATMega2560");
-        this.options.push("ATMega1280");
+    megaBuild(localAppData:string): void{
+
     }
 
-    proBuild(): void{
-        this.options.push("ATmega328P (5V, 16 MHz)");
-        this.options.push("ATmega328P (3.3V, 8 MHz)");
+    proBuild(localAppData:string): void{
+
     }
 
     /**
@@ -171,151 +201,5 @@ export class Board{
         });
         return mostRecentDirectory.name;
     }
-
-      /**
- * Function that retrieves information of nano boards flags within board.txt 
- * @param filePath Path to arduino hardware file
- * @returns a string compriseing of information on the nano board flags
- */
-    getBoardflagsNano(filePath:string): string {
-        let insideSection = false;
-        // Split the content by lines
-        let cFlag = "";
-        let cFlagArr = [];
-        try {
-            const data = fs.readFileSync(filePath, 'utf-8');
-            const dataArr = data.split('\n');
-            for(const line of dataArr.slice(192,211)){
-                if(line === 'nano.name=Arduino Nano'){
-                    insideSection = true;
-                    console.log("Inside the nano read");
-                }
-                if(line === '## Arduino Nano w/ ATmega328P'){
-                    insideSection = false;
-                    console.log("Outside the nano read");
-                }
-                  if(insideSection===true && !(line === '')){
-                    cFlagArr.push(line);
-                }
-
-            }
-            cFlag = cFlagArr.join(" ");
-        } catch (error) {
-            cFlag = "Error occurred while reading the file.";
-        }
-
-        return cFlag;
-    }
-    getBoardMegaNanoFlag(filePath:string): string {
-        let insideSection = false;
-        // Split the content by lines
-        let cFlag = "";
-        let cFlagArr = [];
-        try {
-            const data = fs.readFileSync(filePath, 'utf-8');
-            const dataArr = data.split('\n');
-            for(const line of dataArr.slice(213,226)){
-                if(line === 'nano.menu.cpu.atmega328=ATmega328P'){
-                    insideSection = true;
-                    console.log("Inside the nano read");
-                }
-                if(line === '## Arduino Nano w/ ATmega328P (old bootloader)'){
-                    insideSection = false;
-                    console.log("Outside the nano read");
-                }
-                  if(insideSection===true && !(line === '')){
-                    cFlagArr.push(line);
-                }
-
-            }
-            cFlag = cFlagArr.join(" ");
-        } catch (error) {
-            cFlag = "Error occurred while reading the file.";
-        }
-
-        return cFlag;
-    }
-    getBoardMegaNanoBootloaderFlag(filePath:string): string {
-        let insideSection = false;
-        // Split the content by lines
-        let cFlag = "";
-        let cFlagArr = [];
-        try {
-            const data = fs.readFileSync(filePath, 'utf-8');
-            const dataArr = data.split('\n');
-            for(const line of dataArr.slice(228,241)){
-                if(line === 'nano.menu.cpu.atmega328old=ATmega328P (Old Bootloader)'){
-                    insideSection = true;
-                    console.log("Inside the nano read");
-                }
-                if(line === '## Arduino Nano w/ ATmega168'){
-                    insideSection = false;
-                    console.log("Outside the nano read");
-                }
-                  if(insideSection===true && !(line === '')){
-                    cFlagArr.push(line);
-                }
-
-            }
-            cFlag = cFlagArr.join(" ");
-        } catch (error) {
-            cFlag = "Error occurred while reading the file.";
-        }
-
-        return cFlag;
-    }
-
-          /**
- * Function that retrieves the nano C++ compile flag within platform.txt 
- * @param filePath path to arduino hardware file
- * @returns a string compriseing of C++ flags from platform.txt
- */
-    getPlatformCPlusCompilerFlag(filePath:string){
-        // Split the content by lines
-        let cFlag = "";
-        let cFlagArr = [];
-        try {
-            const data = fs.readFileSync(filePath, 'utf-8');
-            const dataArr = data.split('\n');
-            for(const line of dataArr.slice(57,58)){
-                if(!(line === '')){
-                    cFlagArr.push(line);
-                }
-
-            }
-            cFlag = cFlagArr.join(" ");
-        } catch (error) {
-            cFlag = "Error occurred while reading the file.";
-        }
-
-        return cFlag;
-    }
-
-        /**
- * Function that retrieves the nano C compile flag within platform.txt 
- * @param filePath path to arduino hardware file
- * @returns a string compriseing of C flags from platform.txt
- */
-    getPlatformCCompilerFlag(filePath:string){
-        // Split the content by lines
-        let cFlag = "";
-        let cFlagArr = [];
-        try {
-            const data = fs.readFileSync(filePath, 'utf-8');
-            const dataArr = data.split('\n');
-            for(const line of dataArr.slice(54,56)){
-                if(!(line === '')){
-                    cFlagArr.push(line);
-                }
-            }
-            cFlag = cFlagArr.join(" ");
-        } catch (error) {
-            cFlag = "Error occurred while reading the file.";
-        }
-    
-        return cFlag;
-        }
-    
-
 
 }

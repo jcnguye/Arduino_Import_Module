@@ -16,8 +16,8 @@ export class MainPanel {
   private selectedBoard: string = "";
   private selectedOption: string = "";
 
-  private board: Board;
   private readyForImport: boolean = false;
+  private debuggingOptimization = false; 
 
   /**
    * The MainPanel class private constructor (called only from the render method).
@@ -147,6 +147,10 @@ export class MainPanel {
           <br>
           <br>
           ${boardOptionsContent}
+          <vscode-radio-group id="optimizeOpt" orientation="vertical"><label slot="label">Select Optimization Option</label>
+            <vscode-radio default value="codeSizeOptimization">Optimize for code size (default)</vscode-radio>
+            <vscode-radio value="debuggingOptimization">Optimize for debugging</vscode-radio>
+          </vscode-radio-group>
           <br>
           ${importContent}
 					<script type="module" nonce="${nonce}" src="${webviewUri}"></script>
@@ -184,11 +188,11 @@ export class MainPanel {
   private getBoardOptionsContent(){
     let result = '';
     if (this.selectedBoard.length > 0) {
-      this.board = boardsInfo.getBoard(this.selectedBoard);
+      const options = boardsInfo.getBoardOptions(this.selectedBoard);
 
-      if (this.board.options.length > 0 ) {
+      if (options.length > 0 ) {
         result = `<vscode-radio-group id="boardOpt" orientation="vertical"><label slot="label">Select Board Option</label>`;
-        for (const opt of this.board.options) {
+        for (const opt of options) {
           result = result + `<vscode-radio value="${opt}">${opt}</vscode-radio>`;
         }
         result = result + `</vscode-radio-group>`;
@@ -225,6 +229,11 @@ export class MainPanel {
           case "boardOpt":
             this.selectedOption = text;
             return;
+          case "optimizeOpt":
+            if (text === "debuggingOptimization") {
+              this.debuggingOptimization = true;
+            }
+            return;  
           case "directory":
             const destDir = await window.showOpenDialog({
               canSelectFiles: false,
@@ -265,7 +274,8 @@ export class MainPanel {
             }
             return;
           case "import":
-            ex.startImport(this.sketchFile, this.destinationDirectory, this.board);
+            const board = new Board(this.selectedBoard);
+            ex.startImport(this.sketchFile, this.destinationDirectory, board, this.debuggingOptimization);
         }
       },
       undefined,
@@ -274,24 +284,10 @@ export class MainPanel {
   }
 
   private allSelectionsMade() {
-    if(this.board === undefined) {
-      if(this.selectedBoard === undefined) {
-        console.log("Undefined Selection");
-      }
-      this.board = new Board(this.selectedBoard);
-    }
-
     if (this.sketchFile.length > 0 && this.destinationDirectory.length > 0 && this.selectedBoard.length > 0) {
-      if (this.board.options.length > 0 && this.selectedOption.length > 0) {
-        this.readyForImport = true;
-      } else if (this.board.options.length === 0) {
-        this.readyForImport = true;
-      }
+      this.readyForImport = true;
       this.refresh();
     }
   }
 
-  public getBoard() {
-    return this.board;
-  }
 }
