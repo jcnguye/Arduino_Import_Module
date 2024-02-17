@@ -135,8 +135,7 @@ export class Board {
         this.chipName = chipName;
     }
 
-    //sets the cFlag
-    setcFlags(cFlags: string): void{
+    setCFlags(cFlags: string): void{
         this.cFlags = cFlags;
     }
 
@@ -162,7 +161,6 @@ export class Board {
 	        hardcodedFlags.set('includes','');
 	        hardcodedFlags.set('runtime.ide.version','10607');
 
-	        // this.cFlags = flagParser.obtainFlags('recipe.c.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
             this.cxxFlags = flagParser.obtainFlags('recipe.cpp.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
             this.cFlagsLinker = flagParser.obtainFlags('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
 
@@ -174,9 +172,6 @@ export class Board {
 
 
             // modify flags so they work with cmake
-            // C flags are being set from the recipe class
-            // this.cFlags = this.cFlags.replace('-c ', '');
-            // this.cFlags = this.cFlags.replace('-fno-fat-lto-objects','-fno-fat-lto-objects -ffat-lto-objects');
             this.cxxFlags = this.cxxFlags.replace('-c ', '');
             this.cxxFlags = this.cxxFlags.replace('-flto','-flto -fno-fat-lto-objects -ffat-lto-objects');
         }

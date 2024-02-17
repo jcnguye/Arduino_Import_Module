@@ -85,7 +85,8 @@ export class Recipe {
             }
         }
         let newFormat = Cflag.replace("{compiler.warning_flags}",targetValue);
-       
+        newFormat = newFormat.replace('-c', '');
+        newFormat = newFormat.replace('-fno-fat-lto-objects', '-fno-fat-lto-objects -ffat-lto-objects')
         return newFormat;
     }
 
