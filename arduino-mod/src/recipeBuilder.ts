@@ -23,7 +23,6 @@ export class Recipe {
             '{build.board}': this.board.getTargetFlagHelper("nano.build.board", this.board.getBoardflagsNano(this.board.getPathToBoardFile())),
             '{build.arch}': 'AVR', //these are hardcoded
             '{compiler.c.flags}':  this.getCompilerCFlagDefault(),
-            //'{build.arch}': this.board.getTargetBoardFlagHelper("compiler.c.flags",),
             '{build.f_cpu}': this.board.getTargetFlagHelper("nano.build.f_cpu", this.board.getBoardflagsNano(this.board.getPathToBoardFile()))
         };
     }
