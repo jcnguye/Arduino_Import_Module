@@ -160,7 +160,8 @@ export class Board {
 	        hardcodedFlags.set('build.arch','AVR');
 	        hardcodedFlags.set('includes','');
 	        hardcodedFlags.set('runtime.ide.version','10607');
-
+            
+            //will be replaced with setters
             this.cxxFlags = flagParser.obtainFlags('recipe.cpp.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
             this.cFlagsLinker = flagParser.obtainFlags('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
 
