@@ -46,6 +46,7 @@ export class Board{
     private chipName: string = "";
     private corePaths: [string, string][] = []; // tuple of core lib path and ./core/ dest
     private pathToCompiler: string = "";
+    private pathToCoreLibs: string = "";
 
     //used by cmaker class
     private cFlags: string = "";
@@ -97,6 +98,10 @@ export class Board{
         return this.pathToCompiler;
     }
 
+    getPathToCoreLibs() {
+        return this.pathToCoreLibs;
+    }
+
     getCFlags(): string {
         return this.cFlags;
     }
@@ -127,6 +132,8 @@ export class Board{
             this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion); 
             
           	const basepath = path.join(localAppData, "packages", "arduino", "hardware", "avr", parser.getNanoVersion());
+
+            this.pathToCoreLibs = path.join(basepath, "libraries");
             	
             this.corePaths.push([path.join(basepath, "cores", "arduino"), "core"]);
             this.corePaths.push([path.join(basepath, "variants", "eightanaloginputs"), path.join("core", "eightanaloginputs")]);

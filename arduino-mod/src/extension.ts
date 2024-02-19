@@ -127,6 +127,26 @@ function copyFile(sourcePath: string, destinationDirectory: string, newFileName?
 	input.pipe(output);
 }
 
+async function copyAllLibraries(libDirectory: string, coreDirectory:string, sketchFile: string, board: Board) {
+    // get list of libraries in #include statements 
+    let libList = undefined;
+    try {
+        libList = await getAllLibraries(sketchFile);
+    } catch (error) {
+        console.error(error);
+        return;
+    }
+
+    // for each library in list, search in coreLib. If exists, copy to libDirectory
+    // Note: list looks like LIBRARIES: Wire,SPI,Adafruit_Sensor,Adafruit_BME280
+    const coreLibPath = board.getPathToCoreLibs();
+    //TODO - START HERE
+
+    // for each remaining library in list, search in Docuemnts/Arduino/Library. 
+    // If exists, copy to coreDirectory
+
+}
+
 /**
  * This function scans the the Arduino/libraries folder for any source files that
  * are imported within the main sketch file.
@@ -156,9 +176,7 @@ async function copyLibraries(newDirectory: string, sketchFile: string) {
         return;
     }
 	
-	const downloadedLibraries = path.join(process.env.HOME!, "Documents", "Arduino", "libraries");
-	
-    const iterable = getAllFilePathsArray([libraryFilePath, downloadedLibraries]);
+	const iterable = getAllFilePaths(libraryFilePath);
     
     //copying files to new directory if their directory name matches .ino file
     for await(const scanned of iterable) {
@@ -200,15 +218,6 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     }
     copyFile(sketchPath, srcPath, cFile, '#include <Arduino.h>\n');
 
-    //create lib folder in destination directory and copy all librarires included in sketch file
-    const libPath = path.join(destDir, 'lib');
-    if (!fs.existsSync(libPath)) {
-        fs.mkdirSync(libPath);
-    }
-    console.log("Starting to copy libraries...");
-    copyLibraries(libPath, sketchPath);
-    console.log("Library import complete");
-
     //create core folder in destination directory & copy appropriate code device library source files
     const corePath = path.join(destDir, 'core');
     if (!fs.existsSync(corePath)) {
@@ -218,6 +227,16 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     importproj.copyDirectoriesPaired(board.getCorePaths(), destDir);
     fs.renameSync(path.join(destDir, "core", "wiring_pulse.S"), path.join(destDir, "core", "wiring_pulse_asm.S"));
     console.log("Core import complete");
+   
+    //create lib folder in destination directory and copy all librarires included in sketch file
+    const libPath = path.join(destDir, 'lib');
+    if (!fs.existsSync(libPath)) {
+        fs.mkdirSync(libPath);
+    }
+    console.log("Starting to copy libraries...");
+    copyAllLibraries(libPath, corePath, sketchPath, board);
+    //copyLibraries(libPath, sketchPath);
+    console.log("Library import complete");
 
     const cmake= new Cmaker(board, debuggingOptimization);
     cmake.setProjectDirectory(destDir);
