@@ -10,6 +10,7 @@ import { MainPanel } from "./panels/MainPanel";
 import { Board } from './board';
 import Cmaker from './cmaker';
 import * as importproj from './importproj';
+import * as os from 'os';
 
 
 /**
@@ -127,23 +128,58 @@ function copyFile(sourcePath: string, destinationDirectory: string, newFileName?
 	input.pipe(output);
 }
 
-async function copyAllLibraries(libDirectory: string, coreDirectory:string, sketchFile: string, board: Board) {
-    // get list of libraries in #include statements 
-    let libList = undefined;
-    try {
-        libList = await getAllLibraries(sketchFile);
-    } catch (error) {
-        console.error(error);
-        return;
+/**
+ * Checks if folder exists. If so, recursively copies folder & contents to destination
+ * @param source 
+ * @param destination 
+ * @returns 
+ */
+function copyFolder(source: string, destination: string) {
+    if (fs.existsSync(source)) {
+        if (!fs.existsSync(destination)) {
+            fs.mkdirSync(destination);
+        }
+        // Copy each file inside the folder
+        fs.readdirSync(source).forEach((itemName) => {
+            const itemPath = path.join(source, itemName);
+            const targetPath = path.join(destination, itemName);
+
+            if (fs.lstatSync(itemPath).isDirectory()) {
+                // Recursively copy subfolders
+                copyFolder(itemPath, targetPath);
+            } else {
+                // Copy file
+                fs.copyFileSync(itemPath, targetPath);
+            }
+        });      
+    }
+}
+
+// Helper for copyLibraries
+async function copyThridPartyLibraries(libList: string[], targetDirectory: string, libPath: string, isCoreLib: boolean) {
+    const allFiles = getAllFilePaths(libPath);
+    
+    //copying files to new directory if their directory name matches .ino file
+    for await(const scanned of allFiles) {
+        let directories = scanned.split('\\');
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        let file = directories[directories.length - 1].split('.');
+        if(file.length >= 1 && libList.includes(file[0])) {
+            if(file[1] === 'cpp' || (file[1] === 'c' || (file[1] === 'h' || (file[1] === 'hpp')))) {
+                console.log("Copying ..." + file[0]);
+                copyFile(scanned, targetDirectory);
+
+                //Check if utilities file exists. If so, copy it. Only applicable for core libraries 
+                if (directories.includes("src") && isCoreLib) {
+                    const folderName = 'utility';
+                    const utilPath = scanned.replace(directories[directories.length - 1], folderName);
+                    copyFolder(utilPath, path.join(targetDirectory, folderName));
+                }
+            }
+        } 
     }
 
-    // for each library in list, search in coreLib. If exists, copy to libDirectory
-    // Note: list looks like LIBRARIES: Wire,SPI,Adafruit_Sensor,Adafruit_BME280
-    const coreLibPath = board.getPathToCoreLibs();
-    //TODO - START HERE
-
-    // for each remaining library in list, search in Docuemnts/Arduino/Library. 
-    // If exists, copy to coreDirectory
+    //TODO - hard code adafruit busIO
 
 }
 
@@ -157,17 +193,8 @@ async function copyAllLibraries(libDirectory: string, coreDirectory:string, sket
  * @param newDirectory : Directory to copy files to
  * @param sketchFile : .ino file with "#includes <lib.h>"
  */
-async function copyLibraries(newDirectory: string, sketchFile: string) {
-    //getting file paths
-    var localAppData = "???";
-	if(process.platform === "win32") {
-		localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15");
-	} else if(process.platform === "darwin") {
-		localAppData = path.join(process.env.HOME!, "Library", "Arduino15");
-	} else if(process.platform === "linux") {
-		localAppData = path.join(process.env.HOME!, ".arduino15");
-	}
-    const libraryFilePath = path.join(localAppData, "libraries");
+async function copyLibraries(libDirectory: string, coreDirectory:string, sketchFile: string, board: Board) {
+
     let libraries = undefined;
     try {
         libraries = await getAllLibraries(sketchFile);
@@ -176,22 +203,15 @@ async function copyLibraries(newDirectory: string, sketchFile: string) {
         return;
     }
 	
-	const iterable = getAllFilePaths(libraryFilePath);
-    
-    //copying files to new directory if their directory name matches .ino file
-    for await(const scanned of iterable) {
-        let directories = scanned.split('\\');
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        let file_type = directories[directories.length - 1].split('.');
-        if(file_type.length >= 1 && libraries.includes(directories[7])) {
-            if(file_type[1] === 'cpp' || (file_type[1] === 'c' || (file_type[1] === 'h' || (file_type[1] === 'hpp')))) {
-                // creates new folder for each library
-                //fs.mkdirSync(newDirectory+"\\"+file_type[0]);
-                //copyFile(scanned, newDirectory+"\\"+file_type[0]);
-                copyFile(scanned, newDirectory);
-            }
-        }
+	const coreLibPath = board.getPathToCoreLibs();
+    await copyThridPartyLibraries(libraries, coreDirectory, coreLibPath, true);
+
+    const home = os.homedir();
+    if (home) {
+        const docLibPath = path.join(home, "Documents", "Arduino", "libraries");
+        await copyThridPartyLibraries(libraries, libDirectory, docLibPath, false);
     }
+
 }
 
 
@@ -234,8 +254,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
         fs.mkdirSync(libPath);
     }
     console.log("Starting to copy libraries...");
-    copyAllLibraries(libPath, corePath, sketchPath, board);
-    //copyLibraries(libPath, sketchPath);
+    copyLibraries(libPath, corePath, sketchPath, board);
     console.log("Library import complete");
 
     const cmake= new Cmaker(board, debuggingOptimization);
