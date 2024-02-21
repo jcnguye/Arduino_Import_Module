@@ -145,10 +145,8 @@ function copyFolder(source: string, destination: string) {
             const targetPath = path.join(destination, itemName);
 
             if (fs.lstatSync(itemPath).isDirectory()) {
-                // Recursively copy subfolders
                 copyFolder(itemPath, targetPath);
             } else {
-                // Copy file
                 fs.copyFileSync(itemPath, targetPath);
             }
         });      
@@ -166,7 +164,6 @@ async function copyThridPartyLibraries(libList: string[], targetDirectory: strin
         let file = directories[directories.length - 1].split('.');
         if(file.length >= 1 && libList.includes(file[0])) {
             if(file[1] === 'cpp' || (file[1] === 'c' || (file[1] === 'h' || (file[1] === 'hpp')))) {
-                console.log("Copying ..." + file[0]);
                 copyFile(scanned, targetDirectory);
 
                 //Check if utilities file exists. If so, copy it. Only applicable for core libraries 
@@ -178,9 +175,6 @@ async function copyThridPartyLibraries(libList: string[], targetDirectory: strin
             }
         } 
     }
-
-    //TODO - hard code adafruit busIO
-
 }
 
 /**
@@ -207,9 +201,18 @@ async function copyLibraries(libDirectory: string, coreDirectory:string, sketchF
     await copyThridPartyLibraries(libraries, coreDirectory, coreLibPath, true);
 
     const home = os.homedir();
-    if (home) {
-        const docLibPath = path.join(home, "Documents", "Arduino", "libraries");
-        await copyThridPartyLibraries(libraries, libDirectory, docLibPath, false);
+    const docLibPath = path.join(home, "Documents", "Arduino", "libraries");
+    await copyThridPartyLibraries(libraries, libDirectory, docLibPath, false);
+
+    // If the list of libraries contains any Adafruit library, copy over BusIO. Hardcoded per Bob Martin.
+    if (libraries.some((element) => element.includes("Adafruit"))) {
+        const adaLibPath = path.join(docLibPath, "Adafruit_BusIO");
+        const adaFiles = getAllFilePaths(adaLibPath);
+        for(const file of adaFiles) {
+            if (file.endsWith('.h') || file.endsWith('.cpp')) {
+                copyFile(file, libDirectory);
+            }
+        }      
     }
 
 }
