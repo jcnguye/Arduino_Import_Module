@@ -466,34 +466,44 @@ export function getOverrideFlags(destinationDirectory: string, board: Board) {
         if (platformData) {
             const lines = platformData.split('\n');
             lines.forEach(line => {
-                let splitArray = line.split('=');
+                // let splitArray = line.split('=');
+                const splitIndex = line.indexOf('=');
                 let flagsRead = '';
+                // let flagsRead = line.index
 
-                if(splitArray.length >= 1)
-                    flagsRead = splitArray[1];
+                if(splitIndex == -1) {
+                    console.log("No arguments");
+                }
+
+                flagsRead = line.slice(splitIndex+1, line.length);
+                    
 
 
-                if(flagsRead == '' || flagsRead == ' ') {
+                if(flagsRead === '' || flagsRead === ' ') {
                     console.log('No flag found');
                 } else {
                     if(line.includes("REPLACE")) {
                         let replacements = flagsRead.split(" ");
+                        // console.log("test" + replacements);
                         for(let i = 0; i < replacements.length; i++) {
                             if(replacements[i].includes(":")) {
                                 let separated = replacements[i].split(":");
+
+                                console.log("original: " + separated[0] + "Replacement: " + separated[1]);
                                 
                                 if(line.includes("CXX")) {
-                                    board.replaceCXXFlag(replacements[0],replacements[1]);
+                                    board.replaceCXXFlag(separated[0],separated[1]);
                                 } else if(line.includes("LINKER")) {
-                                    board.replaceLinkerFlag(replacements[0],replacements[1]);
+                                    board.replaceLinkerFlag(separated[0],separated[1]);
                                 } else {
-                                    board.replaceCFlag(replacements[0],replacements[1]);
+                                    board.replaceCFlag(separated[0],separated[1]);
                                 }
                             }                            
                         }
 
                     } else if(line.includes("ADDITIONAL")) {
                         console.log("Adding: " + flagsRead);
+                        flagsRead = flagsRead.replace(/\s/g, "");
 
                         if(line.includes("CXX")) 
                             board.addCXXFlag(flagsRead);

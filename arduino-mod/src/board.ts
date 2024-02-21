@@ -241,7 +241,7 @@ export class Board{
      * @param flags flags to append
      */
     addCXXFlag(flags: string) {
-        this.cxxFlags += flags;
+        this.cxxFlags += ' ' + flags;
     }
 
     /**
@@ -249,7 +249,7 @@ export class Board{
      * @param flags flags to append
      */
     addCFlags(flags: string) {
-        this.cFlags += flags;
+        this.cFlags += " " + flags;
     }
 
     /**
@@ -257,7 +257,7 @@ export class Board{
      * @param flags flags to append
      */
     addLinkerFlags(flags: string) {
-        this.cFlagsLinker += flags;
+        this.cFlagsLinker += " " + flags;
     }
 
     megaBuild(localAppData:string): void{
