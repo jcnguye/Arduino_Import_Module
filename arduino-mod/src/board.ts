@@ -207,22 +207,18 @@ export class Board {
      * is not found, the replacement string is appended to the end of the cxx
      * flag string (as long as it's not an empty string).
      * 
-     * Replacement function can be used to remove a flag, as long as its
-     * replacement flag is set as an empty string ('').
-     * 
      * @param original : flag to be replaced
      * @param replacement : replacement flag
      */
     replaceCXXFlag(original: string, replacement: string) {
-        let tempChange =  this.cxxFlags.replace(original, replacement.trim());
+        replacement = replacement.trim();
+        let tempChange =  this.cxxFlags.replace(original, replacement);
 
         if(tempChange !== this.cxxFlags) {
             this.cxxFlags = tempChange;
         } else if(replacement !== '') {
-            this.cxxFlags += ' ' + replacement.trim();
+            this.cxxFlags += ' ' + replacement;
         }
-
-        // this.cxxFlags = this.cxxFlags.replace("\n",'');
     }
 
     /**
@@ -230,23 +226,19 @@ export class Board {
      * is not found, the replacement string is appended to the end of the cxx
      * flag string (as long as it's not an empty string).
      * 
-     * Replacement function can be used to remove a flag, as long as its
-     * replacement flag is set as an empty string ('').
-     * 
      * @param original : flag to be replaced
      * @param replacement : replacement flag
      */
     replaceCFlag(original: string, replacement: string) {
-        let tempChange =  this.cFlags.replace(original, replacement.trim());
+        replacement = replacement.trim();
+        
+        let tempChange =  this.cFlags.replace(original, replacement);
 
         if(tempChange !== this.cFlags) {
             this.cFlags = tempChange;
         } else if(replacement !== '') {
-            this.cFlags += " " + replacement.trim();
+            this.cFlags += " " + replacement;
         }
-
-        // this.cFlags = this.cFlags.replace("\n",'');
-
     }
 
     /**
@@ -254,22 +246,19 @@ export class Board {
      * is not found, the replacement string is appended to the end of the cxx
      * flag string (as long as it's not an empty string).
      * 
-     * Replacement function can be used to remove a flag, as long as its
-     * replacement flag is set as an empty string ('').
-     * 
      * @param original : flag to be replaced
      * @param replacement : replacement flag
      */
     replaceLinkerFlag(original: string, replacement: string) {
-        let tempChange = this.cFlagsLinker.replace(original, replacement.trim());
+        replacement = replacement.trim();
+
+        let tempChange = this.cFlagsLinker.replace(original, replacement);
 
         if(tempChange !== this.cFlagsLinker) {
             this.cFlagsLinker = tempChange;
         } else if(replacement !== '') {
-            this.cFlagsLinker += " " + replacement.trim();
+            this.cFlagsLinker += " " + replacement;
         }
-
-        // this.cFlagsLinker = this.cFlagsLinker.replace("\n",'');
     }
 
     /**
@@ -277,8 +266,8 @@ export class Board {
      * @param flags flags to append
      */
     addCXXFlag(flags: string) {
-        this.cxxFlags = this.cxxFlags.trim();
-        this.cxxFlags += " " + flags.trim();
+        flags = flags.trim()
+        this.cxxFlags += " " + flags;
     }
 
     /**
@@ -286,8 +275,8 @@ export class Board {
      * @param flags flags to append
      */
     addCFlags(flags: string) {
-        this.cFlags = this.cFlags.trim()
-        this.cFlags += " " + flags.trim();
+        flags = flags.trim();
+        this.cFlags += flags;
     }
 
     /**
@@ -295,8 +284,8 @@ export class Board {
      * @param flags flags to append
      */
     addLinkerFlags(flags: string) {
-        this.cFlagsLinker = this.cFlagsLinker.trim();
-        this.cFlagsLinker += " " + flags.trim();
+        flags = flags.trim();
+        this.cFlagsLinker += flags;
     }
 
     megaBuild(localAppData:string): void{

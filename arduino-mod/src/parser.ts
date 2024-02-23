@@ -464,33 +464,30 @@ export function getOverrideFlags(destinationDirectory: string, board: Board) {
             console.error('Error reading file:', err);
         }
 
+        console.log("Parsing override flags");
+
         if (platformData) {
             const lines = platformData.split('\n');
             lines.forEach(line => {
-                // let splitArray = line.split('=');
                 const splitIndex = line.indexOf('=');
                 let flagsRead = '';
-                // let flagsRead = line.index
 
                 if(splitIndex == -1) {
                     console.log("No arguments");
                 }
 
                 flagsRead = line.slice(splitIndex+1, line.length);
-                    
-
 
                 if(flagsRead === '' || flagsRead === ' ') {
-                    console.log('No flag found');
+                    console.log('No flag found in flag_override.txt');
                 } else {
                     if(line.includes("REPLACE")) {
                         let replacements = flagsRead.split(" ");
-                        // console.log("test" + replacements);
                         for(let i = 0; i < replacements.length; i++) {
                             if(replacements[i].includes(":")) {
                                 let separated = replacements[i].split(":");
 
-                                console.log("original: " + separated[0] + " Replacement: " + separated[1]);
+                                // console.log("original: " + separated[0] + " Replacement: " + separated[1]);
                                 
                                 if(line.includes("CXX")) {
                                     board.replaceCXXFlag(separated[0],separated[1]);
@@ -503,8 +500,6 @@ export function getOverrideFlags(destinationDirectory: string, board: Board) {
                         }
 
                     } else if(line.includes("ADDITIONAL")) {
-                        console.log("Adding: " + flagsRead);
-                        flagsRead = flagsRead.replace(/\s/g, "");
 
                         if(line.includes("CXX")) 
                             board.addCXXFlag(flagsRead);
@@ -518,6 +513,6 @@ export function getOverrideFlags(destinationDirectory: string, board: Board) {
             });
         }
     } else  {
-        console.log("No override file");
+
     }
 }
