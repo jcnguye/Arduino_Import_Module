@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { Board } from './board';
+import { Recipe } from './recipeBuilder';
 
 export class Cmaker {
 	public projDir: string;
@@ -10,7 +11,7 @@ export class Cmaker {
 	public compilerflags: string;
 	private board: Board;
 	private debuggingOptimization: boolean; 
-
+	private recipe: Recipe;
 	//CONSTANTS
 	private debugOptimizeFlag: string = "-Og -g2";
 	private codeSizeOptimizeFlag: string = "-Os";
@@ -22,6 +23,7 @@ export class Cmaker {
 		this.compilerflags = "";
 		this.board = board; 
 		this.debuggingOptimization = debuggingOptimization;
+		this.recipe = new Recipe(board);
 	}
 	public setProjectDirectory(projectDirectory:string){
 		this.projDir = projectDirectory;
@@ -74,8 +76,13 @@ export class Cmaker {
 		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJCOPY ' + path.join(binPath, "avr-objcopy.exe").replace(/\\/g, '/') +')\n\n';
 		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJDUMP ' + path.join(binPath, "avr-objdump.exe").replace(/\\/g, '/') +')\n\n';
 
-		let cxxFlags = this.board.getCXXFlags();
+		let recipeString = this.board.getPlatformCCompilerRecipePattern();
+		let finalFormatRecipe = this.recipe.formatCCompilerBuild(recipeString);
+		
+		this.board.setCFlags(finalFormatRecipe);
 		let cFlags = this.board.getCFlags();
+		let cxxFlags = this.board.getCXXFlags();
+
 		if(this.debuggingOptimization) {
 			cxxFlags = cxxFlags.replace(this.codeSizeOptimizeFlag, this.debugOptimizeFlag);
 			cFlags = cFlags.replace(this.codeSizeOptimizeFlag, this.debugOptimizeFlag);
