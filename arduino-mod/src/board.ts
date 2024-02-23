@@ -185,13 +185,15 @@ export class Board{
      * @param replacement : replacement flag
      */
     replaceCXXFlag(original: string, replacement: string) {
-        let tempChange =  this.cxxFlags.replace(original, replacement);
+        let tempChange =  this.cxxFlags.replace(original, replacement.trim());
 
         if(tempChange !== this.cxxFlags) {
             this.cxxFlags = tempChange;
         } else if(replacement !== '') {
-            this.cxxFlags += ' ' + replacement;
+            this.cxxFlags += ' ' + replacement.trim();
         }
+
+        // this.cxxFlags = this.cxxFlags.replace("\n",'');
     }
 
     /**
@@ -206,13 +208,16 @@ export class Board{
      * @param replacement : replacement flag
      */
     replaceCFlag(original: string, replacement: string) {
-        let tempChange =  this.cFlags.replace(original, replacement);
+        let tempChange =  this.cFlags.replace(original, replacement.trim());
 
         if(tempChange !== this.cFlags) {
             this.cFlags = tempChange;
         } else if(replacement !== '') {
-            this.cFlags += ' ' + replacement;
+            this.cFlags += " " + replacement.trim();
         }
+
+        // this.cFlags = this.cFlags.replace("\n",'');
+
     }
 
     /**
@@ -227,13 +232,15 @@ export class Board{
      * @param replacement : replacement flag
      */
     replaceLinkerFlag(original: string, replacement: string) {
-        let tempChange =  this.cFlagsLinker.replace(original, replacement);
+        let tempChange = this.cFlagsLinker.replace(original, replacement.trim());
 
         if(tempChange !== this.cFlagsLinker) {
             this.cFlagsLinker = tempChange;
         } else if(replacement !== '') {
-            this.cFlagsLinker += ' ' + replacement;
+            this.cFlagsLinker += " " + replacement.trim();
         }
+
+        // this.cFlagsLinker = this.cFlagsLinker.replace("\n",'');
     }
 
     /**
@@ -241,7 +248,8 @@ export class Board{
      * @param flags flags to append
      */
     addCXXFlag(flags: string) {
-        this.cxxFlags += ' ' + flags;
+        this.cxxFlags = this.cxxFlags.trim();
+        this.cxxFlags += " " + flags.trim();
     }
 
     /**
@@ -249,7 +257,8 @@ export class Board{
      * @param flags flags to append
      */
     addCFlags(flags: string) {
-        this.cFlags += " " + flags;
+        this.cFlags = this.cFlags.trim()
+        this.cFlags += " " + flags.trim();
     }
 
     /**
@@ -257,7 +266,8 @@ export class Board{
      * @param flags flags to append
      */
     addLinkerFlags(flags: string) {
-        this.cFlagsLinker += " " + flags;
+        this.cFlagsLinker = this.cFlagsLinker.trim();
+        this.cFlagsLinker += " " + flags.trim();
     }
 
     megaBuild(localAppData:string): void{

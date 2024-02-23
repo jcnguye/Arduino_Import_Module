@@ -489,7 +489,7 @@ export function getOverrideFlags(destinationDirectory: string, board: Board) {
                             if(replacements[i].includes(":")) {
                                 let separated = replacements[i].split(":");
 
-                                console.log("original: " + separated[0] + "Replacement: " + separated[1]);
+                                console.log("original: " + separated[0] + " Replacement: " + separated[1]);
                                 
                                 if(line.includes("CXX")) {
                                     board.replaceCXXFlag(separated[0],separated[1]);
