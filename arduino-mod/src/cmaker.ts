@@ -76,8 +76,12 @@ export class Cmaker {
 		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJCOPY ' + path.join(binPath, "avr-objcopy.exe").replace(/\\/g, '/') +')\n\n';
 		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJDUMP ' + path.join(binPath, "avr-objdump.exe").replace(/\\/g, '/') +')\n\n';
 
-		let recipeString = this.board.getPlatformCCompilerRecipePattern();
-		let finalFormatRecipe = this.recipe.formatCCompilerBuild(recipeString);
+		
+		let finalFormatRecipe = this.recipe.formatCCompilerBuild(this.board.getPlatformCCompilerRecipePattern()g);
+		console.log("C plus compiler test\n")
+
+		this.recipe.formatCXXCompilerBuild(this.board.getPlatformCPlusRecipePattern());
+		console.log("End test \n")
 		
 		this.board.setCFlags(finalFormatRecipe);
 		let cFlags = this.board.getCFlags();

@@ -326,25 +326,31 @@ export class Board {
 * @param filePath path to arduino hardware file
 * @returns a string of the recipe pattern of C plus 
 */
-    getPlatformCPlusRecipePattern(filePath: string) {
-        // Split the content by lines
-        let cFlag = "";
-        let cFlagArr = [];
-        try {
-            const data = fs.readFileSync(filePath, 'utf-8');
-            const dataArr = data.split('\n');
-            for (const line of dataArr.slice(57, 58)) {
-                if (!(line === '')) {
-                    cFlagArr.push(line);
-                }
+    getPlatformCPlusRecipePattern() {
+       // Split the content by lines
+       let cFlag = "";
+       let cFlagArr = [];
+       let insideSection = false;
+       try {
+           const data = fs.readFileSync(this.pathToPlatformFile, 'utf-8');
+           const dataArr = data.split('\n');
+           for (const line of dataArr) {
+               if (line === '## Compile c++ files') {
+                   insideSection = true;
 
-            }
-            cFlag = cFlagArr.join(" ");
-        } catch (error) {
-            cFlag = "Error occurred while reading the file.";
-        }
+               } else if (line === '') {
+                   insideSection = false;
+               }
 
-        return cFlag;
+               if (!(line === '') && insideSection === true && !line.includes('#')) {
+                   cFlagArr.push(line);
+               }
+           }
+           cFlag = cFlagArr.join(" ");
+       } catch (error) {
+           cFlag = "Error occurred while reading the file.";
+       }
+       return cFlag;
     }
 
     /**
@@ -402,8 +408,39 @@ export class Board {
         }
         return "Flag not found";
     }
-    //Gets all default flags of platform.txt
-    getCompilerDefaultFlagsPlatform() {
+    //Gets all default flags of platform.txt for C recipe
+    getCompilerDefaultFlagsCRecipePlatform() {
+        // Split the content by lines
+        let cFlag = "";
+        let cFlagArr = [];
+        let insideSection = false;
+        try {
+            const data = fs.readFileSync(this.pathToPlatformFile, 'utf-8');
+            const dataArr = data.split('\n');
+            for (const line of dataArr) {
+                if (line === '# Default "compiler.path" is correct, change only if you want to override the initial value') {
+                    insideSection = true;
+
+                } else if (line === '') {
+                    insideSection = false;
+
+                }
+
+                if (!(line === '') && insideSection === true && !line.includes('#')) {
+
+                    cFlagArr.push(line);
+                }
+            }
+            cFlag = cFlagArr.join("\n");
+        } catch (error) {
+            cFlag = "Error occurred while reading the file.";
+        }
+        
+        return cFlag;
+    }
+
+    //Gets all default flags of platform.txt for C recipe
+    getCompilerDefaultFlagsCPlusRecipePlatform() {
         // Split the content by lines
         let cFlag = "";
         let cFlagArr = [];
