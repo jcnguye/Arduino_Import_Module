@@ -101,7 +101,7 @@ export class Cmaker {
 		let cmakeSrcExecutable = "add_executable(" + this.projName + '.elf ' + this.srcFileName +")\n";
 		cmakeSrcExecutable = cmakeSrcExecutable + 'set_target_properties(' + this.projName + '.elf PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output)\n';
 		
-		let cmakeDir = 'include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core" "${CMAKE_CURRENT_SOURCE_DIR}/core/eightanaloginputs" "${CMAKE_CURRENT_SOURCE_DIR}/core/standard")\n' +
+		let cmakeDir = 'include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core" "${CMAKE_CURRENT_SOURCE_DIR}/lib" "${CMAKE_CURRENT_SOURCE_DIR}/core/eightanaloginputs" "${CMAKE_CURRENT_SOURCE_DIR}/core/standard")\n' +
 		'file(GLOB CORE_SOURCES "${CORE_DIR}/*.cpp" "${CORE_DIR}/*.c")\nadd_library(core STATIC ${CORE_SOURCES})\ntarget_link_libraries(' +  this.projName + '.elf PRIVATE core)\n\n';
 		
 		// hex file generator
