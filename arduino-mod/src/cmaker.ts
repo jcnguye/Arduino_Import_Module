@@ -77,13 +77,12 @@ export class Cmaker {
 		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJDUMP ' + path.join(binPath, "avr-objdump.exe").replace(/\\/g, '/') +')\n\n';
 
 		
-		let finalFormatRecipe = this.recipe.formatCCompilerBuild(this.board.getPlatformCCompilerRecipePattern()g);
-		console.log("C plus compiler test\n")
-
-		this.recipe.formatCXXCompilerBuild(this.board.getPlatformCPlusRecipePattern());
-		console.log("End test \n")
+		let finalFormatRecipeCRecipe = this.recipe.formatCCompilerBuild(this.board.getPlatformCCompilerRecipePattern());
+		let finalFormatRecipe = this.recipe.formatCXXCompilerBuild(this.board.getPlatformCPlusRecipePattern());
+	
 		
-		this.board.setCFlags(finalFormatRecipe);
+		this.board.setCFlags(finalFormatRecipeCRecipe);
+		this.board.setCXXFlags(finalFormatRecipe);
 		let cFlags = this.board.getCFlags();
 		let cxxFlags = this.board.getCXXFlags();
 

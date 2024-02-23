@@ -138,6 +138,9 @@ export class Board {
     setCFlags(cFlags: string): void{
         this.cFlags = cFlags;
     }
+    setCXXFlags(cxxFlags: string): void{
+        this.cxxFlags = cxxFlags;
+    }
 
     nanoBuild(localAppData:string): void { 
              
@@ -161,8 +164,7 @@ export class Board {
 	        hardcodedFlags.set('includes','');
 	        hardcodedFlags.set('runtime.ide.version','10607');
             
-            //will be replaced with setters
-            this.cxxFlags = flagParser.obtainFlags('recipe.cpp.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            
             this.cFlagsLinker = flagParser.obtainFlags('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
 
             this.pathToHardware = basepath;
@@ -170,11 +172,7 @@ export class Board {
             var arduinoPackagePathPlatform = path.join(basepath, 'platform.txt');
             this.pathToBoardFile = arduinoPackagePathBoard;
             this.pathToPlatformFile = arduinoPackagePathPlatform;
-
-
-            // modify flags so they work with cmake
-            this.cxxFlags = this.cxxFlags.replace('-c ', '');
-            this.cxxFlags = this.cxxFlags.replace('-flto','-flto -fno-fat-lto-objects -ffat-lto-objects');
+       
         }
 
     }
