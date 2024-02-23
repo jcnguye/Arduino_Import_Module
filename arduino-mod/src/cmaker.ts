@@ -95,7 +95,7 @@ export class Cmaker {
 		'.elf ${CMAKE_CURRENT_SOURCE_DIR}/build/CMakeFiles/' + this.projName + '.dir/' + this.projName + '.cpp.o ${CMAKE_CURRENT_SOURCE_DIR}/build/libcore.a -L${CMAKE_CURRENT_SOURCE_DIR}/build -lm")\n\n';
 
 		// map file generator
-		cmakeHeader = cmakeHeader + 'set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Map=${CMAKE_BINARY_DIR}/output/'+ this.projName +'.map")';
+		cmakeHeader = cmakeHeader + 'set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Map=${CMAKE_BINARY_DIR}/output/'+ this.projName +'.map")\n';
 
 		//cmake  adding executable 
 		let cmakeSrcExecutable = "add_executable(" + this.projName + '.elf ' + this.srcFileName +")\n";
