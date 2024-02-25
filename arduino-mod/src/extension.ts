@@ -217,6 +217,22 @@ async function copyLibraries(libDirectory: string, coreDirectory:string, sketchF
 
 }
 
+function createSrcHeader(filePath: string, fileName: string) {
+    const fileContents = fs.readFileSync(path.join(filePath, fileName), 'utf8');
+    const functionRegex = /(?:^|\n)\s*[\w\s]+\s+([\w:]+)\s*\(.*\)\s*(?:const)?\s*(?:{|\n)/g;
+    const functionNames: string[] = [];
+    let match;
+    while ((match = functionRegex.exec(fileContents)) !== null) {
+        const functionName = match[1].trim();
+        if (!functionName.includes(':')) { // ignore class member functions
+            functionNames.push(functionName);
+        }
+    }
+    console.log(functionNames);
+    // TODO - pick up here
+
+}
+
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -240,6 +256,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
         fs.mkdirSync(srcPath);
     }
     copyFile(sketchPath, srcPath, cFile, '#include <Arduino.h>\n');
+    createSrcHeader(srcPath, cFile);
 
     //create core folder in destination directory & copy appropriate code device library source files
     const corePath = path.join(destDir, 'core');
