@@ -218,8 +218,9 @@ async function copyLibraries(libDirectory: string, coreDirectory:string, sketchF
 }
 
 function createSrcHeader(filePath: string, fileName: string) {
-    const fileContents = fs.readFileSync(path.join(filePath, fileName), 'utf8');
-    const functionRegex = /(?:^|\n)\s*[\w\s]+\s+([\w:]+)\s*\(.*\)\s*(?:const)?\s*(?:{|\n)/g;
+    const inputFile = path.join(filePath, fileName);
+    const fileContents = fs.readFileSync(inputFile, 'utf8');
+    const functionRegex = /(?:^|\n)([\w\s]+\s+[\w:]+\s*\(.*\)\s*(?:const)?)\s*(?:{|\n{)/g;
     const functionNames: string[] = [];
     let match;
     while ((match = functionRegex.exec(fileContents)) !== null) {
@@ -228,9 +229,12 @@ function createSrcHeader(filePath: string, fileName: string) {
             functionNames.push(functionName);
         }
     }
-    console.log(functionNames);
-    // TODO - pick up here
+    
+    const headerFileName = path.basename(inputFile).replace('.cpp', '.h');
+    const headerFilePath = path.join(filePath, headerFileName);
+    const headerContent = '#include <Arduino.h>\n' + functionNames.map(declaration => `${declaration};`).join('\n');
 
+    fs.writeFileSync(headerFilePath, headerContent, 'utf8');
 }
 
 
