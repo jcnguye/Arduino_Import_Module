@@ -217,10 +217,9 @@ async function copyLibraries(libDirectory: string, coreDirectory:string, sketchF
 
 }
 
-function createSrcHeader(filePath: string, fileName: string) {
-    const inputFile = path.join(filePath, fileName);
+function createSrcHeader(inputFile: string, outputDir: string) {
     const fileContents = fs.readFileSync(inputFile, 'utf8');
-    const functionRegex = /(?:^|\n)([\w\s]+\s+[\w:]+\s*\(.*\)\s*(?:const)?)\s*(?:{|\n{)/g;
+    const functionRegex = /([\w]+\s+[\w:]+\s*\(.*\)\s*(?:const)?)\s*(?:{|\n{)/g;
     const functionNames: string[] = [];
     let match;
     while ((match = functionRegex.exec(fileContents)) !== null) {
@@ -230,8 +229,8 @@ function createSrcHeader(filePath: string, fileName: string) {
         }
     }
     
-    const headerFileName = path.basename(inputFile).replace('.cpp', '.h');
-    const headerFilePath = path.join(filePath, headerFileName);
+    const headerFileName = path.basename(inputFile).replace('.ino', '.h');
+    const headerFilePath = path.join(outputDir, headerFileName);
     const headerContent = '#include <Arduino.h>\n' + functionNames.map(declaration => `${declaration};`).join('\n');
 
     fs.writeFileSync(headerFilePath, headerContent, 'utf8');
@@ -259,8 +258,8 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     if (!fs.existsSync(srcPath)) {
         fs.mkdirSync(srcPath);
     }
-    copyFile(sketchPath, srcPath, cFile, '#include <Arduino.h>\n');
-    createSrcHeader(srcPath, cFile);
+    copyFile(sketchPath, srcPath, cFile, '#include <Arduino.h>\n#include "'+ cFile.replace('.cpp', '.h') + '"\n');
+    createSrcHeader(sketchPath, srcPath);
 
     //create core folder in destination directory & copy appropriate code device library source files
     const corePath = path.join(destDir, 'core');
