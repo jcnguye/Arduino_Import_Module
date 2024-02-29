@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as parser from './parser';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as flagParser from './flagParser';
+import {flagParser} from './flagParser';
 
 export const UNO = "UNO"; //none 
 export const NANO = "Nano"; //ATmega328P or ATmega328P (Old Bootloader) 
@@ -50,6 +50,7 @@ export class Board {
     private pathToHardware: string = "";
     private pathToPlatformFile: string = "";
     private pathToBoardFile: string = "";
+    private flagParser
     
 
     //used by cmaker class
