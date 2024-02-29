@@ -154,7 +154,8 @@ function copyFolder(source: string, destination: string) {
 }
 
 // Helper for copyLibraries
-async function copyThridPartyLibraries(libList: string[], targetDirectory: string, libPath: string, isCoreLib: boolean) {
+async function copyThridPartyLibraries(libList: string[], targetDirectory: string, libPath: string, isCoreLib: boolean): Promise<boolean> {
+    let result = false;
     const allFiles = getAllFilePaths(libPath);
     
     //copying files to new directory if their directory name matches .ino file
@@ -168,6 +169,7 @@ async function copyThridPartyLibraries(libList: string[], targetDirectory: strin
 
                 //Check if utilities file exists. If so, copy it. Only applicable for core libraries 
                 if (directories.includes("src") && isCoreLib) {
+                    result = true;
                     const folderName = 'utility';
                     const utilPath = scanned.replace(directories[directories.length - 1], folderName);
                     copyFolder(utilPath, path.join(targetDirectory, folderName));
@@ -175,6 +177,7 @@ async function copyThridPartyLibraries(libList: string[], targetDirectory: strin
             }
         } 
     }
+    return result;
 }
 
 /**
@@ -187,18 +190,18 @@ async function copyThridPartyLibraries(libList: string[], targetDirectory: strin
  * @param newDirectory : Directory to copy files to
  * @param sketchFile : .ino file with "#includes <lib.h>"
  */
-async function copyLibraries(libDirectory: string, coreDirectory:string, sketchFile: string, board: Board) {
-
+async function copyLibraries(libDirectory: string, coreDirectory:string, sketchFile: string, board: Board): Promise<boolean> {
+    let result = false;
     let libraries = undefined;
     try {
         libraries = await getAllLibraries(sketchFile);
     } catch (error) {
         console.error(error);
-        return;
+        return result;
     }
 	
 	const coreLibPath = board.getPathToCoreLibs();
-    await copyThridPartyLibraries(libraries, coreDirectory, coreLibPath, true);
+    result = await copyThridPartyLibraries(libraries, coreDirectory, coreLibPath, true);
 
     const home = os.homedir();
     const docLibPath = path.join(home, "Documents", "Arduino", "libraries");
@@ -214,6 +217,8 @@ async function copyLibraries(libDirectory: string, coreDirectory:string, sketchF
             }
         }      
     }
+
+    return result;
 
 }
 
@@ -277,7 +282,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
         fs.mkdirSync(libPath);
     }
     console.log("Starting to copy libraries...");
-    copyLibraries(libPath, corePath, sketchPath, board);
+    const includeUtilitiesDir = await copyLibraries(libPath, corePath, sketchPath, board);
     console.log("Library import complete");
 
     const cmake= new Cmaker(board, debuggingOptimization);
@@ -285,6 +290,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     cmake.setProjectName(cFile.replace(".cpp", ""));
     cmake.setSourceName('src/' + cFile);
     cmake.setCompilerFlags(await parser.getAllFlags(board));
+    cmake.setIncludeUtilitiesDir(includeUtilitiesDir);
     cmake.build();
 
 
