@@ -4,7 +4,7 @@ import * as fs from 'fs';
 // const cRecipe = 'recipe.c.combine.pattern';
 
 
-export class flagParser {
+export class FlagParser {
 	private recipeName = "";
 	private boardOptionsAndName: string[];
 	private boardPath = "";
