@@ -286,6 +286,8 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     const includeUtilitiesDir = await copyLibraries(libPath, corePath, sketchPath, board);
     console.log("Library import complete");
 
+    
+
     const cmake= new Cmaker(board, debuggingOptimization);
     cmake.setProjectDirectory(destDir);
     cmake.setProjectName(cFile.replace(".cpp", ""));
@@ -293,7 +295,11 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     cmake.setCompilerFlags(await parser.getAllFlags(board));
     cmake.setIncludeUtilitiesDir(includeUtilitiesDir);
     cmake.build();
+    // cmake.setCompilerFlags()
 
+    await parser.getOverrideFlags(destDir,board);
+
+    cmake.build();
 
     //create ouptput directory
     const outputPath = path.join(destDir, 'output');
@@ -316,7 +322,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
         console.error(error);
         vscode.window.showInformationMessage("Error opening project directory. See console for more info.");
     }
-    
+
 }
 
 

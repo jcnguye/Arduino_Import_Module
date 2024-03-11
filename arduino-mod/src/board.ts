@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as parser from './parser';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as flagParser from './flagParser';
+import {FlagParser} from './FlagParser';
 
 export const UNO = "UNO"; //none 
 export const NANO = "Nano"; //ATmega328P or ATmega328P (Old Bootloader) 
@@ -50,6 +50,7 @@ export class Board {
     private pathToHardware: string = "";
     private pathToPlatformFile: string = "";
     private pathToBoardFile: string = "";
+    private flagParser: FlagParser;
     
 
     //used by cmaker class
@@ -170,9 +171,11 @@ export class Board {
 	        hardcodedFlags.set('build.arch','AVR');
 	        hardcodedFlags.set('includes','');
 	        hardcodedFlags.set('runtime.ide.version','10607');
+
+            this.flagParser = new FlagParser('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags)
             
             
-            this.cFlagsLinker = flagParser.obtainFlags('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.cFlagsLinker = this.flagParser.obtainFlags();
 
             this.pathToHardware = basepath;
             var arduinoPackagePathBoard = path.join(basepath, 'boards.txt');
@@ -200,6 +203,92 @@ export class Board {
             //this.corePaths.push(path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"variants","32pin-ddseries"));
             //this.corePaths.push(path.join(localAppData, "packages", "DxCore","tools","avr-gcc",compilerVersion,"avr","include"));
         }
+    }
+
+    /**
+     * Replaces a default CXX flag with a customized flag. If the flag to be replaced
+     * is not found, the replacement string is appended to the end of the cxx
+     * flag string (as long as it's not an empty string).
+     * 
+     * @param original : flag to be replaced
+     * @param replacement : replacement flag
+     */
+    replaceCXXFlag(original: string, replacement: string) {
+        replacement = replacement.trim();
+        let tempChange =  this.cxxFlags.replace(original, replacement);
+
+        if(tempChange !== this.cxxFlags) {
+            this.cxxFlags = tempChange;
+        } else if(replacement !== '') {
+            this.cxxFlags += ' ' + replacement;
+        }
+    }
+
+    /**
+     * Replaces a default c flag with a customized flag. If the flag to be replaced
+     * is not found, the replacement string is appended to the end of the cxx
+     * flag string (as long as it's not an empty string).
+     * 
+     * @param original : flag to be replaced
+     * @param replacement : replacement flag
+     */
+    replaceCFlag(original: string, replacement: string) {
+        replacement = replacement.trim();
+        
+        let tempChange =  this.cFlags.replace(original, replacement);
+
+        if(tempChange !== this.cFlags) {
+            this.cFlags = tempChange;
+        } else if(replacement !== '') {
+            this.cFlags += " " + replacement;
+        }
+    }
+
+    /**
+     * Replaces a default linker flag with a customized flag. If the flag to be replaced
+     * is not found, the replacement string is appended to the end of the cxx
+     * flag string (as long as it's not an empty string).
+     * 
+     * @param original : flag to be replaced
+     * @param replacement : replacement flag
+     */
+    replaceLinkerFlag(original: string, replacement: string) {
+        replacement = replacement.trim();
+
+        let tempChange = this.cFlagsLinker.replace(original, replacement);
+
+        if(tempChange !== this.cFlagsLinker) {
+            this.cFlagsLinker = tempChange;
+        } else if(replacement !== '') {
+            this.cFlagsLinker += " " + replacement;
+        }
+    }
+
+    /**
+     * Appends inputted flags to cxx flags
+     * @param flags flags to append
+     */
+    addCXXFlag(flags: string) {
+        flags = flags.trim()
+        this.cxxFlags += " " + flags;
+    }
+
+    /**
+     * Appends inputted flags to c flags
+     * @param flags flags to append
+     */
+    addCFlags(flags: string) {
+        flags = flags.trim();
+        this.cFlags += flags;
+    }
+
+    /**
+     * Appends inputted flags to linker flags
+     * @param flags flags to append
+     */
+    addLinkerFlags(flags: string) {
+        flags = flags.trim();
+        this.cFlagsLinker += flags;
     }
 
     megaBuild(localAppData:string): void{
