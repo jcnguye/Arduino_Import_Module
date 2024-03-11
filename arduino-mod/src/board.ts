@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as parser from './parser';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as flagParser from './flagParser';
+import {FlagParser} from './FlagParser';
 
 export const UNO = "UNO"; //none 
 export const NANO = "Nano"; //ATmega328P or ATmega328P (Old Bootloader) 
@@ -50,6 +50,7 @@ export class Board {
     private pathToHardware: string = "";
     private pathToPlatformFile: string = "";
     private pathToBoardFile: string = "";
+    private flagParser: FlagParser;
     
 
     //used by cmaker class
@@ -170,9 +171,11 @@ export class Board {
 	        hardcodedFlags.set('build.arch','AVR');
 	        hardcodedFlags.set('includes','');
 	        hardcodedFlags.set('runtime.ide.version','10607');
+
+            this.flagParser = new FlagParser('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags)
             
             
-            this.cFlagsLinker = flagParser.obtainFlags('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.cFlagsLinker = this.flagParser.obtainFlags();
 
             this.pathToHardware = basepath;
             var arduinoPackagePathBoard = path.join(basepath, 'boards.txt');

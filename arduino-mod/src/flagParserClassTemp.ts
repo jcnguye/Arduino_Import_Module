@@ -1,23 +1,12 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 
-// const cRecipe = 'recipe.c.combine.pattern';
+const cRecipe = 'recipe.c.combine.pattern';
 
 
-export class FlagParser {
-	private recipeName = "";
-	private boardOptionsAndName: string[];
-	private boardPath = "";
-	private platformPath = "";
-	private hardcodedFlags: Map<string,string>;
+export class flagParser {
+    constructor() {}
 
-    constructor(recipeName: string, boardOptionsAndName: string[], platformPath: string, boardPath: string, hardcodedFlags: Map<string, string>) {
-		this.recipeName = recipeName;
-		this.boardOptionsAndName = boardOptionsAndName;
-		this.platformPath = platformPath;
-		this.boardPath = boardPath;
-		this.hardcodedFlags = hardcodedFlags;
-	}
 
     /**
      * Function to obtain and return the compiler flags in platform.txt and boards.txt for a 
@@ -33,13 +22,13 @@ export class FlagParser {
      * platform.txt
      * @returns Compiler flags for the given recipe
      */
-    obtainFlags(): string {
-        let recipeTemplate = this.obtainRecipeTemplate();
-        let flagMap = this.obtainFlagMap();
+    obtainFlags(recipeName: string, boardOptionsAndName: string[], platformPath: string, boardPath: string, hardcodedFlags?: Map<string, string>): string {
+        let recipeTemplate = obtainRecipeTemplate(recipeName, platformPath);
+        let flagMap = this.obtainFlagMap(platformPath, boardPath, boardOptionsAndName);
 
         // if there are hardcoded flags, add them to the flagMap
-        if (this.hardcodedFlags) {
-            flagMap = new Map([...flagMap, ...this.hardcodedFlags]);
+        if (hardcodedFlags) {
+            flagMap = new Map([...flagMap, ...hardcodedFlags]);
         }
         const flags = this.interpretRecipe(recipeTemplate, flagMap);
         return flags;
@@ -48,12 +37,12 @@ export class FlagParser {
     /** 
      * Private helper function. Returns recipe template from platform.txt.
      */ 
-    private obtainRecipeTemplate(): string {
+    private obtainRecipeTemplate(recipeName: string, platformPath:string): string {
         let result = '';
         try {
-            const data = fs.readFileSync(this.platformPath, 'utf8');
+            const data = fs.readFileSync(platformPath, 'utf8');
             const lines = data.split('\n');
-            const fullRecipe = lines.find(line => line.startsWith(this.recipeName));
+            const fullRecipe = lines.find(line => line.startsWith(recipeName));
             if (fullRecipe) {
                 //eliminating recipe portions that include the compiler path, source & output files. (cmake has it's own syntax for those variables) 
                 const tokens = fullRecipe.split('"');
@@ -68,11 +57,11 @@ export class FlagParser {
     /**
      * Private helper function. Parses platform.txt and board.txt and returns a map of all relevant flags.
      */
-    private obtainFlagMap(): Map<string, string>{
+    private obtainFlagMap(platformPath: string, boardPath: string, boardOptionsAndName: string[]): Map<string, string>{
         const flagMap = new Map<string, string>();
         let platformData = '';
         try {
-            platformData = fs.readFileSync(this.platformPath, 'utf8');
+            platformData = fs.readFileSync(platformPath, 'utf8');
         } catch (err) {
             console.error('Error reading file:', err);
         }
@@ -91,7 +80,7 @@ export class FlagParser {
 
         let boardData = '';
         try {
-            boardData = fs.readFileSync(this.boardPath, 'utf8');
+            boardData = fs.readFileSync(boardPath, 'utf8');
         } catch (err) {
             console.error('Error reading file:', err);
         }
@@ -100,7 +89,7 @@ export class FlagParser {
             lines.forEach(line => {
                 const index = line.indexOf('=');  				
                 if (index !== -1) {
-                    this.boardOptionsAndName.forEach(opt => {
+                    boardOptionsAndName.forEach(opt => {
                         if (line.startsWith(opt)) {
                             let key = line.substring(0, index);
                             const value = line.substring(index + 1);
