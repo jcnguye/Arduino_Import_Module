@@ -224,7 +224,8 @@ async function copyLibraries(libDirectory: string, coreDirectory:string, sketchF
 
 function createSrcHeader(inputFile: string, outputDir: string) {
     const fileContents = fs.readFileSync(inputFile, 'utf8');
-    const functionRegex = /([\w]+\s+[\w:]+\s*\(.*\)\s*(?:const)?)\s*(?:{|\n{)/g;
+    const functionRegex = /([\n][\w]+\s+[\w:]+\s*\(.*\)\s*(?:const)?)\s*(?:{|\n{)/g;
+    // /([\w]+\s+[\w:]+\s*\(.*\)\s*(?:const)?)\s*(?:{|\n{)/g;
     const functionNames: string[] = [];
     let match;
     while ((match = functionRegex.exec(fileContents)) !== null) {
