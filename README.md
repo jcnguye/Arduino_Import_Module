@@ -24,3 +24,26 @@ This project requires the following modules:
 + fs
 + path
 + readline
+
+## Flag Override
+Flags can be overwritten by placing *flag_override.txt* in the destination directory of the project. The plugin will look for six potenial areas to overwrite:
++ LINKER_REPLACE
++ LINKER_ADDITIONAL
++ CXX_REPLACE
++ CXX_ADDITIONAL
++ C_REPLACE
++ C_ADDITIONAL
+
+For additional flags, enter a list of flags separated by a space, e.g.
+```
+LINKER_ADDITIONAL=-flag1 -flag2 -flag3
+```
+
+For replacement flags, the original flag should be followed by a colon (:) with the flag it will replace, with a space separating each entry, e.g.
+```
+CXX_REPLACE=-originalFlag:-replacementFlag -originalFlag2:-originalFlag2
+```
+
+Notice the use of dashes(-) in both lines.
+
+

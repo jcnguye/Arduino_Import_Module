@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { Board } from './board';
+import { Recipe } from './recipeBuilder';
 
 export class Cmaker {
 	public projDir: string;
@@ -10,7 +11,8 @@ export class Cmaker {
 	public compilerflags: string;
 	private board: Board;
 	private debuggingOptimization: boolean; 
-
+	private recipe: Recipe;
+	private includeUtilitiesDir: boolean = false; 
 	//CONSTANTS
 	private debugOptimizeFlag: string = "-Og -g2";
 	private codeSizeOptimizeFlag: string = "-Os";
@@ -22,6 +24,7 @@ export class Cmaker {
 		this.compilerflags = "";
 		this.board = board; 
 		this.debuggingOptimization = debuggingOptimization;
+		this.recipe = new Recipe(board);
 	}
 	public setProjectDirectory(projectDirectory:string){
 		this.projDir = projectDirectory;
@@ -34,6 +37,15 @@ export class Cmaker {
 	}
 	public setCompilerFlags(compileFlag:string){
 		this.compilerflags = compileFlag;
+
+		let finalFormatRecipeCRecipe = this.recipe.formatCCompilerBuild(this.board.getPlatformCCompilerRecipePattern());
+		let finalFormatRecipe = this.recipe.formatCXXCompilerBuild(this.board.getPlatformCPlusRecipePattern());
+	
+		this.board.setCFlags(finalFormatRecipeCRecipe);
+		this.board.setCXXFlags(finalFormatRecipe);
+	}
+	public setIncludeUtilitiesDir(includeUtilitiesDir:boolean){
+		this.includeUtilitiesDir = includeUtilitiesDir;
 	}
 	
 	public resetCmake(): void {
@@ -68,14 +80,16 @@ export class Cmaker {
 
 		cmakeHeader = cmakeHeader + 'project(' + this.projName + ' C CXX)\n\n';
 
-		cmakeHeader = cmakeHeader + 'set(CORE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/core)\n\n';
+		cmakeHeader = cmakeHeader + 'set(CORE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/core)\n';
+		cmakeHeader = cmakeHeader + 'set(LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)\n\n';
 		
 		cmakeHeader = cmakeHeader + 'set(CMAKE_AR ' + path.join(binPath, "avr-gcc-ar.exe").replace(/\\/g, '/') +')\n';
 		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJCOPY ' + path.join(binPath, "avr-objcopy.exe").replace(/\\/g, '/') +')\n\n';
 		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJDUMP ' + path.join(binPath, "avr-objdump.exe").replace(/\\/g, '/') +')\n\n';
 
-		let cxxFlags = this.board.getCXXFlags();
 		let cFlags = this.board.getCFlags();
+		let cxxFlags = this.board.getCXXFlags();
+
 		if(this.debuggingOptimization) {
 			cxxFlags = cxxFlags.replace(this.codeSizeOptimizeFlag, this.debugOptimizeFlag);
 			cFlags = cFlags.replace(this.codeSizeOptimizeFlag, this.debugOptimizeFlag);
@@ -87,12 +101,25 @@ export class Cmaker {
 		cmakeHeader = cmakeHeader + 'set(CMAKE_C_FLAGS_LINKER "${CMAKE_C_FLAGS_LINKER} ' + this.board.getCFlagsLinker() +  '${CMAKE_CURRENT_SOURCE_DIR}/build/CMakeFiles/' + this.projName + '.dir/' + this.projName + 
 		'.elf ${CMAKE_CURRENT_SOURCE_DIR}/build/CMakeFiles/' + this.projName + '.dir/' + this.projName + '.cpp.o ${CMAKE_CURRENT_SOURCE_DIR}/build/libcore.a -L${CMAKE_CURRENT_SOURCE_DIR}/build -lm")\n\n';
 
+		// map file generator
+		cmakeHeader = cmakeHeader + 'set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Map=${CMAKE_BINARY_DIR}/output/'+ this.projName +'.map")\n';
+
 		//cmake  adding executable 
 		let cmakeSrcExecutable = "add_executable(" + this.projName + '.elf ' + this.srcFileName +")\n";
 		cmakeSrcExecutable = cmakeSrcExecutable + 'set_target_properties(' + this.projName + '.elf PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output)\n';
 		
-		let cmakeDir = 'include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core" "${CMAKE_CURRENT_SOURCE_DIR}/core/eightanaloginputs" "${CMAKE_CURRENT_SOURCE_DIR}/core/standard")\n' +
-		'file(GLOB CORE_SOURCES "${CORE_DIR}/*.cpp" "${CORE_DIR}/*.c")\nadd_library(core STATIC ${CORE_SOURCES})\ntarget_link_libraries(' +  this.projName + '.elf PRIVATE core)\n\n';
+		let cmakeDir = 'include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core" "${CMAKE_CURRENT_SOURCE_DIR}/lib" "${CMAKE_CURRENT_SOURCE_DIR}/core/eightanaloginputs" "${CMAKE_CURRENT_SOURCE_DIR}/core/standard")\n';
+		cmakeDir = cmakeDir + 'file(GLOB CORE_SOURCES "${CORE_DIR}/*.cpp" "${CORE_DIR}/*.c")\n';
+		cmakeDir = cmakeDir + 'file(GLOB LIB_SOURCES "${LIB_DIR}/*.cpp" "${LIB_DIR}/*.c")\n';
+
+		if (this.includeUtilitiesDir) {
+			cmakeDir = cmakeDir + 'set(UTIL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/core/utility)\n';
+			cmakeDir = cmakeDir + 'file(GLOB UTIL_SOURCES "${UTIL_DIR}/*.cpp" "${UTIL_DIR}/*.c")\n';
+			cmakeDir = cmakeDir + 'add_library(core STATIC ${CORE_SOURCES} ${LIB_SOURCES} ${UTIL_SOURCES})\n'; 
+		} else {
+			cmakeDir = cmakeDir + 'add_library(core STATIC ${CORE_SOURCES} ${LIB_SOURCES})\n'; 
+		}	
+		cmakeDir = cmakeDir + 'target_link_libraries(' +  this.projName + '.elf PRIVATE core)\n\n';
 		
 		// hex file generator
 		let hex = 'set(HEX_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/output/' + this.projName + '.hex")\n';

@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Board } from './board';
 
+
 /**
  * Parses the platform.txt file and pulls out all the compiler flags
  * @param filePath - directory to platform.txt file
@@ -450,4 +451,68 @@ export function getNanoVersion(): string {
 	    return prevStat.mtimeMs > currentStat.mtimeMs ? prev : current;
 	});
 	return mostRecentDirectory.name;
+}
+
+export function getOverrideFlags(destinationDirectory: string, board: Board) {
+    let filepath = path.join(destinationDirectory, "flag_override.txt");
+
+    if(fs.existsSync(filepath)) {
+        let platformData = '';
+        try {
+            platformData = fs.readFileSync(filepath, 'utf8');
+        } catch (err) {
+            console.error('Error reading file:', err);
+        }
+
+        console.log("Parsing override flags");
+
+        if (platformData) {
+            const lines = platformData.split('\n');
+            lines.forEach(line => {
+                const splitIndex = line.indexOf('=');
+                let flagsRead = '';
+
+                if(splitIndex == -1) {
+                    console.log("No arguments");
+                }
+
+                flagsRead = line.slice(splitIndex+1, line.length);
+
+                if(flagsRead === '' || flagsRead === ' ') {
+                    console.log('No flag found in flag_override.txt');
+                } else {
+                    if(line.includes("REPLACE")) {
+                        let replacements = flagsRead.split(" ");
+                        for(let i = 0; i < replacements.length; i++) {
+                            if(replacements[i].includes(":")) {
+                                let separated = replacements[i].split(":");
+
+                                // console.log("original: " + separated[0] + " Replacement: " + separated[1]);
+                                
+                                if(line.includes("CXX")) {
+                                    board.replaceCXXFlag(separated[0],separated[1]);
+                                } else if(line.includes("LINKER")) {
+                                    board.replaceLinkerFlag(separated[0],separated[1]);
+                                } else {
+                                    board.replaceCFlag(separated[0],separated[1]);
+                                }
+                            }                            
+                        }
+
+                    } else if(line.includes("ADDITIONAL")) {
+
+                        if(line.includes("CXX")) 
+                            board.addCXXFlag(flagsRead);
+                        else if(line.includes("LINKER")) 
+                            board.addLinkerFlags(flagsRead);
+                        else   
+                            board.addCFlags(flagsRead);
+                    }
+
+                }
+            });
+        }
+    } else  {
+
+    }
 }
