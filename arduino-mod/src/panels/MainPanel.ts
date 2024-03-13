@@ -191,9 +191,25 @@ export class MainPanel {
       const options = boardsInfo.getBoardOptions(this.selectedBoard);
 
       if (options.length > 0 ) {
-        result = `<vscode-radio-group id="boardOpt" orientation="vertical"><label slot="label">Select Board Option</label>`;
+        result = `<vscode-radio-group id="boardOpt" orientation="vertical"><label slot="label">Select Chip Category</label>`;
         for (const opt of options) {
           result = result + `<vscode-radio value="${opt}">${opt}</vscode-radio>`;
+        }
+        result = result + `</vscode-radio-group>`;
+      }
+    }
+    return result;
+  }
+
+  private getChipOptionsContent(){
+    let result = '';
+    if (this.selectedOption.length > 0) {
+      const chips = boardsInfo.getDxCoreChipOptions(this.selectedOption);
+
+      if (chips.length > 0 ) {
+        result = `<vscode-radio-group id="chips" orientation="vertical"><label slot="label">Chips</label>`;
+        for (const chip of chips) {
+          result = result + `<vscode-radio value="${chip}">${chip}</vscode-radio>`;
         }
         result = result + `</vscode-radio-group>`;
       }
