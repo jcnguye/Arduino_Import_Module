@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as parser from './parser';
 import * as path from 'path';
 import * as fs from 'fs';
-import {FlagParser} from './FlagParser';
+import {FlagParser} from './flagParser';
 
 export const UNO = "UNO"; //none 
 export const NANO = "Nano"; //ATmega328P or ATmega328P (Old Bootloader) 
@@ -10,31 +10,13 @@ export const MEGA = "Mega or Mega2560"; //ATMega2560; ATMega1280
 export const PRO = "Pro or Pro Mini"; //ATmega328P (5V, 16 MHz); ATmega328P (3.3V, 8 MHz) 
 export const DXCORE = "DxCore";
 
-const unoOptions: string [] = [];
-const nanoOptions: string [] = ["ATmega328P or ATmega328P (Old Bootloader)"];
-const megaOptions: string [] = ["ATMega2560", "ATMega1280"];
-const proOptions: string [] = ["ATmega328P (5V, 16 MHz)", "ATmega328P (3.3V, 8 MHz)"];
-const dxcoreOptions: string [] = [];
-
 export function getAllBoards(): string[] {
-    const result = [UNO, NANO, MEGA, PRO];
+    const result = [NANO, DXCORE];
     return result;
 }
+
 export function getBoard(boardName: string): Board {
     return new Board(boardName);
-}
-export function getBoardOptions(boardName: string): string[] {
-    if (boardName === UNO ) {
-        return unoOptions;
-    } else if (boardName === NANO ) {
-        return nanoOptions;
-    } else if (boardName === MEGA ) {
-        return megaOptions;
-    } else if (boardName === PRO ) {
-        return proOptions;
-    } else {
-        return dxcoreOptions;
-    }
 }
 
 /**
@@ -176,7 +158,7 @@ export class Board {
 	        hardcodedFlags.set('includes','');
 	        hardcodedFlags.set('runtime.ide.version','10607');
 
-            this.flagParser = new FlagParser('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags)
+            this.flagParser = new FlagParser('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
             
             
             this.cFlagsLinker = this.flagParser.obtainFlags();
@@ -273,7 +255,7 @@ export class Board {
      * @param flags flags to append
      */
     addCXXFlag(flags: string) {
-        flags = flags.trim()
+        flags = flags.trim();
         this.cxxFlags += " " + flags;
     }
 
@@ -493,8 +475,8 @@ export class Board {
 * @returns the value of the targeted flag
 */
     getTargetFlagHelper(targetFlag: String, flagsString: String){
-        let FlagsInfoArr = flagsString.split(' ');
-        for (const target of FlagsInfoArr) {
+        let flagsInfoArr = flagsString.split(' ');
+        for (const target of flagsInfoArr) {
 
             let variableFlagArr = target.split("=");
 
