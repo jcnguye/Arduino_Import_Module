@@ -51,6 +51,7 @@ export class Board {
     private pathToPlatformFile: string = "";
     private pathToBoardFile: string = "";
     private flagParser: FlagParser;
+    private series = "";
     
 
     //used by cmaker class
@@ -117,6 +118,9 @@ export class Board {
     }
     setPathToHardware(hardwarePath: string) {
         this.pathToHardware = hardwarePath;
+    }
+    setSeries(series:string) {
+        this.series = series;
     }
 
 
