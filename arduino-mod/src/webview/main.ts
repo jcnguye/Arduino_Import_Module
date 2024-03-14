@@ -25,9 +25,6 @@ function main() {
   const boardDropdown = document.getElementById("board") as Dropdown;
   boardDropdown?.addEventListener("change", handleBoardChange);
 
-  const boardOptGroup = document.getElementById("boardOpt") as RadioGroup;
-  boardOptGroup?.addEventListener("change", handleBoardOptChange);
-
   const optimizeOptGroup = document.getElementById("optimizeOpt") as RadioGroup;
   optimizeOptGroup?.addEventListener("change", handleOptimizeOptChange);
 
@@ -37,6 +34,15 @@ function main() {
   const directoryButton = document.getElementById("destDir") as Button;
   directoryButton?.addEventListener("click", handleDirectoryClick);
 
+  //DxCore Options
+  const dxChipDropdown = document.getElementById("dxChip") as Dropdown;
+  dxChipDropdown?.addEventListener("change", handleDxChipChange);
+
+  const dxPrintFDropdown = document.getElementById("dxPrintF") as Dropdown;
+  dxPrintFDropdown?.addEventListener("change", handleDxPrintFChange);
+
+  const dxMvioDropdown = document.getElementById("dxMvio") as Dropdown;
+  dxMvioDropdown?.addEventListener("change", handleDxMvioChange);
 }
 
 function handleSketchClick(){
@@ -66,14 +72,6 @@ function handleBoardChange(){
   });
 }
 
-function handleBoardOptChange(){
-  const boardOptGroup = document.getElementById("boardOpt") as RadioGroup;
-  vscodeApi.postMessage({
-    command: "boardOpt",
-    text: boardOptGroup.value, 
-  });
-}
-
 function handleOptimizeOptChange(){
   const optimizeOptGroup = document.getElementById("optimizeOpt") as RadioGroup;
   vscodeApi.postMessage({
@@ -82,5 +80,29 @@ function handleOptimizeOptChange(){
   });
 }
 
+//DxCore Options
+function handleDxChipChange(){
+  const dxChipDropdown = document.getElementById("dxChip") as Dropdown;
+  vscodeApi.postMessage({
+    command: "dxChip",
+    text: dxChipDropdown.value, 
+  });
+}
+
+function handleDxPrintFChange(){
+  const dxPrintFDropdown = document.getElementById("dxPrintF") as Dropdown;
+  vscodeApi.postMessage({
+    command: "dxPrintF",
+    text: dxPrintFDropdown.value, 
+  });
+}
+
+function handleDxMvioChange(){
+  const dxMvioDropdown = document.getElementById("dxMvio") as Dropdown;
+  vscodeApi.postMessage({
+    command: "dxMvio",
+    text: dxMvioDropdown.value, 
+  });
+}
 
 

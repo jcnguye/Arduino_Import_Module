@@ -10,49 +10,13 @@ export const MEGA = "Mega or Mega2560"; //ATMega2560; ATMega1280
 export const PRO = "Pro or Pro Mini"; //ATmega328P (5V, 16 MHz); ATmega328P (3.3V, 8 MHz) 
 export const DXCORE = "DxCore";
 
-const unoOptions: string [] = [];
-const nanoOptions: string [] = ["ATmega328P or ATmega328P (Old Bootloader)"];
-const megaOptions: string [] = ["ATMega2560", "ATMega1280"];
-const proOptions: string [] = ["ATmega328P (5V, 16 MHz)", "ATmega328P (3.3V, 8 MHz)"];
-const dxcoreOptions: string [] = ["Board AVR DA Series (no bootloader)", "Board AVR DB Series (no bootloader)", "Board AVR DD Series (no bootloader)", "Board AVR EA Series (no bootloader)"];
-
 export function getAllBoards(): string[] {
     const result = [NANO, DXCORE];
     return result;
 }
+
 export function getBoard(boardName: string): Board {
     return new Board(boardName);
-}
-export function getBoardOptions(boardName: string): string[] {
-    if (boardName === UNO ) {
-        return unoOptions;
-    } else if (boardName === NANO ) {
-        return nanoOptions;
-    } else if (boardName === MEGA ) {
-        return megaOptions;
-    } else if (boardName === PRO ) {
-        return proOptions;
-    } else {
-        return dxcoreOptions;
-    }
-}
-
-export function getDxCoreChipOptions(category: string): string[] {
-    let result: string[] = [];
-    if (category === "Board AVR DA Series (no bootloader)") {
-        result = ['AVR128DA28', 'AVR128DA32', 'AVR128DA48', 'AVR128DA64', 'AVR64DA28', 'AVR64DA32', 
-        'AVR64DA48', 'AVR64DA64', 'AVR32DA28', 'AVR32DA32', 'AVR32DA48'];
-    } else if (category === "Board AVR DB Series (no bootloader)") {
-        result = ['AVR128DB28', 'AVR128DB32', 'AVR128DB48', 'AVR128DB64','AVR64DB28', 'AVR64DB32', 
-        'AVR64DB48', 'AVR64DB64', 'AVR32DB28', 'AVR32DB32', 'AVR32DB48'];
-    } else if (category === "Board AVR DD Series (no bootloader)") {
-        result = ['AVR64DD14', 'AVR64DD20', 'AVR64DD28', 'AVR64DD32','AVR32DD14', 'AVR32DD20', 
-        'AVR32DD28', 'AVR32DD32','AVR16DD14', 'AVR16DD20', 'AVR16DD28', 'AVR16DD32'];
-    } else if (category === "Board AVR EA Series (no bootloader)") {
-        result = ['AVR64EA28', 'AVR64EA32', 'AVR64EA48', 'AVR32EA28', 'AVR32EA32', 'AVR32EA48', 
-        'AVR16EA28', 'AVR16EA32', 'AVR16EA48'];
-    }
-    return result;
 }
 
 /**
