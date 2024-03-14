@@ -14,7 +14,11 @@ export class MainPanel {
   private sketchFile: string = "";
   private destinationDirectory: string = "";
   private selectedBoard: string = "";
-  private selectedOption: string = "";
+
+  //DxCore options
+  private dxChip: string = "";
+  private dxPrintF: string = "default";
+  private dxMvio: string = "";
 
   private readyForImport: boolean = false;
   private debuggingOptimization = false; 
@@ -115,7 +119,7 @@ export class MainPanel {
     const fileContent = this.getFileContent();
     const dirContent = this.getDirContent();
     const boardContent = this.getBoardContent();
-    const boardOptionsContent = this.getBoardOptionsContent();
+    const dxCoreOptionsContent = this.getDxCoreOptionsContent();
     const importContent = this.getImportContent();
 
     // Tip: Install the es6-string-html VS Code extension to enable code highlighting below
@@ -123,6 +127,31 @@ export class MainPanel {
     return /*html*/ `
       <!DOCTYPE html>
       <html lang="en">
+      <style>
+      .container {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr); /* Three equal-width columns */
+          gap: 20px; /* Spacing between columns */
+      }
+      .column {
+          padding: 20px;
+          border: 1px solid #ccc;
+          border-radius: 5px;
+      }
+      .bottom-right {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        padding: 30px;
+      }
+      .radio-group {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+    }
+      .radio-group label {
+        margin-bottom: 5px;
+      }
+      </style>
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -131,32 +160,39 @@ export class MainPanel {
         </head>
         <body>
           <h1>Arduino Import Module</h1>
-          <section class="component-row">
-            <vscode-button id="sketchFile">Select Arduino Sketch</vscode-button>
-            ${fileContent}   
-          </section>
-          <br>
-          <section>
-            <vscode-button id="destDir">Select Destination Directory</vscode-button>
-            ${dirContent}
-          </section>
-          <p>Select Arduino Board</p> 
-          <vscode-dropdown id="board">
-            ${boardContent}
-          </vscode-dropdown>
-          <br>
-          <br>
-          ${boardOptionsContent}
-          <vscode-radio-group id="optimizeOpt" orientation="vertical"><label slot="label">Select Optimization Option</label>
-            <vscode-radio default value="codeSizeOptimization">Optimize for code size (default)</vscode-radio>
-            <vscode-radio value="debuggingOptimization">Optimize for debugging</vscode-radio>
-          </vscode-radio-group>
-          <br>
-          ${importContent}
+          <div class="container">
+            <div class="column">
+              <section class="component-row">
+                <vscode-button id="sketchFile">Select Arduino Sketch</vscode-button>
+                ${fileContent}   
+              </section>
+              <br>
+              <section>
+                <vscode-button id="destDir">Select Destination Directory</vscode-button>
+                ${dirContent}
+              </section>
+              <p>Select Arduino Board</p> 
+              <vscode-dropdown id="board">
+                ${boardContent}
+              </vscode-dropdown>
+              <br>
+              <br>
+          
+              <vscode-radio-group id="optimizeOpt" orientation="vertical"><label slot="label">Select Optimization Option</label>
+                <vscode-radio default value="codeSizeOptimization">Optimize for code size (default)</vscode-radio>
+                <vscode-radio value="debuggingOptimization">Optimize for debugging</vscode-radio>
+              </vscode-radio-group>
+              <br>
+            </div>
+            ${dxCoreOptionsContent}
+          </div>
+          <div class="bottom-right">
+            ${importContent}
+          </div>
 					<script type="module" nonce="${nonce}" src="${webviewUri}"></script>
         </body>
       </html>
-    `;
+      `;
   }
 
   private getFileContent(){	
@@ -185,18 +221,53 @@ export class MainPanel {
     return result;
   }
 
-  private getBoardOptionsContent(){
+  private getDxCoreOptionsContent(){
     let result = '';
-    if (this.selectedBoard.length > 0) {
-      const options = boardsInfo.getBoardOptions(this.selectedBoard);
-
-      if (options.length > 0 ) {
-        result = `<vscode-radio-group id="boardOpt" orientation="vertical"><label slot="label">Select Board Option</label>`;
-        for (const opt of options) {
-          result = result + `<vscode-radio value="${opt}">${opt}</vscode-radio>`;
+    const mvio = this.getDxMvioContent();
+    if (this.selectedBoard === boardsInfo.DXCORE) {
+      const chipArray: string[] = ['AVR128DA28', 'AVR128DA32', 'AVR128DA48', 'AVR128DA64', 'AVR64DA28', 'AVR64DA32', 
+        'AVR64DA48', 'AVR64DA64', 'AVR32DA28', 'AVR32DA32', 'AVR32DA48', 'AVR128DB28', 'AVR128DB32', 
+        'AVR128DB48', 'AVR128DB64','AVR64DB28', 'AVR64DB32', 'AVR64DB48', 'AVR64DB64', 'AVR32DB28', 
+        'AVR32DB32', 'AVR32DB48', 'AVR64DD14', 'AVR64DD20', 'AVR64DD28', 'AVR64DD32','AVR32DD14', 'AVR32DD20', 
+        'AVR32DD28', 'AVR32DD32','AVR16DD14', 'AVR16DD20', 'AVR16DD28', 'AVR16DD32', 'AVR64EA28', 'AVR64EA32', 
+        'AVR64EA48', 'AVR32EA28', 'AVR32EA32', 'AVR32EA48', 
+        'AVR16EA28', 'AVR16EA32', 'AVR16EA48'];
+      let chipOptions = `<vscode-option value="${this.dxChip}">${this.dxChip}</vscode-option>`;
+      for (const chip of chipArray) {
+        if (chip !== this.dxChip){
+          chipOptions = chipOptions + `<vscode-option value="${chip}">${chip}</vscode-option>`;
         }
-        result = result + `</vscode-radio-group>`;
       }
+      result = ` 
+      <div class="column">
+        <p>Select Chip</p> 
+        <vscode-dropdown id="dxChip">
+          ${chipOptions}
+        </vscode-dropdown>
+        <p>Select printf() option</p> 
+        <vscode-dropdown id="dxPrintF">
+          <vscode-option value="default">printf() - default</vscode-option>
+          <vscode-option value="full">printf() - full</vscode-option>
+          <vscode-option value="minimal">printf() - minimal</vscode-option>
+        </vscode-dropdown>
+        ${mvio}
+      </div>
+      `; 
+    }
+    return result;
+  }
+
+  private getDxMvioContent() {
+    let result = '';
+    if (this.dxChip.includes("DB" || this.dxChip.includes("DD"))){
+      result = `
+      <p>MVIO</p> 
+      <vscode-dropdown id="dxMvio">
+        <vscode-option value=""></vscode-option>
+        <vscode-option value="Enabled">Enabled</vscode-option>
+        <vscode-option value="Disabled">Disabled</vscode-option>
+      </vscode-dropdown>
+      `; 
     }
     return result;
   }
@@ -225,9 +296,6 @@ export class MainPanel {
             this.selectedBoard = text;
             this.allSelectionsMade();
             this.refresh();
-            return;
-          case "boardOpt":
-            this.selectedOption = text;
             return;
           case "optimizeOpt":
             if (text === "debuggingOptimization") {
@@ -273,9 +341,24 @@ export class MainPanel {
               this.refresh();
             }
             return;
+          case "dxChip":
+            this.dxChip = text;
+            this.allSelectionsMade();
+            this.refresh();
+            return;
+          case "dxPrintF":
+            this.dxPrintF = text;
+            return;
+          case "dxMvio":
+            this.dxMvio = text;
+            return;
           case "import":
             const board = new Board(this.selectedBoard);
-            ex.startImport(this.sketchFile, this.destinationDirectory, board, this.debuggingOptimization);
+            if (this.selectedBoard === boardsInfo.DXCORE) {
+              ex.startImport(this.sketchFile, this.destinationDirectory, board, this.debuggingOptimization, this.dxChip, this.dxPrintF, this.dxMvio);
+            } else {
+              ex.startImport(this.sketchFile, this.destinationDirectory, board, this.debuggingOptimization);
+            }
         }
       },
       undefined,
@@ -285,7 +368,13 @@ export class MainPanel {
 
   private allSelectionsMade() {
     if (this.sketchFile.length > 0 && this.destinationDirectory.length > 0 && this.selectedBoard.length > 0) {
-      this.readyForImport = true;
+      if (this.selectedBoard === boardsInfo.DXCORE) {
+        if (this.dxChip.length > 0) {
+          this.readyForImport = true;
+        }
+      } else {
+        this.readyForImport = true;
+      }
       this.refresh();
     }
   }
