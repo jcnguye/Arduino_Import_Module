@@ -32,7 +32,9 @@ export function getBoardOptions(boardName: string): string[] {
         return megaOptions;
     } else if (boardName === PRO ) {
         return proOptions;
-    } else {
+    } else if (boardName === DXCORE ) {
+        return dxcoreOptions;
+    }else {
         return dxcoreOptions;
     }
 }
@@ -203,8 +205,29 @@ export class Board {
             //this.corePaths.push(path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"variants","32pin-ddseries"));
             //this.corePaths.push(path.join(localAppData, "packages", "DxCore","tools","avr-gcc",compilerVersion,"avr","include"));
             const basepath = path.join(localAppData, "packages", "DxCore","hardware","megaavr",version);
-            const pathToPlatformFile = path.join(basepath,'platform.txt');
-            console.log('Platform.txt file path in dxcore\n'+ pathToPlatformFile);
+            const platformPath = path.join(basepath,'platform.txt');
+            const boardPath = path.join(basepath,'boards.txt');
+            console.log('Platform.txt file path in dxcore\n'+ platformPath);
+            console.log('Board.txt file path in dxcore\n'+ boardPath);
+            
+            this.pathToBoardFile = boardPath;
+            this.pathToPlatformFile = platformPath;
+            //avrdd.menu.chip.avr64dd32.build.mcu
+            const boardOptionsAndName: string[] = ['avrdd.menu.chip.avr64dd32.', 'avrdd.'];
+            const hardcodedFlags = new Map<string, string>();
+	        // hardcodedFlags.set('build.arch','AVR');
+	        hardcodedFlags.set('includes','');
+	        // hardcodedFlags.set('runtime.ide.version','10607');
+            this.flagParser = new FlagParser('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            //Alot of the c and cxx flags are coming from the arduino ide, not withing either board or plat files
+            //need to be hardcoded for now 
+            let Cflag = new FlagParser('recipe.c.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            let CXXflag = new FlagParser('recipe.cpp.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+          
+            console.log('dxcore Link flag parser test\n '+this.flagParser.obtainFlags());
+            console.log('CXXflag test\n '+ CXXflag.obtainFlags);
+            console.log('Cflag test\n '+ Cflag.obtainFlags);
+
         }
     }
 
