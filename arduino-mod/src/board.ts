@@ -17,7 +17,7 @@ const proOptions: string [] = ["ATmega328P (5V, 16 MHz)", "ATmega328P (3.3V, 8 M
 const dxcoreOptions: string [] = [];
 
 export function getAllBoards(): string[] {
-    const result = [UNO, NANO, MEGA, PRO];
+    const result = [UNO, NANO, MEGA, PRO,DXCORE];
     return result;
 }
 export function getBoard(boardName: string): Board {
@@ -50,7 +50,7 @@ export class Board {
     private pathToHardware: string = "";
     private pathToPlatformFile: string = "";
     private pathToBoardFile: string = "";
-    private flagParser: FlagParser;
+    private flagParser: FlagParser | undefined;
     
 
     //used by cmaker class
@@ -202,6 +202,9 @@ export class Board {
             //TODO - determine which variants are needed & correct path
             //this.corePaths.push(path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"variants","32pin-ddseries"));
             //this.corePaths.push(path.join(localAppData, "packages", "DxCore","tools","avr-gcc",compilerVersion,"avr","include"));
+            const basepath = path.join(localAppData, "packages", "DxCore","hardware","megaavr",version);
+            const pathToPlatformFile = path.join(basepath,'platform.txt');
+            console.log('Platform.txt file path in dxcore\n'+ pathToPlatformFile);
         }
     }
 
