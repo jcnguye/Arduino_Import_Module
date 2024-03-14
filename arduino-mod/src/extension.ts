@@ -253,8 +253,17 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(arduinoImportCommand);
 }
 
-
-export async function startImport(sketchPath: string, destDir: string, board: Board, debuggingOptimization: boolean) {
+/**
+ * 
+ * @param sketchPath 
+ * @param destDir 
+ * @param board 
+ * @param debuggingOptimization 
+ * @param dxChip The user-selected chip for the DxCore board (ex: "AVR64DD14")
+ * @param dxPrintOption Possible values are "default", "full", "minimal", ""
+ * @param dxMvio Possible values are "Enabled", "Disabled", ""
+ */
+export async function startImport(sketchPath: string, destDir: string, board: Board, debuggingOptimization: boolean, dxChip?: string, dxPrintOption?: string, dxMvio?: string) {
     vscode.window.showInformationMessage("Starting import.");
     //rename .ino as .cpp and copy it to the destination directory
     const file = path.basename(sketchPath);
