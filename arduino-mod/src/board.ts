@@ -210,17 +210,12 @@ export class Board {
 
 
             this.flagParser = new FlagParser('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
-            //Need to be fixed reading the c and c++ flags in progress
             let Cflag = new FlagParser('recipe.c.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
             let CXXflag = new FlagParser('recipe.cpp.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
           
-            console.log('dxcore Link flag parser test\n '+this.flagParser.obtainFlags());
             this.cFlagsLinker = this.flagParser.obtainFlags();
-            
-            console.log('CXXflag test\n '+ CXXflag.obtainFlags);
-            console.log('Cflag test\n '+ Cflag.obtainFlags);
 
-            this.cxxFlags = CXXflag.obtainFlags() + ' -DMVIO_ENABLED';  //part of the MVIO menu added not containing in platform
+            this.cxxFlags = CXXflag.obtainFlags() + ' -DMVIO_ENABLED';  //part of the MVIO menu added not containing in platform 
             this.cFlags = Cflag.obtainFlags() + ' -DMVIO_ENABLED';
 
         }
