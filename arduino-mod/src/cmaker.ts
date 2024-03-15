@@ -36,13 +36,19 @@ export class Cmaker {
 		this.srcFileName = sourceFileName;
 	}
 	public setCompilerFlags(compileFlag:string){
-		this.compilerflags = compileFlag;
-
-		let finalFormatRecipeCRecipe = this.recipe.formatCCompilerBuild(this.board.getPlatformCCompilerRecipePattern());
-		let finalFormatRecipe = this.recipe.formatCXXCompilerBuild(this.board.getPlatformCPlusRecipePattern());
-	
-		this.board.setCFlags(finalFormatRecipeCRecipe);
-		this.board.setCXXFlags(finalFormatRecipe);
+		//picks between nano or dxcore to see which flags are set
+		if(this.board.getBoardName() === 'Nano'){
+			this.compilerflags = compileFlag;
+			let finalFormatRecipeCRecipe = this.recipe.formatCCompilerBuild(this.board.getPlatformCCompilerRecipePattern());
+			let finalFormatRecipe = this.recipe.formatCXXCompilerBuild(this.board.getPlatformCPlusRecipePattern());
+			this.board.setCFlags(finalFormatRecipeCRecipe);
+			this.board.setCXXFlags(finalFormatRecipe);
+		}else if(this.board.getBoardName() === 'DxCore'){
+			this.compilerflags = compileFlag;
+			this.board.setCFlags(this.recipe.getDXCORECFlag());
+			this.board.setCXXFlags(this.recipe.getDXCORECppFlag());
+		}
+		
 	}
 	public setIncludeUtilitiesDir(includeUtilitiesDir:boolean){
 		this.includeUtilitiesDir = includeUtilitiesDir;
