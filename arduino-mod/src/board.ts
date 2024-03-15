@@ -222,8 +222,7 @@ export class Board {
 
             this.cxxFlags = CXXflag.obtainFlags() ;  //part of the MVIO menu added not containing in platform 
             this.cFlags = Cflag.obtainFlags() ;
-            console.log("CXX DXCORE\N" + this.cxxFlags);
-            console.log("C DXCORE\N" + this.cFlags);
+        
 
         }
     }
