@@ -44,9 +44,9 @@ export class Cmaker {
 			this.board.setCFlags(finalFormatRecipeCRecipe);
 			this.board.setCXXFlags(finalFormatRecipe);
 		}else if(this.board.getBoardName() === 'DxCore'){
-			this.compilerflags = compileFlag;
-			this.board.setCFlags(this.recipe.getDXCORECFlag());
-			this.board.setCXXFlags(this.recipe.getDXCORECppFlag());
+			// this.compilerflags = compileFlag;
+			// this.board.setCFlags(this.recipe.getDXCORECFlag());
+			// this.board.setCXXFlags(this.recipe.getDXCORECppFlag());
 		}
 		
 	}
