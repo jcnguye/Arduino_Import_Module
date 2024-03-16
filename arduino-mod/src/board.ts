@@ -239,7 +239,7 @@ export class Board {
             hardcodedFlags.set('build.flmapopts','-DLOCK_FLMAP -DFLMAPSECTION1');
             hardcodedFlags.set('bootloader.appspm','');
             hardcodedFlags.set('DOWNLOADED_FILE#"v"',version);
-           
+            hardcodedFlags.set('version',version);
 
             this.flagParser = new FlagParser('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
             let Cflag = new FlagParser('recipe.c.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
@@ -247,10 +247,8 @@ export class Board {
           
             this.cFlagsLinker = this.flagParser.obtainFlags();
 
-            this.cxxFlags = CXXflag.obtainFlags() ;  //part of the MVIO menu added not containing in platform 
-            this.cFlags = Cflag.obtainFlags() ;
-        
-
+            this.cxxFlags = CXXflag.obtainFlags();  //part of the MVIO menu added not containing in platform 
+            this.cFlags = Cflag.obtainFlags();
         }
     }
 
