@@ -10,6 +10,9 @@ export const MEGA = "Mega or Mega2560"; //ATMega2560; ATMega1280
 export const PRO = "Pro or Pro Mini"; //ATmega328P (5V, 16 MHz); ATmega328P (3.3V, 8 MHz) 
 export const DXCORE = "DxCore";
 
+const dxCoreVariants = ["DA","DB","DD","EA"];
+
+
 export function getAllBoards(): string[] {
     const result = [NANO, DXCORE];
     return result;
@@ -32,7 +35,14 @@ export class Board {
     private pathToHardware: string = "";
     private pathToPlatformFile: string = "";
     private pathToBoardFile: string = "";
+
+    private dxCoreSeries: string = "";
+    private dxCoreVariant: string = "";
+    private dxCorePrint: string = "";
+    private dxCoreEnableMvio: boolean = false;
+
     private flagParser: FlagParser | undefined;
+
     
 
     //used by cmaker class
@@ -99,6 +109,20 @@ export class Board {
     }
     setPathToHardware(hardwarePath: string) {
         this.pathToHardware = hardwarePath;
+    }
+    setDxCoreOptions(dxChip: string, dxPrintOption: string, dxMvio?: string) {
+        this.dxCoreVariant = dxChip;
+        this.dxCorePrint = dxPrintOption;
+        
+        for(let i = 0; i < dxCoreVariants.length; i++) {
+            if(dxChip.includes(dxCoreVariants[i])) {
+                this.dxCoreSeries = "avr" + dxCoreVariants[i].toLowerCase();
+            }
+        }
+        
+        if(dxMvio) {
+            this.dxCoreEnableMvio = (dxMvio === "Enabled");
+        }
     }
 
 
@@ -182,6 +206,9 @@ export class Board {
             this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion);
             
             this.corePaths.push([path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"cores","dxcore"), "core"]);
+
+
+            //.menu.printf.full.build.printf
 
             //TODO - determine which variants are needed & correct path
             this.corePaths.push([path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"variants"),"32pin-ddseries"]);
