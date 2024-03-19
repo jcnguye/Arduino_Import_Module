@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { Board } from './board';
-import { Recipe } from './recipeBuilder';
 
 export class Cmaker {
 	public projDir: string;
@@ -11,7 +10,6 @@ export class Cmaker {
 	public compilerflags: string;
 	private board: Board;
 	private debuggingOptimization: boolean; 
-	private recipe: Recipe;
 	private includeUtilitiesDir: boolean = false; 
 	//CONSTANTS
 	private debugOptimizeFlag: string = "-Og -g2";
@@ -24,7 +22,6 @@ export class Cmaker {
 		this.compilerflags = "";
 		this.board = board; 
 		this.debuggingOptimization = debuggingOptimization;
-		this.recipe = new Recipe(board);
 	}
 	public setProjectDirectory(projectDirectory:string){
 		this.projDir = projectDirectory;
@@ -34,21 +31,6 @@ export class Cmaker {
 	}
 	public setSourceName(sourceFileName:string){
 		this.srcFileName = sourceFileName;
-	}
-	public setCompilerFlags(compileFlag:string){
-		//picks between nano or dxcore to see which flags are set
-		if(this.board.getBoardName() === 'Nano'){
-			this.compilerflags = compileFlag;
-			let finalFormatRecipeCRecipe = this.recipe.formatCCompilerBuild(this.board.getPlatformCCompilerRecipePattern());
-			let finalFormatRecipe = this.recipe.formatCXXCompilerBuild(this.board.getPlatformCPlusRecipePattern());
-			this.board.setCFlags(finalFormatRecipeCRecipe);
-			this.board.setCXXFlags(finalFormatRecipe);
-		}else if(this.board.getBoardName() === 'DxCore'){
-			// this.compilerflags = compileFlag;
-			// this.board.setCFlags(this.recipe.getDXCORECFlag());
-			// this.board.setCXXFlags(this.recipe.getDXCORECppFlag());
-		}
-		
 	}
 	public setIncludeUtilitiesDir(includeUtilitiesDir:boolean){
 		this.includeUtilitiesDir = includeUtilitiesDir;
