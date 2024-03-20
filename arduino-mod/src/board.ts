@@ -10,6 +10,9 @@ export const MEGA = "Mega or Mega2560"; //ATMega2560; ATMega1280
 export const PRO = "Pro or Pro Mini"; //ATmega328P (5V, 16 MHz); ATmega328P (3.3V, 8 MHz) 
 export const DXCORE = "DxCore";
 
+const dxCoreVariants = ["DA","DB","DD","EA"];
+
+
 export function getAllBoards(): string[] {
     const result = [NANO, DXCORE];
     return result;
@@ -32,7 +35,14 @@ export class Board {
     private pathToHardware: string = "";
     private pathToPlatformFile: string = "";
     private pathToBoardFile: string = "";
-    private flagParser: FlagParser;
+
+    private dxCoreSeries: string = "";
+    private dxCoreVariant: string = "";
+    private dxCorePrint: string = "";
+    private dxCoreEnableMvio: boolean = false;
+
+    private flagParser: FlagParser | undefined;
+
     
 
     //used by cmaker class
@@ -100,6 +110,20 @@ export class Board {
     setPathToHardware(hardwarePath: string) {
         this.pathToHardware = hardwarePath;
     }
+    setDxCoreOptions(dxChip: string, dxPrintOption: string, dxMvio?: string) {
+        this.dxCoreVariant = dxChip;
+        this.dxCorePrint = dxPrintOption;
+        
+        for(let i = 0; i < dxCoreVariants.length; i++) {
+            if(dxChip.includes(dxCoreVariants[i])) {
+                this.dxCoreSeries = "avr" + dxCoreVariants[i].toLowerCase();
+            }
+        }
+        
+        if(dxMvio) {
+            this.dxCoreEnableMvio = (dxMvio === "Enabled");
+        }
+    }
 
 
     getCFlags(): string {
@@ -164,13 +188,14 @@ export class Board {
             var arduinoPackagePathPlatform = path.join(basepath, 'platform.txt');
             this.pathToBoardFile = arduinoPackagePathBoard;
             this.pathToPlatformFile = arduinoPackagePathPlatform;
+
        
         }
 
     }
 
     dxcoreBuild(localAppData:string): void{
-        this.setFlag("-DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L") ;
+        // this.setFlag("-DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L") ;
         this.chipName = "avrdd";
 
         const version = parser.getDXCoreVersion();
@@ -181,9 +206,49 @@ export class Board {
             this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion);
             
             this.corePaths.push([path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"cores","dxcore"), "core"]);
+
+
+            //.menu.printf.full.build.printf
+
             //TODO - determine which variants are needed & correct path
-            //this.corePaths.push(path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"variants","32pin-ddseries"));
-            //this.corePaths.push(path.join(localAppData, "packages", "DxCore","tools","avr-gcc",compilerVersion,"avr","include"));
+            this.corePaths.push([path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"variants"),"32pin-ddseries"]);
+            // this.corePaths.push(path.join(localAppData, "packages", "DxCore","tools","avr-gcc",compilerVersion,"avr","include"));
+            
+            const basepath = path.join(localAppData, "packages", "DxCore","hardware","megaavr",version);
+            this.pathToCoreLibs = path.join(basepath, "libraries");
+
+            const platformPath = path.join(basepath,'platform.txt');
+            const boardPath = path.join(basepath,'boards.txt');
+           
+            
+            this.pathToBoardFile = boardPath;
+            this.pathToPlatformFile = platformPath;
+            //avrdd.menu.chip.avr64dd32.build.mcu
+            const boardOptionsAndName: string[] = ['avrdd.menu.chip.avr64dd32.', 'avrdd.'];
+            const hardcodedFlags = new Map<string, string>();
+	        hardcodedFlags.set('build.arch','MEGAAVR');
+	        hardcodedFlags.set('includes','');
+	        hardcodedFlags.set('runtime.ide.version','10607');
+            //hardcode flags for c flags
+            hardcodedFlags.set('build.f_cpu','24000000L');
+            //these flags below seems to be user defined from the menu option hard coded for now 
+            hardcodedFlags.set('build.clocksource','0');
+            hardcodedFlags.set('build.wiremode','MORS_SINGLE');
+            hardcodedFlags.set('build.millistimer','B2');
+            hardcodedFlags.set('build.attachmode','-DCORE_ATTACH_ALL');
+            hardcodedFlags.set('build.flmapopts','-DLOCK_FLMAP -DFLMAPSECTION1');
+            hardcodedFlags.set('bootloader.appspm','');
+            hardcodedFlags.set('DOWNLOADED_FILE#"v"',version);
+            hardcodedFlags.set('version',version);
+
+            this.flagParser = new FlagParser('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            let Cflag = new FlagParser('recipe.c.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            let CXXflag = new FlagParser('recipe.cpp.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+          
+            this.cFlagsLinker = this.flagParser.obtainFlags();
+
+            this.cxxFlags = CXXflag.obtainFlags();  //part of the MVIO menu added not containing in platform 
+            this.cFlags = Cflag.obtainFlags();
         }
     }
 

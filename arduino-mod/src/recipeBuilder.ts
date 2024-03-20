@@ -1,4 +1,5 @@
 import { Board } from './board';
+import {FlagParser} from './flagParser';
 
 
 //Purpose of this class is to read the platform.txt and board.txt file and manages the format of Recipe
@@ -6,7 +7,8 @@ import { Board } from './board';
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export class Recipe {
     private board: Board;
-
+   
+    
     //key being the variable thats being replaced and value being the update variable thats being placed
     private replacementsCrecipe: { [key: string]: string; } | undefined; // Define replacements property
     private replacementsCPlusrecipe: { [key: string]: string; } | undefined;
@@ -140,6 +142,23 @@ export class Recipe {
         newFormat = newFormat.replace('-c', '');
         newFormat = newFormat.replace('-flto','-flto -fno-fat-lto-objects -ffat-lto-objects');
         return newFormat;
+    }
+
+    getDXCORECppFlag():string{
+        const boardOptionsAndName: string[] = ['avrdd.menu.chip.avr64dd32.', 'avrdd.'];
+        const hardcodedFlags = new Map<string, string>();
+
+        const FlagParserDxcore = new FlagParser('recipe.cpp.o.pattern',boardOptionsAndName, this.board.getPathToPlatformFile(), this.board.getPathToBoardFile(), hardcodedFlags);
+        console.log(FlagParserDxcore.obtainFlags());
+        return FlagParserDxcore.obtainFlags();
+    }
+    
+    getDXCORECFlag(){
+        const boardOptionsAndName: string[] = ['avrdd.menu.chip.avr64dd32.', 'avrdd.'];
+        const hardcodedFlags = new Map<string, string>();
+        const FlagParserDxcore = new FlagParser('recipe.c.o.pattern',boardOptionsAndName, this.board.getPathToPlatformFile(), this.board.getPathToBoardFile(), hardcodedFlags);
+        console.log(FlagParserDxcore.obtainFlags());
+        return FlagParserDxcore.obtainFlags();
     }
 
 
