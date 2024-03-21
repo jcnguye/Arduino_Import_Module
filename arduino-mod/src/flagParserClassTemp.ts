@@ -1,8 +1,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 
-const cRecipe = 'recipe.c.combine.pattern';
-
 
 export class flagParser {
     constructor() {}
@@ -104,33 +102,5 @@ export class flagParser {
         return flagMap;
     }
 
-    /**
-     * Private helper function. Replaces all variables in the recipe template with the appropriate value
-     * from the flagMap. Not recurrsive. Continues iterating through flag map until no replacements are 
-     * made for a full iteration.
-     * (Ex. replace {compiler.c.flags} with '-c -g ...' )
-     */
-    private interpretRecipe(recipeTemplate: string, flagMap: Map<string, string>): string {
-        let recipe = recipeTemplate;
-        let replacementCount = 1; // initialize to an arbitrary value greater than 0
-
-        // Repeat until no replacements are made (handles nested flags & avoids recursion)
-        while (replacementCount > 0 ) {
-            replacementCount = 0;
-
-            // for each element in the flag map
-            flagMap.forEach((value, key) => {	
-                // if the recipe template contains the flag map key
-                if (recipe.includes(key)) {
-                    // replace the {key} with the flag map value
-                    recipe = recipe.replace('{' + key + '}', value);
-                    // count the number of replacements made
-                    replacementCount++;	
-                }
-            });
-        }
-
-        return recipe;
-    }
 }
 
