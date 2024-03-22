@@ -242,6 +242,18 @@ function createSrcHeader(inputFile: string, outputDir: string) {
     fs.writeFileSync(headerFilePath, headerContent, 'utf8');
 }
 
+export function getLocalArduinoPath() :string {
+    let result = "";
+	if(process.platform === "win32") {
+		result = path.join(process.env.LOCALAPPDATA!, "Arduino15");
+	} else if(process.platform === "darwin") {
+		result = path.join(process.env.HOME!, "Library", "Arduino15");
+	} else if(process.platform === "linux") {
+		result = path.join(process.env.HOME!, ".arduino15");
+	}
+    return result;
+}
+
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
