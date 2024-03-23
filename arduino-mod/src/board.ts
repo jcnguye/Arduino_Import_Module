@@ -185,17 +185,17 @@ export class Board {
 	        hardcodedFlags.set('runtime.ide.version','10607');
 
             this.flagParser = new FlagParser('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
-            
-            
             this.cFlagsLinker = this.flagParser.obtainFlags();
+            this.flagParser = new FlagParser('recipe.cpp.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.cxxFlags = this.flagParser.obtainFlags();
+            this.flagParser = new FlagParser('recipe.c.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.cFlags = this.flagParser.obtainFlags();
 
-            this.pathToHardware = basepath;
-            var arduinoPackagePathBoard = path.join(basepath, 'boards.txt');
-            var arduinoPackagePathPlatform = path.join(basepath, 'platform.txt');
-            this.pathToBoardFile = arduinoPackagePathBoard;
-            this.pathToPlatformFile = arduinoPackagePathPlatform;
-
-       
+            // modify flags so they work with cmake
+            this.cFlags = this.cFlags.replace('-c ', '');
+            this.cFlags = this.cFlags.replace('-fno-fat-lto-objects','-fno-fat-lto-objects -ffat-lto-objects');
+            this.cxxFlags = this.cxxFlags.replace('-c ', '');
+            this.cxxFlags = this.cxxFlags.replace('-flto','-flto -fno-fat-lto-objects -ffat-lto-objects');       
         }
 
     }

@@ -301,7 +301,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     cmake.setProjectDirectory(destDir);
     cmake.setProjectName(cFile.replace(".cpp", ""));
     cmake.setSourceName('src/' + cFile);
-    cmake.setCompilerFlags(await parser.getAllFlags(board));
+    await parser.getAllFlags(board);
     cmake.setIncludeUtilitiesDir(includeUtilitiesDir);
 
     //parsing override flags
