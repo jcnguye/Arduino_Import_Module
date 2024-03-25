@@ -96,7 +96,17 @@ export class Cmaker {
 		let cmakeSrcExecutable = "add_executable(" + this.projName + '.elf ' + this.srcFileName +")\n";
 		cmakeSrcExecutable = cmakeSrcExecutable + 'set_target_properties(' + this.projName + '.elf PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output)\n';
 		
-		let cmakeDir = 'include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core" "${CMAKE_CURRENT_SOURCE_DIR}/lib" "${CMAKE_CURRENT_SOURCE_DIR}/core/eightanaloginputs" "${CMAKE_CURRENT_SOURCE_DIR}/core/standard")\n';
+		let cmakeDir = "";
+
+		if(this.board.boardName === "Nano") {
+			cmakeDir = 'include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core" "${CMAKE_CURRENT_SOURCE_DIR}/lib" "${CMAKE_CURRENT_SOURCE_DIR}/core/eightanaloginputs" "${CMAKE_CURRENT_SOURCE_DIR}/core/standard")\n';
+		} else if(this.board.boardName === "DxCore") {
+			cmakeDir = 'include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core" "${CMAKE_CURRENT_SOURCE_DIR}/core/deprecated" "${CMAKE_CURRENT_SOURCE_DIR}/core/32pin-ddseries")\n'
+		} else {
+			console.error("Board type not defined");
+		}
+		
+		
 		cmakeDir = cmakeDir + 'file(GLOB CORE_SOURCES "${CORE_DIR}/*.cpp" "${CORE_DIR}/*.c")\n';
 		cmakeDir = cmakeDir + 'file(GLOB LIB_SOURCES "${LIB_DIR}/*.cpp" "${LIB_DIR}/*.c")\n';
 
