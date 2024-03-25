@@ -46,6 +46,5 @@
   "dependencies": {
     "@vscode/webview-ui-toolkit": "^1.2.2",
     "vscode": "^1.1.37"
-  },
-  "type": "module"
+  }
 }
