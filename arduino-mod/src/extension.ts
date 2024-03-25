@@ -313,17 +313,8 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     cmake.setProjectDirectory(destDir);
     cmake.setProjectName(cFile.replace(".cpp", ""));
     cmake.setSourceName('src/' + cFile);
-    cmake.setCompilerFlags(await parser.getAllFlags(board));
+    await parser.getAllFlags(board);
     cmake.setIncludeUtilitiesDir(includeUtilitiesDir);
-
-    //configuring dxCore flag options
-    if(dxChip && dxPrintOption) {
-        if(dxMvio) {
-            board.setDxCoreOptions(dxChip, dxPrintOption,dxMvio);
-        } else {
-            board.setDxCoreOptions(dxChip, dxPrintOption);
-        }
-    }
 
     //parsing override flags
     await parser.getOverrideFlags(destDir,board);
