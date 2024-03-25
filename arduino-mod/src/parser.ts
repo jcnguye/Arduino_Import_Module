@@ -3,6 +3,7 @@ import * as readline from 'readline';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Board } from './board';
+import { getLocalArduinoPath } from './extension';
 
 
 /**
@@ -116,14 +117,8 @@ export async function getAllFlags(board: Board): Promise<string> {
         const hardCodedFlags = board.getFlags();
 
         //getting map for boards.txt
-        var localAppData = "???";
-		if(process.platform === "win32") {
-			localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15");
-		} else if(process.platform === "darwin") {
-			localAppData = path.join(process.env.HOME!, "Library", "Arduino15");
-		} else if(process.platform === "linux") {
-			localAppData = path.join(process.env.HOME!, ".arduino15");
-		}
+        const localAppData = getLocalArduinoPath();
+
         const version = getDXCoreVersion();
         const libraryFilePath = path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"boards.txt");
         const map = await parseBoards(libraryFilePath, platform);
@@ -398,14 +393,7 @@ function getFlag(flagAndVariable: string, value: string): string {
  */
 export function getDXCoreVersion(): string {
     let result = '';
-    var localAppData = "";
-	if(process.platform === "win32") {
-		localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15");
-	} else if(process.platform === "darwin") {
-		localAppData = path.join(process.env.HOME!, "Library", "Arduino15");
-	} else if(process.platform === "linux") {
-		localAppData = path.join(process.env.HOME!, ".arduino15");
-	}
+    const localAppData = getLocalArduinoPath();
     const versionFilePath = path.join(localAppData, "packages", "DxCore","hardware","megaavr");
     const directories = fs.readdirSync(versionFilePath, { withFileTypes: true });
 	const subdirectories = directories.filter((dirent) => dirent.isDirectory());
@@ -421,37 +409,6 @@ export function getDXCoreVersion(): string {
 	return mostRecentDirectory.name;
 }
 
-
-/**
- * Helper function that returns the version of Nano installed. May not be fail-proof: uses
- * the most recent name of the folder in the arduino/hardware/avr to determine the version.
- * 
- * @returns string with version of avr (ex. "1.8.6")
- */
-export function getNanoVersion(): string {
-    let result = '';
-    var localAppData = "";
-	if(process.platform === "win32") {
-		localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15");
-	} else if(process.platform === "darwin") {
-		localAppData = path.join(process.env.HOME!, "Library", "Arduino15");
-	} else if(process.platform === "linux") {
-		localAppData = path.join(process.env.HOME!, ".arduino15");
-	}
-	const versionFilePath = path.join(localAppData, "packages", "arduino","hardware","avr");
-	const directories = fs.readdirSync(versionFilePath, { withFileTypes: true });
-	const subdirectories = directories.filter((dirent) => dirent.isDirectory());
-	const mostRecentDirectory = subdirectories.reduce((prev, current) => {
-	    const prevPath = `${path}/${prev.name}`;
-	    const currentPath = `${path}/${current.name}`;
-
-	    const prevStat = fs.statSync(prevPath);
-	    const currentStat = fs.statSync(currentPath);
-
-	    return prevStat.mtimeMs > currentStat.mtimeMs ? prev : current;
-	});
-	return mostRecentDirectory.name;
-}
 
 export function getOverrideFlags(destinationDirectory: string, board: Board) {
     let filepath = path.join(destinationDirectory, "flag_override.txt");

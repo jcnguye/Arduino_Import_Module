@@ -9,7 +9,7 @@ import * as parser from './parser';
 import { MainPanel } from "./panels/MainPanel";
 import { Board } from './board';
 import Cmaker from './cmaker';
-import * as importproj from './importproj';
+import { copyDirectoriesPaired } from './importproj';
 import * as os from 'os';
 
 
@@ -242,6 +242,18 @@ function createSrcHeader(inputFile: string, outputDir: string) {
     fs.writeFileSync(headerFilePath, headerContent, 'utf8');
 }
 
+export function getLocalArduinoPath() :string {
+    let result = "";
+	if(process.platform === "win32") {
+		result = path.join(process.env.LOCALAPPDATA!, "Arduino15");
+	} else if(process.platform === "darwin") {
+		result = path.join(process.env.HOME!, "Library", "Arduino15");
+	} else if(process.platform === "linux") {
+		result = path.join(process.env.HOME!, ".arduino15");
+	}
+    return result;
+}
+
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -282,7 +294,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
         fs.mkdirSync(corePath);
     }
     console.log("Starting to copy code device library files...");
-    importproj.copyDirectoriesPaired(board.getCorePaths(), destDir);
+    copyDirectoriesPaired(board.getCorePaths(), destDir);
     fs.renameSync(path.join(destDir, "core", "wiring_pulse.S"), path.join(destDir, "core", "wiring_pulse_asm.S"));
     console.log("Core import complete");
    
