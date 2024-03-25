@@ -9,7 +9,7 @@ import * as parser from './parser';
 import { MainPanel } from "./panels/MainPanel";
 import { Board } from './board';
 import Cmaker from './cmaker';
-import * as importproj from './importproj';
+import { copyDirectoriesPaired } from './importproj';
 import * as os from 'os';
 
 
@@ -294,7 +294,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
         fs.mkdirSync(corePath);
     }
     console.log("Starting to copy code device library files...");
-    importproj.copyDirectoriesPaired(board.getCorePaths(), destDir);
+    copyDirectoriesPaired(board.getCorePaths(), destDir);
     fs.renameSync(path.join(destDir, "core", "wiring_pulse.S"), path.join(destDir, "core", "wiring_pulse_asm.S"));
     console.log("Core import complete");
    
