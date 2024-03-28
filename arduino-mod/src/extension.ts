@@ -13,6 +13,8 @@ import * as importproj from './importproj';
 import * as os from 'os';
 
 
+/********************************************** INDIVIDUAL FILE METHODS*******************************************************/
+
 /**
  * Returns an iterable object containing the absolute name of all files in a given directory,
  * including files in subfolders.
@@ -46,6 +48,70 @@ function* getAllFilePathsArray(directoryPaths: string[]): Iterable<string> {
 	}
 }
 
+/* Copies a file into a given directory location.
+* @param sourcePath Path to the file to be copied
+* @param destinationDirectory Path to the directory the file should be copied into
+* @param newFileName Optional. Rename the copy of the file. Can be used to rename .ino to .cpp, but doesn't change the 
+* contents of the file. 
+* @param appendString Optional. String to add to the beginning of the copied file. 
+*/
+function copyFile(sourcePath: string, destinationDirectory: string, newFileName?: string, appendString?: string) {
+   var fileName;
+   if (newFileName) {
+       fileName = newFileName;
+   } else {
+       fileName = path.basename(sourcePath);
+   }
+   const destinationPath = path.join(destinationDirectory, fileName);
+   const input = fs.createReadStream(sourcePath);
+   const output = fs.createWriteStream(destinationPath);
+   //verify read & write streams
+   input.on('error', (err) => {
+       console.error('Error reading file: ', sourcePath);
+   });
+   output.on('error', (err) => {
+       console.error('Error writing to file: ', destinationPath);
+   });
+
+   if (appendString) {
+       output.write(appendString);
+   }
+   //copy file
+   input.pipe(output);
+}
+
+
+
+/**************************************************************FOLDER METHODS***********************************************/
+
+/**
+* Checks if folder exists. If so, recursively copies folder & contents to destination
+* @param source 
+* @param destination 
+* @returns 
+*/
+function copyFolder(source: string, destination: string) {
+   if (fs.existsSync(source)) {
+       if (!fs.existsSync(destination)) {
+           fs.mkdirSync(destination);
+       }
+       // Copy each file inside the folder
+       fs.readdirSync(source).forEach((itemName) => {
+           const itemPath = path.join(source, itemName);
+           const targetPath = path.join(destination, itemName);
+
+           if (fs.lstatSync(itemPath).isDirectory()) {
+               copyFolder(itemPath, targetPath);
+           } else {
+               fs.copyFileSync(itemPath, targetPath);
+           }
+       });      
+   }
+}
+
+
+
+/***********************************************************LIBRARY METHODS*******************************************/
 
 /**
  * This function scans a file's include statements to retrive
@@ -94,63 +160,6 @@ function getAllLibraries(filepath: string): Promise<string[]> {
         });
 
     });
-}
-
- /* Copies a file into a given directory location.
- * @param sourcePath Path to the file to be copied
- * @param destinationDirectory Path to the directory the file should be copied into
- * @param newFileName Optional. Rename the copy of the file. Can be used to rename .ino to .cpp, but doesn't change the 
- * contents of the file. 
- * @param appendString Optional. String to add to the beginning of the copied file. 
- */
-function copyFile(sourcePath: string, destinationDirectory: string, newFileName?: string, appendString?: string) {
-	var fileName;
-	if (newFileName) {
-		fileName = newFileName;
-	} else {
-		fileName = path.basename(sourcePath);
-	}
-	const destinationPath = path.join(destinationDirectory, fileName);
-	const input = fs.createReadStream(sourcePath);
-	const output = fs.createWriteStream(destinationPath);
-	//verify read & write streams
-	input.on('error', (err) => {
-		console.error('Error reading file: ', sourcePath);
-	});
-	output.on('error', (err) => {
-		console.error('Error writing to file: ', destinationPath);
-	});
-
-    if (appendString) {
-        output.write(appendString);
-    }
-	//copy file
-	input.pipe(output);
-}
-
-/**
- * Checks if folder exists. If so, recursively copies folder & contents to destination
- * @param source 
- * @param destination 
- * @returns 
- */
-function copyFolder(source: string, destination: string) {
-    if (fs.existsSync(source)) {
-        if (!fs.existsSync(destination)) {
-            fs.mkdirSync(destination);
-        }
-        // Copy each file inside the folder
-        fs.readdirSync(source).forEach((itemName) => {
-            const itemPath = path.join(source, itemName);
-            const targetPath = path.join(destination, itemName);
-
-            if (fs.lstatSync(itemPath).isDirectory()) {
-                copyFolder(itemPath, targetPath);
-            } else {
-                fs.copyFileSync(itemPath, targetPath);
-            }
-        });      
-    }
 }
 
 // Helper for copyLibraries
@@ -221,6 +230,10 @@ async function copyLibraries(libDirectory: string, coreDirectory:string, sketchF
     return result;
 
 }
+
+
+
+/************************************************************************************************************************/
 
 function createSrcHeader(inputFile: string, outputDir: string) {
     const fileContents = fs.readFileSync(inputFile, 'utf8');
