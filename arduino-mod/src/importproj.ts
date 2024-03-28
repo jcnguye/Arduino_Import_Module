@@ -64,6 +64,12 @@ function shellCopy(from: string, to: string) {
 	
 }
 
+
+
+
+
+/************************************************COPY DIRECTORIES*********************************************************************/
+
 /** Recursively copies a directory to a specified location
  * 
  * @param src The directory to copy
