@@ -45,6 +45,23 @@ export class FlagParser {
         return flags;
     }
 
+
+    /**
+     * Function to obtain and return the variant from boards.txt for the specified board options.
+     * @returns The variant for the specified board & chip. (Ex. "32pin-ddseries")
+     */
+    obtainVariant(): string {
+        let variant = '';
+        const flagToFind = 'build.variant';
+        let flagMap = this.obtainFlagMap();
+        flagMap.forEach((value, key) => {
+            if (key === flagToFind) {
+                variant = value;
+            }
+        });
+        return variant;
+    }
+
     /** 
      * Private helper function. Returns recipe template from platform.txt.
      */ 
