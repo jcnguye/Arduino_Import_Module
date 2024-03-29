@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
-import * as parser from './parser';
 import * as path from 'path';
 import * as fs from 'fs';
 import {FlagParser} from './flagParser';
+import { getLocalArduinoPath } from './extension';
 
 export const UNO = "UNO"; //none 
 export const NANO = "Nano"; //ATmega328P or ATmega328P (Old Bootloader) 
@@ -53,30 +53,22 @@ export class Board {
     constructor(boardName: string, dxChip?: string, dxPrintOption?: string, dxMvio?: string) {
         this.boardName = boardName;
         
-        var localAppData = "???";
-		if(process.platform === "win32") {
-			localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15");
-		} else if(process.platform === "darwin") {
-			localAppData = path.join(process.env.HOME!, "Library", "Arduino15");
-		} else if(process.platform === "linux") {
-			localAppData = path.join(process.env.HOME!, ".arduino15");
-		}
-
+        const localArduinoPath= getLocalArduinoPath();
 
         if(boardName === NANO) {
-            this.nanoBuild(localAppData);
+            this.nanoBuild(localArduinoPath);
         } else if (boardName === DXCORE) {
             if (dxChip && dxPrintOption) {
                 this.setDxCoreOptions(dxChip, dxPrintOption, dxMvio);
-                this.dxcoreBuild(localAppData);
+                this.dxcoreBuild(localArduinoPath);
             } else {
                 console.error("The DxCore requires the chip and print options to be specified");
             }
           
         }else if (boardName === MEGA) {
-            this.megaBuild(localAppData);
+            this.megaBuild(localArduinoPath);
         } else if (boardName === PRO) {
-            this.proBuild(localAppData);
+            this.proBuild(localArduinoPath);
         }
     }
     
@@ -160,14 +152,16 @@ export class Board {
         this.cxxFlags = cxxFlags;
     }
 
-    nanoBuild(localAppData:string): void { 
+    nanoBuild(localArduinoPath:string): void { 
              
-        if (localAppData) {
-            this.pathToCompiler = path.join(localAppData,"packages","arduino","tools","avr-gcc");
+        if (localArduinoPath) {
+            this.pathToCompiler = path.join(localArduinoPath,"packages","arduino","tools","avr-gcc");
             const compilerVersion = this.mostRecentDirectory(this.pathToCompiler); 
             this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion); 
             
-          	const basepath = path.join(localAppData, "packages", "arduino", "hardware", "avr", parser.getNanoVersion());
+          	let basepath = path.join(localArduinoPath, "packages", "arduino", "hardware", "avr");
+            const nanoVersion = this.mostRecentDirectory(basepath);
+            basepath = path.join(basepath, nanoVersion);
 
             this.pathToCoreLibs = path.join(basepath, "libraries");
             	
@@ -200,16 +194,16 @@ export class Board {
 
     }
 
-    dxcoreBuild(localAppData:string): void{
+    dxcoreBuild(localArduinoPath:string): void{
         // this.setFlag("-DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L") ;
         this.chipName = "avrdd";
         
-        if (localAppData) {
-            this.pathToCompiler = path.join(localAppData,"packages","DxCore","tools","avr-gcc");
+        if (localArduinoPath) {
+            this.pathToCompiler = path.join(localArduinoPath,"packages","DxCore","tools","avr-gcc");
             const compilerVersion = this.mostRecentDirectory(this.pathToCompiler);
             this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion);
             
-            let basepath = path.join(localAppData, "packages", "DxCore","hardware","megaavr");
+            let basepath = path.join(localArduinoPath, "packages", "DxCore","hardware","megaavr");
             const dxCoreVersion = this.mostRecentDirectory(basepath);
             basepath = path.join(basepath, dxCoreVersion);
 
