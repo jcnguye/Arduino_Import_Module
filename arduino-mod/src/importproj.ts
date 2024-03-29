@@ -1,9 +1,24 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Board } from './board';
 
 
+/** Recursively copies a directory to a specified location
+ * 
+ * @param src The directory to copy
+ * @param dest The destination location
+ */
+export function copyDirectories(srcPaths: string[], dest: string): void {
+	// Create destination directory if it doesn't exist
+	if (!fs.existsSync(dest)) {
+	  fs.mkdirSync(dest);
+	}
+  
+	// Read the source directory
+	for (const src of srcPaths) {
+		copyDirectory(src, dest);
+	}
+}
 
 export function copyDirectory(src: string, dest: string): void {
 	// Create destination directory if it doesn't exist
