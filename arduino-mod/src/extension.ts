@@ -11,6 +11,7 @@ import { Board } from './board';
 import Cmaker from './cmaker';
 import { copyDirectoriesPaired } from './importproj';
 import * as os from 'os';
+import { promisify } from 'util';
 
 
 /**
@@ -180,6 +181,21 @@ async function copyThridPartyLibraries(libList: string[], targetDirectory: strin
     return result;
 }
 
+const readdir = promisify(fs.readdir);
+//helper for copyLibraries
+async function copyCoreLibraries(libList: string[], targetDirectory: string, libPath: string): Promise<boolean> {
+    const subfolders = await readdir(libPath, { withFileTypes: true });
+
+    for (const subfolder of subfolders) {
+        if (subfolder.isDirectory() && libList.includes(subfolder.name)) {
+            const srcPath = path.join(libPath, subfolder.name, 'src');
+            copyFolder(srcPath, targetDirectory);
+        }
+    }
+
+    return true;
+} 
+
 /**
  * This function scans the the Arduino/libraries folder for any source files that
  * are imported within the main sketch file.
@@ -201,7 +217,7 @@ async function copyLibraries(libDirectory: string, coreDirectory:string, sketchF
     }
 	
 	const coreLibPath = board.getPathToCoreLibs();
-    result = await copyThridPartyLibraries(libraries, coreDirectory, coreLibPath, true);
+    result = await copyCoreLibraries(libraries, coreDirectory, coreLibPath);
 
     const home = os.homedir();
     const docLibPath = path.join(home, "Documents", "Arduino", "libraries");
