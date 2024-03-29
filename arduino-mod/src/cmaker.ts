@@ -101,7 +101,8 @@ export class Cmaker {
 		if(this.board.boardName === "Nano") {
 			cmakeDir = 'include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core" "${CMAKE_CURRENT_SOURCE_DIR}/lib" "${CMAKE_CURRENT_SOURCE_DIR}/core/eightanaloginputs" "${CMAKE_CURRENT_SOURCE_DIR}/core/standard")\n';
 		} else if(this.board.boardName === "DxCore") {
-			cmakeDir = 'include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core" "${CMAKE_CURRENT_SOURCE_DIR}/core/deprecated" "${CMAKE_CURRENT_SOURCE_DIR}/core/32pin-ddseries")\n'
+			cmakeDir = 'set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)\n';
+			cmakeDir = cmakeDir + 'include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core" "${CMAKE_CURRENT_SOURCE_DIR}/lib")\n';
 		} else {
 			console.error("Board type not defined");
 		}
