@@ -3,6 +3,8 @@ import * as parser from './parser';
 import * as path from 'path';
 import * as fs from 'fs';
 import {FlagParser} from './flagParser';
+import {DXCORE_FLAGS, NANO_FLAGS} from './constants';
+import {RECIPES} from './constants';
 
 export const UNO = "UNO"; //none 
 export const NANO = "Nano"; //ATmega328P or ATmega328P (Old Bootloader) 
@@ -161,7 +163,6 @@ export class Board {
     }
 
     nanoBuild(localAppData:string): void { 
-             
         if (localAppData) {
             this.pathToCompiler = path.join(localAppData,"packages","arduino","tools","avr-gcc");
             const compilerVersion = this.mostRecentDirectory(this.pathToCompiler); 
@@ -180,22 +181,22 @@ export class Board {
 	        const boardPath = path.join(basepath, 'boards.txt');
             const boardOptionsAndName: string[] = ['nano.menu.cpu.atmega328.', 'nano.'];
             const hardcodedFlags = new Map<string, string>();
-	        hardcodedFlags.set('build.arch','AVR');
+	        hardcodedFlags.set(NANO_FLAGS.BUILD_ARCH_FLAG, NANO_FLAGS.BUILD_ARCH);
 	        hardcodedFlags.set('includes','');
-	        hardcodedFlags.set('runtime.ide.version','10607');
+	        hardcodedFlags.set(NANO_FLAGS.RUNTIME_VERSION_FLAG, NANO_FLAGS.RUNTIME_VERSION);
 
-            this.flagParser = new FlagParser('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.flagParser = new FlagParser(RECIPES.C_COMBINE_RECIPE, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
             this.cFlagsLinker = this.flagParser.obtainFlags();
-            this.flagParser = new FlagParser('recipe.cpp.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.flagParser = new FlagParser(RECIPES.CPP_O_RECIPE, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
             this.cxxFlags = this.flagParser.obtainFlags();
-            this.flagParser = new FlagParser('recipe.c.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.flagParser = new FlagParser(RECIPES.C_O_RECIPE, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
             this.cFlags = this.flagParser.obtainFlags();
 
             // modify flags so they work with cmake
             this.cFlags = this.cFlags.replace('-c ', '');
-            this.cFlags = this.cFlags.replace('-fno-fat-lto-objects','-fno-fat-lto-objects -ffat-lto-objects');
+            this.cFlags = this.cFlags.replace(NANO_FLAGS.ORIG_FNO, NANO_FLAGS.REPLACE_FNO);
             this.cxxFlags = this.cxxFlags.replace('-c ', '');
-            this.cxxFlags = this.cxxFlags.replace('-flto','-flto -fno-fat-lto-objects -ffat-lto-objects');       
+            this.cxxFlags = this.cxxFlags.replace(NANO_FLAGS.ORIG_FLTO, NANO_FLAGS.REPLACE_FLTO);       
         }
 
     }
@@ -230,24 +231,24 @@ export class Board {
             //avrdd.menu.chip.avr64dd32.build.mcu
             const boardOptionsAndName: string[] = [this.dxCoreSeries + '.menu.chip.' + this.dxCoreVariant.toLowerCase() + '.', this.dxCoreSeries + '.'];
             const hardcodedFlags = new Map<string, string>();
-	        hardcodedFlags.set('build.arch','MEGAAVR');
+	        hardcodedFlags.set(DXCORE_FLAGS.ARCH_FLAG,DXCORE_FLAGS.ARCH);
 	        hardcodedFlags.set('includes','');
-	        hardcodedFlags.set('runtime.ide.version','10607');
+	        hardcodedFlags.set(DXCORE_FLAGS.RUNTIME_VERSION_FLAG,DXCORE_FLAGS.RUNTIME_VERSION);
             //hardcode flags for c flags
-            hardcodedFlags.set('build.f_cpu','24000000L');
+            hardcodedFlags.set(DXCORE_FLAGS.FCPU_FLAG,DXCORE_FLAGS.FLM);
             //these flags below seems to be user defined from the menu option hard coded for now 
-            hardcodedFlags.set('build.clocksource','0');
-            hardcodedFlags.set('build.wiremode','MORS_SINGLE');
-            hardcodedFlags.set('build.millistimer','B2');
-            hardcodedFlags.set('build.attachmode','-DCORE_ATTACH_ALL');
-            hardcodedFlags.set('build.flmapopts','-DLOCK_FLMAP -DFLMAPSECTION1');
-            hardcodedFlags.set('bootloader.appspm','');
-            hardcodedFlags.set('DOWNLOADED_FILE#"v"',dxCoreVersion);
-            hardcodedFlags.set('version',dxCoreVersion);
+            hardcodedFlags.set(DXCORE_FLAGS.CLOCK_SOURCE_FLAG,DXCORE_FLAGS.CLOCK_SOURCE);
+            hardcodedFlags.set(DXCORE_FLAGS.WIRE_FLAG, DXCORE_FLAGS.WIRE);
+            hardcodedFlags.set(DXCORE_FLAGS.MILLIS_TIMER_FLAG,DXCORE_FLAGS.MILLIS_TIMER);
+            hardcodedFlags.set(DXCORE_FLAGS.ATTACH_MODE_FLAG,DXCORE_FLAGS.ATTACH_MODE);
+            hardcodedFlags.set(DXCORE_FLAGS.FLM_FLAG,DXCORE_FLAGS.FLM);
+            hardcodedFlags.set(DXCORE_FLAGS.BOOTLOADER,'');
+            hardcodedFlags.set(DXCORE_FLAGS.DOWNLOADED_FILE,dxCoreVersion);
+            hardcodedFlags.set(DXCORE_FLAGS.VERSION,dxCoreVersion);
 
-            this.flagParser = new FlagParser('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
-            let Cflag = new FlagParser('recipe.c.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
-            let CXXflag = new FlagParser('recipe.cpp.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.flagParser = new FlagParser(RECIPES.C_COMBINE_RECIPE, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            let Cflag = new FlagParser(RECIPES.C_O_RECIPE, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            let CXXflag = new FlagParser(RECIPES.CPP_O_RECIPE, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
           
             this.cFlagsLinker = this.flagParser.obtainFlags();
 
@@ -257,10 +258,10 @@ export class Board {
             // modify flags so they work with cmake
             this.cFlags = this.cFlags.replace(/"/g, '');
             this.cFlags = this.cFlags.replace('-c ', '');
-            this.cFlags = this.cFlags.replace('-fno-fat-lto-objects','-fno-fat-lto-objects -ffat-lto-objects');
+            this.cFlags = this.cFlags.replace(DXCORE_FLAGS.ORIG_FNO, DXCORE_FLAGS.REPLACE_FNO);
             this.cxxFlags = this.cxxFlags.replace(/"/g, '');
             this.cxxFlags = this.cxxFlags.replace('-c ', '');
-            this.cxxFlags = this.cxxFlags.replace('-flto','-flto -fno-fat-lto-objects -ffat-lto-objects');
+            this.cxxFlags = this.cxxFlags.replace(DXCORE_FLAGS.ORIG_FLTO, DXCORE_FLAGS.REPLACE_FLTO);
         }
     }
 
