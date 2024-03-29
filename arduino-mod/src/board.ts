@@ -206,12 +206,6 @@ export class Board {
             let basepath = path.join(localArduinoPath, "packages", "DxCore","hardware","megaavr");
             const dxCoreVersion = this.mostRecentDirectory(basepath);
             basepath = path.join(basepath, dxCoreVersion);
-
-            //.menu.printf.full.build.printf
-
-            //TODO - determine which variants are needed based on user-selected chip
-            this.corePaths.push([path.join(basepath,"cores","dxcore"), "core"]);
-            this.corePaths.push([path.join(basepath,"variants","32pin-ddseries"),"core"]);
             
             this.pathToCoreLibs = path.join(basepath, "libraries");
 
@@ -255,6 +249,11 @@ export class Board {
             this.cxxFlags = this.cxxFlags.replace(/"/g, '');
             this.cxxFlags = this.cxxFlags.replace('-c ', '');
             this.cxxFlags = this.cxxFlags.replace('-flto','-flto -fno-fat-lto-objects -ffat-lto-objects');
+
+            //Populate corePaths
+            this.corePaths.push([path.join(basepath,"cores","dxcore"), "core"]);
+            //Add the correct arduino_pins.h file based on the variant for the board options selected
+            this.corePaths.push([path.join(basepath,"variants",this.flagParser.obtainVariant()),"core"]);
         }
     }
 
