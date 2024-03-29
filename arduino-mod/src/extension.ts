@@ -11,6 +11,7 @@ import { Board } from './board';
 import Cmaker from './cmaker';
 import * as importproj from './importproj';
 import * as os from 'os';
+import { manualtesting } from "./test/manualtests";
 
 
 /**
@@ -251,6 +252,10 @@ export function activate(context: vscode.ExtensionContext) {
       MainPanel.render(context.extensionUri);
     });
     context.subscriptions.push(arduinoImportCommand);
+    const arduinoTesting = vscode.commands.registerCommand("arduino-mod.manualtesting", () => {
+        //MainPanel.render(context.extensionUri);
+        manualtesting.start()
+    });
 }
 
 /**

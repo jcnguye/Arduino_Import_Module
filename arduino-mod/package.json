@@ -16,6 +16,10 @@
       {
         "command": "arduino-mod.arduinoImport",
         "title": "Arduino Import Module"
+      },
+      {
+        "command": "arduino-mod.manualtesting",
+        "title": "Test the Arduino Import Module"
       }
     ]
   },
