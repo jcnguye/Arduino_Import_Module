@@ -251,10 +251,8 @@ export class Board {
             // modify flags so they work with cmake
             this.cFlags = this.cFlags.replace(/"/g, '');
             this.cFlags = this.cFlags.replace('-c ', '');
-            this.cFlags = this.cFlags.replace('-fno-fat-lto-objects','-fno-fat-lto-objects -ffat-lto-objects');
             this.cxxFlags = this.cxxFlags.replace(/"/g, '');
             this.cxxFlags = this.cxxFlags.replace('-c ', '');
-            this.cxxFlags = this.cxxFlags.replace('-flto','-flto -fno-fat-lto-objects -ffat-lto-objects');
 
             //Populate corePaths
             this.corePaths.push([path.join(basepath,"cores","dxcore"), "core"]);
