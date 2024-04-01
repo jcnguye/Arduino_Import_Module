@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Board } from './board';
 
 
 /**
@@ -63,6 +62,12 @@ function shellCopy(from: string, to: string) {
 	});
 	
 }
+
+
+
+
+
+/************************************************COPY DIRECTORIES*********************************************************************/
 
 /** Recursively copies a directory to a specified location
  * 

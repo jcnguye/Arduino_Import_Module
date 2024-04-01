@@ -9,11 +9,13 @@ import * as parser from './parser';
 import { MainPanel } from "./panels/MainPanel";
 import { Board } from './board';
 import Cmaker from './cmaker';
-import * as importproj from './importproj';
+import { copyDirectoriesPaired } from './importproj';
 import * as os from 'os';
 import { promisify } from 'util';
 import { manualtesting } from "./test/manualtests";
 
+
+/********************************************** INDIVIDUAL FILE METHODS*******************************************************/
 
 /**
  * Returns an iterable object containing the absolute name of all files in a given directory,
@@ -48,6 +50,70 @@ function* getAllFilePathsArray(directoryPaths: string[]): Iterable<string> {
 	}
 }
 
+/* Copies a file into a given directory location.
+* @param sourcePath Path to the file to be copied
+* @param destinationDirectory Path to the directory the file should be copied into
+* @param newFileName Optional. Rename the copy of the file. Can be used to rename .ino to .cpp, but doesn't change the 
+* contents of the file. 
+* @param appendString Optional. String to add to the beginning of the copied file. 
+*/
+function copyFile(sourcePath: string, destinationDirectory: string, newFileName?: string, appendString?: string) {
+   var fileName;
+   if (newFileName) {
+       fileName = newFileName;
+   } else {
+       fileName = path.basename(sourcePath);
+   }
+   const destinationPath = path.join(destinationDirectory, fileName);
+   const input = fs.createReadStream(sourcePath);
+   const output = fs.createWriteStream(destinationPath);
+   //verify read & write streams
+   input.on('error', (err) => {
+       console.error('Error reading file: ', sourcePath);
+   });
+   output.on('error', (err) => {
+       console.error('Error writing to file: ', destinationPath);
+   });
+
+   if (appendString) {
+       output.write(appendString);
+   }
+   //copy file
+   input.pipe(output);
+}
+
+
+
+/**************************************************************FOLDER METHODS***********************************************/
+
+/**
+* Checks if folder exists. If so, recursively copies folder & contents to destination
+* @param source 
+* @param destination 
+* @returns 
+*/
+function copyFolder(source: string, destination: string) {
+   if (fs.existsSync(source)) {
+       if (!fs.existsSync(destination)) {
+           fs.mkdirSync(destination);
+       }
+       // Copy each file inside the folder
+       fs.readdirSync(source).forEach((itemName) => {
+           const itemPath = path.join(source, itemName);
+           const targetPath = path.join(destination, itemName);
+
+           if (fs.lstatSync(itemPath).isDirectory()) {
+               copyFolder(itemPath, targetPath);
+           } else {
+               fs.copyFileSync(itemPath, targetPath);
+           }
+       });      
+   }
+}
+
+
+
+/***********************************************************LIBRARY METHODS*******************************************/
 
 /**
  * This function scans a file's include statements to retrive
@@ -98,63 +164,6 @@ function getAllLibraries(filepath: string): Promise<string[]> {
     });
 }
 
- /* Copies a file into a given directory location.
- * @param sourcePath Path to the file to be copied
- * @param destinationDirectory Path to the directory the file should be copied into
- * @param newFileName Optional. Rename the copy of the file. Can be used to rename .ino to .cpp, but doesn't change the 
- * contents of the file. 
- * @param appendString Optional. String to add to the beginning of the copied file. 
- */
-function copyFile(sourcePath: string, destinationDirectory: string, newFileName?: string, appendString?: string) {
-	var fileName;
-	if (newFileName) {
-		fileName = newFileName;
-	} else {
-		fileName = path.basename(sourcePath);
-	}
-	const destinationPath = path.join(destinationDirectory, fileName);
-	const input = fs.createReadStream(sourcePath);
-	const output = fs.createWriteStream(destinationPath);
-	//verify read & write streams
-	input.on('error', (err) => {
-		console.error('Error reading file: ', sourcePath);
-	});
-	output.on('error', (err) => {
-		console.error('Error writing to file: ', destinationPath);
-	});
-
-    if (appendString) {
-        output.write(appendString);
-    }
-	//copy file
-	input.pipe(output);
-}
-
-/**
- * Checks if folder exists. If so, recursively copies folder & contents to destination
- * @param source 
- * @param destination 
- * @returns 
- */
-function copyFolder(source: string, destination: string) {
-    if (fs.existsSync(source)) {
-        if (!fs.existsSync(destination)) {
-            fs.mkdirSync(destination);
-        }
-        // Copy each file inside the folder
-        fs.readdirSync(source).forEach((itemName) => {
-            const itemPath = path.join(source, itemName);
-            const targetPath = path.join(destination, itemName);
-
-            if (fs.lstatSync(itemPath).isDirectory()) {
-                copyFolder(itemPath, targetPath);
-            } else {
-                fs.copyFileSync(itemPath, targetPath);
-            }
-        });      
-    }
-}
-
 // Helper for copyLibraries
 async function copyThridPartyLibraries(libList: string[], targetDirectory: string, libPath: string, isCoreLib: boolean): Promise<boolean> {
     let result = false;
@@ -182,6 +191,21 @@ async function copyThridPartyLibraries(libList: string[], targetDirectory: strin
     return result;
 }
 
+const readdir = promisify(fs.readdir);
+//helper for copyLibraries
+async function copyCoreLibraries(libList: string[], targetDirectory: string, libPath: string): Promise<boolean> {
+    const subfolders = await readdir(libPath, { withFileTypes: true });
+
+    for (const subfolder of subfolders) {
+        if (subfolder.isDirectory() && libList.includes(subfolder.name)) {
+            const srcPath = path.join(libPath, subfolder.name, 'src');
+            copyFolder(srcPath, targetDirectory);
+        }
+    }
+
+    return true;
+} 
+
 /**
  * This function scans the the Arduino/libraries folder for any source files that
  * are imported within the main sketch file.
@@ -203,7 +227,7 @@ async function copyLibraries(libDirectory: string, coreDirectory:string, sketchF
     }
 	
 	const coreLibPath = board.getPathToCoreLibs();
-    result = await copyThridPartyLibraries(libraries, coreDirectory, coreLibPath, true);
+    result = await copyCoreLibraries(libraries, coreDirectory, coreLibPath);
 
     const home = os.homedir();
     const docLibPath = path.join(home, "Documents", "Arduino", "libraries");
@@ -224,6 +248,10 @@ async function copyLibraries(libDirectory: string, coreDirectory:string, sketchF
 
 }
 
+
+
+/************************************************************************************************************************/
+
 function createSrcHeader(inputFile: string, outputDir: string) {
     const fileContents = fs.readFileSync(inputFile, 'utf8');
     const functionRegex = /([\n][\w]+\s+[\w:]+\s*\(.*\)\s*(?:const)?)\s*(?:{|\n{)/g;
@@ -242,6 +270,18 @@ function createSrcHeader(inputFile: string, outputDir: string) {
     const headerContent = '#include <Arduino.h>\n' + functionNames.map(declaration => `${declaration};`).join('\n');
 
     fs.writeFileSync(headerFilePath, headerContent, 'utf8');
+}
+
+export function getLocalArduinoPath() :string {
+    let result = "";
+	if(process.platform === "win32") {
+		result = path.join(process.env.LOCALAPPDATA!, "Arduino15");
+	} else if(process.platform === "darwin") {
+		result = path.join(process.env.HOME!, "Library", "Arduino15");
+	} else if(process.platform === "linux") {
+		result = path.join(process.env.HOME!, ".arduino15");
+	}
+    return result;
 }
 
 
@@ -287,7 +327,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
         fs.mkdirSync(corePath);
     }
     console.log("Starting to copy code device library files...");
-    importproj.copyDirectoriesPaired(board.getCorePaths(), destDir);
+    copyDirectoriesPaired(board.getCorePaths(), destDir);
     fs.renameSync(path.join(destDir, "core", "wiring_pulse.S"), path.join(destDir, "core", "wiring_pulse_asm.S"));
     console.log("Core import complete");
    
@@ -306,17 +346,8 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     cmake.setProjectDirectory(destDir);
     cmake.setProjectName(cFile.replace(".cpp", ""));
     cmake.setSourceName('src/' + cFile);
-    cmake.setCompilerFlags(await parser.getAllFlags(board));
+    await parser.getAllFlags(board);
     cmake.setIncludeUtilitiesDir(includeUtilitiesDir);
-
-    //configuring dxCore flag options
-    if(dxChip && dxPrintOption) {
-        if(dxMvio) {
-            board.setDxCoreOptions(dxChip, dxPrintOption,dxMvio);
-        } else {
-            board.setDxCoreOptions(dxChip, dxPrintOption);
-        }
-    }
 
     //parsing override flags
     await parser.getOverrideFlags(destDir,board);

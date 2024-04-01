@@ -353,12 +353,14 @@ export class MainPanel {
             this.dxMvio = text;
             return;
           case "import":
-            const board = new Board(this.selectedBoard);
             if (this.selectedBoard === boardsInfo.DXCORE) {
-              ex.startImport(this.sketchFile, this.destinationDirectory, board, this.debuggingOptimization, this.dxChip, this.dxPrintF, this.dxMvio);
-            } else {
+              const board = new Board(this.selectedBoard, this.dxChip, this.dxPrintF, this.dxMvio);
               ex.startImport(this.sketchFile, this.destinationDirectory, board, this.debuggingOptimization);
+            } else {
+              const board = new Board(this.selectedBoard);  
+              ex.startImport(this.sketchFile, this.destinationDirectory, board, this.debuggingOptimization); 
             }
+            
         }
       },
       undefined,
