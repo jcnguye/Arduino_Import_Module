@@ -11,6 +11,7 @@ import { Board } from './board';
 import Cmaker from './cmaker';
 import * as importproj from './importproj';
 import * as os from 'os';
+import { promisify } from 'util';
 import { manualtesting } from "./test/manualtests";
 
 
