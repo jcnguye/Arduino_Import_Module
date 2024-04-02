@@ -12,6 +12,7 @@ import Cmaker from './cmaker';
 import { copyDirectoriesPaired } from './importproj';
 import * as os from 'os';
 import { promisify } from 'util';
+import { manualtesting } from "./test/manualtests";
 
 
 /********************************************** INDIVIDUAL FILE METHODS*******************************************************/
@@ -292,14 +293,17 @@ export function activate(context: vscode.ExtensionContext) {
       MainPanel.render(context.extensionUri);
     });
     context.subscriptions.push(arduinoImportCommand);
+    const arduinoTesting = vscode.commands.registerCommand("arduino-mod.manualtesting", () => {
+		manualtesting.start()
+    });
 }
 
 /**
  * 
- * @param sketchPath 
- * @param destDir 
- * @param board 
- * @param debuggingOptimization 
+ * @param sketchPath The path of the sketch file to copy
+ * @param destDir The project directory
+ * @param board The arduino board to configure CMake for
+ * @param debuggingOptimization Whether or not to enable debugging
  * @param dxChip The user-selected chip for the DxCore board (ex: "AVR64DD14")
  * @param dxPrintOption Possible values are "default", "full", "minimal", ""
  * @param dxMvio Possible values are "Enabled", "Disabled", ""

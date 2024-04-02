@@ -2,7 +2,6 @@
 *.code-workspace
 
 # Compilation Files
-*.js
 arduino-mod/node_modules/.bin/*
 arduino-mod/out/*
 
@@ -27,3 +26,6 @@ Thumbs.db
 .vscodeignore
 
 build/
+
+# Testing files
+arduino-mod/.vscode-test/
