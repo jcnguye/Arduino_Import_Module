@@ -39,7 +39,7 @@ export class Board {
     private dxCoreSeries: string = "";
     private dxCoreVariant: string = "";
     private dxCorePrint: string = "";
-    private dxCoreEnableMvio: boolean = false;
+    private dxCoreEnableMvio: string = "";
 
     private flagParser: FlagParser | undefined;
 
@@ -115,7 +115,7 @@ export class Board {
         }
         
         if(dxMvio) {
-            this.dxCoreEnableMvio = (dxMvio === "Enabled");
+            this.dxCoreEnableMvio = dxMvio;
         }
     }
 
@@ -211,8 +211,17 @@ export class Board {
             
             this.pathToBoardFile = boardPath;
             this.pathToPlatformFile = platformPath;
-            //avrdd.menu.chip.avr64dd32.build.mcu
+            
+            // Add chip & board 
             const boardOptionsAndName: string[] = [this.dxCoreSeries + '.menu.chip.' + this.dxCoreVariant.toLowerCase() + '.', this.dxCoreSeries + '.'];
+            // Add printf options
+            boardOptionsAndName.push(this.dxCoreSeries + '.menu.printf.' + this.dxCorePrint + '.');   
+            //if mvio options exist, add them
+            if (this.dxCoreEnableMvio) {
+                boardOptionsAndName.push(this.dxCoreSeries + '.menu.mvio.' + this.dxCoreEnableMvio.toLowerCase() + '.');
+            }
+
+
             const hardcodedFlags = new Map<string, string>();
 	        hardcodedFlags.set('build.arch','MEGAAVR');
 	        hardcodedFlags.set('includes','');

@@ -387,34 +387,6 @@ function getFlag(flagAndVariable: string, value: string): string {
     return flag;
 }
 
-<<<<<<< HEAD
-=======
-/**
- * Helper function that returns the version of DxCore installed. May not be fail-proof: uses
- * the most recent name of the folder in the DxCore/hardware/megaavr to determine the version.
- * 
- * @returns string with version of DxCore (ex. "1.5.11")
- */
-export function getDXCoreVersion(): string {
-    let result = '';
-    const localAppData = getLocalArduinoPath();
-    const versionFilePath = path.join(localAppData, "packages", "DxCore","hardware","megaavr");
-    const directories = fs.readdirSync(versionFilePath, { withFileTypes: true });
-	const subdirectories = directories.filter((dirent) => dirent.isDirectory());
-	const mostRecentDirectory = subdirectories.reduce((prev, current) => {
-	    const prevPath = `${path}/${prev.name}`;
-	    const currentPath = `${path}/${current.name}`;
-
-	    const prevStat = fs.statSync(prevPath);
-	    const currentStat = fs.statSync(currentPath);
-
-	    return prevStat.mtimeMs > currentStat.mtimeMs ? prev : current;
-	});
-	return mostRecentDirectory.name;
-}
-
-
->>>>>>> dev
 export function getOverrideFlags(destinationDirectory: string, board: Board) {
     let filepath = path.join(destinationDirectory, "flag_override.txt");
 
@@ -434,7 +406,7 @@ export function getOverrideFlags(destinationDirectory: string, board: Board) {
                 const splitIndex = line.indexOf('=');
                 let flagsRead = '';
 
-                if(splitIndex == -1) {
+                if(splitIndex === -1) {
                     console.log("No arguments");
                 }
 
