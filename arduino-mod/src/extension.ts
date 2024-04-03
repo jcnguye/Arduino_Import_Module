@@ -362,7 +362,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     }
     vscode.window.showInformationMessage("Import complete! Building project...");
     try {
-        execSync('cmake -G "Unix Makefiles"', {cwd: destDir});
+        execSync('cmake -G "Unix Makefiles" .', {cwd: destDir});
         execSync('make', {cwd: destDir});    
     } catch (error) {
         console.error('Error:', error);
