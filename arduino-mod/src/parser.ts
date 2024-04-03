@@ -81,28 +81,6 @@ function parseBoards(filepath: string, boardName: string): Promise<Map<string, s
     });
 }
 
-/**
- * Gets the compiler flags out of the platform.txt file
- */
-export async function getCompileFlags() {
-    // get platform.txt file to parse
-    const filePath = await vscode.window.showInputBox({
-        placeHolder: "Compiler Flags",
-        prompt: "Enter path to 'platform.txt' file",
-    });
-    if (filePath){
-        // make sure file is valid
-        var flagArr = await parsePlatform(filePath);
-        var flagStr = "";
-        for (var i = 0; i < flagArr.length; i++) {
-            flagStr += flagArr[i] + ',\n';
-        }
-        vscode.window.showInformationMessage(flagStr, {modal: true});
-    } else {
-        vscode.window.showInformationMessage("Not a valid path or directory does not contain platform.txt file.");
-    }
-}
-
 
 /**
  * Gets all flags for specified platform by matching key-value pairs in board.txt and 
@@ -387,34 +365,6 @@ function getFlag(flagAndVariable: string, value: string): string {
     return flag;
 }
 
-<<<<<<< HEAD
-=======
-/**
- * Helper function that returns the version of DxCore installed. May not be fail-proof: uses
- * the most recent name of the folder in the DxCore/hardware/megaavr to determine the version.
- * 
- * @returns string with version of DxCore (ex. "1.5.11")
- */
-export function getDXCoreVersion(): string {
-    let result = '';
-    const localAppData = getLocalArduinoPath();
-    const versionFilePath = path.join(localAppData, "packages", "DxCore","hardware","megaavr");
-    const directories = fs.readdirSync(versionFilePath, { withFileTypes: true });
-	const subdirectories = directories.filter((dirent) => dirent.isDirectory());
-	const mostRecentDirectory = subdirectories.reduce((prev, current) => {
-	    const prevPath = `${path}/${prev.name}`;
-	    const currentPath = `${path}/${current.name}`;
-
-	    const prevStat = fs.statSync(prevPath);
-	    const currentStat = fs.statSync(currentPath);
-
-	    return prevStat.mtimeMs > currentStat.mtimeMs ? prev : current;
-	});
-	return mostRecentDirectory.name;
-}
-
-
->>>>>>> dev
 export function getOverrideFlags(destinationDirectory: string, board: Board) {
     let filepath = path.join(destinationDirectory, "flag_override.txt");
 
