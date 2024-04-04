@@ -365,73 +365,6 @@ function getFlag(flagAndVariable: string, value: string): string {
     return flag;
 }
 
-export function getOverrideFlags(destinationDirectory: string, board: Board) {
-    let filepath = path.join(destinationDirectory, "flag_override.txt");
-
-    if(fs.existsSync(filepath)) {
-        let platformData = '';
-        try {
-            platformData = fs.readFileSync(filepath, 'utf8');
-        } catch (err) {
-            console.error('Error reading file:', err);
-        }
-
-        console.log("Parsing override flags");
-
-        if (platformData) {
-            const lines = platformData.split('\n');
-            lines.forEach(line => {
-                const splitIndex = line.indexOf('=');
-                let flagsRead = '';
-
-                if(splitIndex == -1) {
-                    console.log("No arguments");
-                }
-
-                flagsRead = line.slice(splitIndex+1, line.length);
-
-                if(flagsRead === '' || flagsRead === ' ') {
-                    console.log('No flag found in flag_override.txt');
-                } else {
-                    if(line.includes("REPLACE")) {
-                        let replacements = flagsRead.split(" ");
-                        for(let i = 0; i < replacements.length; i++) {
-                            if(replacements[i].includes(":")) {
-                                let separated = replacements[i].split(":");
-
-                                // console.log("original: " + separated[0] + " Replacement: " + separated[1]);
-                                
-                                if(line.includes("CXX")) {
-                                    board.replaceCXXFlag(separated[0],separated[1]);
-                                } else if(line.includes("LINKER")) {
-                                    board.replaceLinkerFlag(separated[0],separated[1]);
-                                } else {
-                                    board.replaceCFlag(separated[0],separated[1]);
-                                }
-                            }                            
-                        }
-
-                    } else if(line.includes("ADDITIONAL")) {
-
-                        if(line.includes("CXX")) 
-                            board.addCXXFlag(flagsRead);
-                        else if(line.includes("LINKER")) 
-                            board.addLinkerFlags(flagsRead);
-                        else   
-                            board.addCFlags(flagsRead);
-                    }
-
-                }
-            });
-        }
-    } else  {
-
-    }
-}
-
-
-
-
 /*******************************************************OTHER GETTERS***********************************************************888*/
 
 /**
@@ -452,37 +385,6 @@ export function getDXCoreVersion(): string {
 	}
     const versionFilePath = path.join(localAppData, "packages", "DxCore","hardware","megaavr");
     const directories = fs.readdirSync(versionFilePath, { withFileTypes: true });
-	const subdirectories = directories.filter((dirent) => dirent.isDirectory());
-	const mostRecentDirectory = subdirectories.reduce((prev, current) => {
-	    const prevPath = `${path}/${prev.name}`;
-	    const currentPath = `${path}/${current.name}`;
-
-	    const prevStat = fs.statSync(prevPath);
-	    const currentStat = fs.statSync(currentPath);
-
-	    return prevStat.mtimeMs > currentStat.mtimeMs ? prev : current;
-	});
-	return mostRecentDirectory.name;
-}
-
-/**
- * Helper function that returns the version of Nano installed. May not be fail-proof: uses
- * the most recent name of the folder in the arduino/hardware/avr to determine the version.
- * 
- * @returns string with version of avr (ex. "1.8.6")
- */
-export function getNanoVersion(): string {
-    let result = '';
-    var localAppData = "";
-	if(process.platform === "win32") {
-		localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15");
-	} else if(process.platform === "darwin") {
-		localAppData = path.join(process.env.HOME!, "Library", "Arduino15");
-	} else if(process.platform === "linux") {
-		localAppData = path.join(process.env.HOME!, ".arduino15");
-	}
-	const versionFilePath = path.join(localAppData, "packages", "arduino","hardware","avr");
-	const directories = fs.readdirSync(versionFilePath, { withFileTypes: true });
 	const subdirectories = directories.filter((dirent) => dirent.isDirectory());
 	const mostRecentDirectory = subdirectories.reduce((prev, current) => {
 	    const prevPath = `${path}/${prev.name}`;
