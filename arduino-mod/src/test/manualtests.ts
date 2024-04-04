@@ -24,7 +24,7 @@ export class manualtesting {
 		// create tmp directory to use as test project import destination
 		const testDest = fs.mkdtempSync(path.join(tmpdir(), 'arduinoimportmoduletests-'))
 		vscode.window.showInformationMessage("Testing blink with DxCore.")
-		extension.startImport(path.join(extensionTestsPath, "Blink.ino"), testDest, new boards.Board("DxCore"), false, "AVR64DD32", 'default', "Disabled")
+		extension.startImport(path.join(extensionTestsPath, "Blink.ino"), testDest, new boards.Board("DxCore", "AVR64DD32", 'default', "Disabled"), false, "AVR64DD32", 'default', "Disabled")
 	}
 
 }
