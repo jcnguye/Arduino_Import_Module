@@ -3,6 +3,11 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { Board } from './board';
 
+
+/**
+ * This class configures and writes the CMakeLists.txt file to build
+ * an arduino project using the Arduino IDE's compiler with cmake.
+ */
 export class Cmaker {
 	public projDir: string;
 	public projName: string;
@@ -15,6 +20,12 @@ export class Cmaker {
 	private debugOptimizeFlag: string = "-Og -g2";
 	private codeSizeOptimizeFlag: string = "-Os";
 	
+	/**
+	 * Constructs a CMaker.
+	 *
+	 * @param board The board to configure CMake for,
+	 * @debuggingOptimization Whether or not to enable debugging optimization
+	 */
 	constructor(board: Board, debuggingOptimization: boolean){
 		this.projDir = "";
 		this.projName = "";
@@ -23,19 +34,27 @@ export class Cmaker {
 		this.board = board; 
 		this.debuggingOptimization = debuggingOptimization;
 	}
+	
 	public setProjectDirectory(projectDirectory:string){
 		this.projDir = projectDirectory;
 	}
+	
 	public setProjectName(projectName:string){
 		this.projName = projectName;
 	}
+	
 	public setSourceName(sourceFileName:string){
 		this.srcFileName = sourceFileName;
 	}
+	
 	public setIncludeUtilitiesDir(includeUtilitiesDir:boolean){
 		this.includeUtilitiesDir = includeUtilitiesDir;
 	}
 	
+	/**
+	 * Resets all project directory contents related to CMake. Does not remove compiled files.
+	 *
+	 */
 	public resetCmake(): void {
 		if (fs.existsSync(this.projDir + "/CMakeLists.txt")) {
 			fs.unlinkSync(this.projDir + "/CMakeLists.txt");
@@ -53,7 +72,11 @@ export class Cmaker {
 			fs.rmSync(this.projDir + "/CMakeFiles", { recursive: true, force: true });
 		}
 	}
-
+	
+	/**
+	 * Creates the CMakeLists.txt file within the project directory.
+	 *
+	 */
 	public build(): void{
 		// reset all cmake files before creating the new file
 		this.resetCmake();
@@ -146,23 +169,5 @@ export class Cmaker {
 
 	}
 }
-
-
-/*
-
-Listing out the order cmake needs to run things in:
-
- - (other stuff)
- Archiver:
- - Archive all libraries to the core.a file
- Linker:
- - create .elf file, linking to core.a (already happens during the linker command)
- - create bin
- - create eeprom
- - create hex (addHexBuilder)
- - lst
- - map
-*/
-
 
 export default Cmaker;

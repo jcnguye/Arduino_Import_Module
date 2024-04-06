@@ -387,6 +387,13 @@ function getFlag(flagAndVariable: string, value: string): string {
     return flag;
 }
 
+/**
+ * Gets all the override flags from flag_override.txt located in
+ * the project directory
+ * 
+ * @param destinationDirectory The project directory
+ * @param board The board that the project is being configured for
+ */
 export function getOverrideFlags(destinationDirectory: string, board: Board) {
     let filepath = path.join(destinationDirectory, "flag_override.txt");
 

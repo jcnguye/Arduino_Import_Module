@@ -69,10 +69,10 @@ function shellCopy(from: string, to: string) {
 
 /************************************************COPY DIRECTORIES*********************************************************************/
 
-/** Recursively copies a directory to a specified location
+/** Recursively copies all directories to a specified location
  * 
- * @param src The directory to copy
- * @param dest The destination location
+ * @param srcPaths An array of directories to copy
+ * @param dest The destination directory
  */
 export function copyDirectories(srcPaths: string[], dest: string): void {
 	// Create destination directory if it doesn't exist
@@ -86,6 +86,12 @@ export function copyDirectories(srcPaths: string[], dest: string): void {
 	}
 }
 
+/**
+ * Recursively copies a directory to a specified location
+ *
+ * @param src The directory to copy
+ * @param dest The destination location
+ */
 export function copyDirectory(src: string, dest: string): void {
 	// Create destination directory if it doesn't exist
 	if (!fs.existsSync(dest)) {
@@ -110,7 +116,7 @@ export function copyDirectory(src: string, dest: string): void {
 }
 
 
-/** Recursively copies a directory to each specified location
+/** Recursively copies each directory to each specified location
  * 
  * @param src[..][0] The source directory
  * @param src[..][1] The destination directory
