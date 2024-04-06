@@ -60,3 +60,15 @@ export const CMAKE = {
     ELF_BUILD_PATH: '.elf ${CMAKE_CURRENT_SOURCE_DIR}/build/CMakeFiles/',
     ELF_CORE: '.elf PRIVATE core)\n\n'
 }
+
+export const RECIPE = {
+    C_COMBINE: 'recipe.c.combine.pattern',
+    CPP_PATTERN: 'recipe.cpp.o.pattern',
+    C_PATTERN: 'recipe.c.o.pattern',
+
+    FNO_ORIG_C: '-fno-fat-lto-objects',
+    FNO_ORIG_CPP: '-flto',
+    FNO_REPLACE_CPP: '-flto -fno-fat-lto-objects -ffat-lto-objects',
+    FNO_REPLACE_C: '-fno-fat-lto-objects -ffat-lto-objects'
+}
+    
