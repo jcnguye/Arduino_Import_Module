@@ -67,7 +67,7 @@ export class Cmaker {
 		cmakeHeader = cmakeHeader + CMAKE.SET_CXX_COMPILER + path.join(binPath, CMAKE.CXX_COMPILER).replace(/\\/g, '/') +')\n';
 		cmakeHeader = cmakeHeader + CMAKE.SET_SYSTEM;
 
-		cmakeHeader = cmakeHeader + 'project(' + this.projName + ' C CXX)\n\n';
+		cmakeHeader = cmakeHeader + CMAKE.PROJECT + this.projName + CMAKE.PROJECT_LANGUAGES;
 
 		cmakeHeader = cmakeHeader + CMAKE.SET_CORE_DIR;
 		cmakeHeader = cmakeHeader + CMAKE.SET_LIB_DIR;
@@ -87,15 +87,15 @@ export class Cmaker {
 		cmakeHeader = cmakeHeader + CMAKE.SET_C_FLAGS + cFlags + '")\n';
 
 		cmakeHeader = cmakeHeader + CMAKE.SET_STATIC_LIBRARY_FLAGS
-		cmakeHeader = cmakeHeader + CMAKE.SET_C_LINKER_FLAGS + this.board.getCFlagsLinker() +  '${CMAKE_CURRENT_SOURCE_DIR}/build/CMakeFiles/' + this.projName + '.dir/' + this.projName + 
-		'.elf ${CMAKE_CURRENT_SOURCE_DIR}/build/CMakeFiles/' + this.projName + '.dir/' + this.projName + '.cpp.o ${CMAKE_CURRENT_SOURCE_DIR}/build/libcore.a -L${CMAKE_CURRENT_SOURCE_DIR}/build -lm")\n\n';
+		cmakeHeader = cmakeHeader + CMAKE.SET_C_LINKER_FLAGS + this.board.getCFlagsLinker() +  CMAKE.CMAKE_FILES_PATH + this.projName + '.dir/' + this.projName + 
+		CMAKE.ELF_BUILD_PATH + this.projName + '.dir/' + this.projName + CMAKE.LIB_CORE_PATH;
 
 		// map file generator
-		cmakeHeader = cmakeHeader + 'set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Map=${CMAKE_BINARY_DIR}/output/'+ this.projName +'.map")\n';
+		cmakeHeader = cmakeHeader + CMAKE.MAP_GEN + this.projName +'.map")\n';
 
 		//cmake  adding executable 
-		let cmakeSrcExecutable = "add_executable(" + this.projName + '.elf ' + this.srcFileName +")\n";
-		cmakeSrcExecutable = cmakeSrcExecutable + 'set_target_properties(' + this.projName + '.elf PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output)\n';
+		let cmakeSrcExecutable = CMAKE.ADD_EXECUTABLE + this.projName + '.elf ' + this.srcFileName +")\n";
+		cmakeSrcExecutable = cmakeSrcExecutable + CMAKE.SET_TARGET_PROPERTIES + this.projName + CMAKE.ELF_PROP;
 		
 		let cmakeDir = "";
 
@@ -108,22 +108,22 @@ export class Cmaker {
 		}
 		
 		
-		cmakeDir = cmakeDir + 'file(GLOB CORE_SOURCES "${CORE_DIR}/*.cpp" "${CORE_DIR}/*.c")\n';
-		cmakeDir = cmakeDir + 'file(GLOB LIB_SOURCES "${LIB_DIR}/*.cpp" "${LIB_DIR}/*.c")\n';
+		cmakeDir = cmakeDir + CMAKE.CORE_SRC;
+		cmakeDir = cmakeDir + CMAKE.LIB_SRC;
 
 		if (this.includeUtilitiesDir) {
-			cmakeDir = cmakeDir + 'set(UTIL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/core/utility)\n';
-			cmakeDir = cmakeDir + 'file(GLOB UTIL_SOURCES "${UTIL_DIR}/*.cpp" "${UTIL_DIR}/*.c")\n';
-			cmakeDir = cmakeDir + 'add_library(core STATIC ${CORE_SOURCES} ${LIB_SOURCES} ${UTIL_SOURCES})\n'; 
+			cmakeDir = cmakeDir + CMAKE.UTIL_DIR;
+			cmakeDir = cmakeDir + CMAKE.UTIL_SRC;
+			cmakeDir = cmakeDir + CMAKE.ADD_LIB_UTIL; 
 		} else {
-			cmakeDir = cmakeDir + 'add_library(core STATIC ${CORE_SOURCES} ${LIB_SOURCES})\n'; 
+			cmakeDir = cmakeDir + CMAKE.ADD_LIB; 
 		}	
-		cmakeDir = cmakeDir + 'target_link_libraries(' +  this.projName + '.elf PRIVATE core)\n\n';
+		cmakeDir = cmakeDir + CMAKE.TARGET_LINK_LIBRARIES +  this.projName + CMAKE.ELF_CORE;
 		
 		// hex file generator
-		let hex = 'set(HEX_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/output/' + this.projName + '.hex")\n';
-		hex = hex + 'add_custom_command(TARGET ' + this.projName + '.elf POST_BUILD COMMAND ${CMAKE_OBJCOPY} -O ihex $<TARGET_FILE:' + this.projName + '.elf> ${HEX_FILE_OUTPUT_PATH} COMMENT "Generating HEX file")\n';
-		hex = hex + '\n\nadd_custom_target(GenerateHex ALL DEPENDS ${HEX_FILE_OUTPUT_PATH} COMMENT "Building HEX file")\n';
+		let hex = CMAKE.HEX_PATH + this.projName + '.hex")\n';
+		hex = hex + CMAKE.CUSTOM_TARGET + this.projName + CMAKE.ELF_POST_BUILD + this.projName + CMAKE.ELF_GEN;
+		hex = hex + CMAKE.HEX_GEN;
 
 		// set .elf and .map to go to output folder
 		let elf = CMAKE.ELF_DIR + this.projName + '.elf")\n';
@@ -132,8 +132,8 @@ export class Cmaker {
 		
 		// generate lst file
 		let lst = CMAKE.LST_DIR+ this.projName + '.lst")\n';
-		lst = lst + 'add_custom_command(TARGET ' + this.projName + '.elf POST_BUILD COMMAND ${CMAKE_OBJDUMP} --disassemble --source --line-numbers --demangle --section=.text $<TARGET_FILE:' + this.projName + '.elf> > ${LST_FILE_OUTPUT_PATH} COMMENT "Generating LST file")\n';
-		lst = lst + 'add_custom_target(GenerateLst ALL DEPENDS ${LST_FILE_OUTPUT_PATH} COMMENT "Building LST file")\n';
+		lst = lst + CMAKE.CUSTOM_TARGET + this.projName + CMAKE.ELF_POST_BUILD_COMMAND + this.projName + CMAKE.ELF_COMMENT;
+		lst = lst + CMAKE.GEN_LST;
 		
 		
 		
