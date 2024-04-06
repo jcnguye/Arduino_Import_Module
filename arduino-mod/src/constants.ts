@@ -30,6 +30,7 @@ export const CMAKE = {
     SET_LIB_DIR: 'set(LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)\n\n',
     NANO_INCLUDE: 'include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core" "${CMAKE_CURRENT_SOURCE_DIR}/lib" "${CMAKE_CURRENT_SOURCE_DIR}/core/eightanaloginputs" "${CMAKE_CURRENT_SOURCE_DIR}/core/standard")\n',
     DXCORE_INCLUDE: 'include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core" "${CMAKE_CURRENT_SOURCE_DIR}/core/deprecated" "${CMAKE_CURRENT_SOURCE_DIR}/core/32pin-ddseries")\n',
+    DXCORE_OPTIMIZATION: 'set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)\n',
 
     MAP_GEN: 'set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Map=${CMAKE_BINARY_DIR}/output/',
     ELF_PROP: '.elf PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output)\n',

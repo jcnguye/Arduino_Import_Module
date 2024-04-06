@@ -102,7 +102,9 @@ export class Cmaker {
 		if(this.board.boardName === "Nano") {
 			cmakeDir = CMAKE.NANO_INCLUDE;
 		} else if(this.board.boardName === "DxCore") {
-			cmakeDir = CMAKE.DXCORE_INCLUDE;
+			
+			cmakeDir = CMAKE.DXCORE_OPTIMIZATION;
+			cmakeDir = cmakeDir + CMAKE.DXCORE_INCLUDE;
 		} else {
 			console.error("Board type not defined");
 		}
