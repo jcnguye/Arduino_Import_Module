@@ -305,7 +305,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(arduinoImportCommand);
     const arduinoTesting = vscode.commands.registerCommand("arduino-mod.manualtesting", () => {
-		manualtesting.start()
+		manualtesting.start();
     });
 }
 
@@ -361,9 +361,6 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     cmake.setSourceName('src/' + cFile);
     await parser.getAllFlags(board);
     cmake.setIncludeUtilitiesDir(includeUtilitiesDir);
-
-    //parsing override flags
-    await parser.getOverrideFlags(destDir,board);
 
     //creating Cmakelists.txt
     cmake.build();
