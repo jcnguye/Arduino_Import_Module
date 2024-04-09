@@ -252,6 +252,12 @@ async function copyLibraries(libDirectory: string, coreDirectory:string, sketchF
 
 /************************************************************************************************************************/
 
+/**
+ * Creates a C header file based off the provided source file.
+ *
+ * @param inputFile The source file.
+ * @param outputDir The directory to create the header file in.
+ */
 function createSrcHeader(inputFile: string, outputDir: string) {
     const fileContents = fs.readFileSync(inputFile, 'utf8');
     const functionRegex = /([\n][\w]+\s+[\w:]+\s*\(.*\)\s*(?:const)?)\s*(?:{|\n{)/g;
@@ -272,6 +278,11 @@ function createSrcHeader(inputFile: string, outputDir: string) {
     fs.writeFileSync(headerFilePath, headerContent, 'utf8');
 }
 
+/**
+ * Returns the location of the Arduino15 folder on the user's computer.
+ *
+ * @returns The string path of the folder
+ */
 export function getLocalArduinoPath() :string {
     let result = "";
 	if(process.platform === "win32") {
@@ -299,6 +310,8 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 /**
+ * This function creates the project directory, copies the neccesary files,
+ * and runs CMake to build the sketch.
  * 
  * @param sketchPath The path of the sketch file to copy
  * @param destDir The project directory
