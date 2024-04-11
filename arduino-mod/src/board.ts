@@ -13,13 +13,30 @@ export const DXCORE = "DxCore";
 const dxCoreVariants = ["DA","DB","DD","EA"];
 
 
+/**
+ * Returns an array of board name strings
+ *
+ * @return String array containing all supported board names
+ */
 export function getAllBoards(): string[] {
     const result = [NANO, DXCORE];
     return result;
 }
 
+
 /**
- * Board class that stores hardcoded data for each board
+ * Returns a Board object.
+ *
+ * @param boardName The name of the board (DxCore, Nano) to create
+ * @returns A new Board object.
+ */
+export function getBoard(boardName: string): Board {
+    return new Board(boardName);
+}
+
+/**
+ * Class that holds information about the specified board and generates
+ * the core, library, and compiler paths for the board.
  */
 export class Board {
     boardName: string;
@@ -46,7 +63,16 @@ export class Board {
     private cFlags: string = "";
     private cxxFlags: string = "";
     private cFlagsLinker: string = "";
- 
+    
+    
+	/**
+	 * @param boardName The name of the board
+	 * @param pathToOverrideFlags The file containing flag overrides.
+	 * @param dxChip Optional string containing the DxCore chip variant (ex: "AVR64DD32")
+	 * @param dxPrintOption Optional string to enable other print options on DxCore boards. Possible values are "default", "full", "minimal", and ""
+	 * @param dxMvio Possible values are "Enabled", "Disabled", and ""
+	 *
+	 */
     constructor(boardName: string, pathToOverrideFlags: string, dxChip?: string, dxPrintOption?: string, dxMvio?: string) {
         this.boardName = boardName;
         this.pathToOverrideFlags = pathToOverrideFlags;
@@ -102,6 +128,7 @@ export class Board {
     setPathToHardware(hardwarePath: string) {
         this.pathToHardware = hardwarePath;
     }
+    
     setDxCoreOptions(dxChip: string, dxPrintOption: string, dxMvio?: string) {
         this.dxCoreVariant = dxChip;
         this.dxCorePrint = dxPrintOption;
@@ -116,8 +143,7 @@ export class Board {
             this.dxCoreEnableMvio = dxMvio;
         }
     }
-
-
+	
     getCFlags(): string {
         return this.cFlags;
     }
@@ -145,7 +171,13 @@ export class Board {
     setCXXFlags(cxxFlags: string): void{
         this.cxxFlags = cxxFlags;
     }
-
+	
+	
+	/**
+	 * Configures this board object with the correct paths based off the provided argument.
+	 * 
+	 * @param localArduinoPath The string location of the Arduino15 in the user's home directory.
+	 */
     nanoBuild(localArduinoPath:string): void { 
              
         if (localArduinoPath) {
@@ -187,8 +219,13 @@ export class Board {
         }
 
     }
-
-    dxcoreBuild(localArduinoPath:string): void{
+	
+	/**
+	 * Configures this board object with the correct paths based off the provided argument.
+	 * 
+	 * @param localArduinoPath The string location of the Arduino15 in the user's home directory.
+	 */
+    dxcoreBuild(localArduinoPath:string): void {
         // this.setFlag("-DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L") ;
         this.chipName = "avrdd";
         
@@ -292,14 +329,13 @@ export class Board {
 
         return overrideFlags;
     }
-
-
-/**
- * Helper function to determine which directory inside a given directory is the most recent
- * based on the modified stamp
- * @param dirPath Path to the directory that should be investigated
- * @returns The name of the directory inside dirPath that was most recently updated
- */
+	
+    /**
+	 * Helper function to determine which directory inside a given directory is the most recent
+	 * based on the modified stamp
+	 * @param dirPath Path to the directory that should be investigated
+	 * @returns The name of the directory inside dirPath that was most recently updated
+	 */
     mostRecentDirectory(dirPath: string) {
         const directories = fs.readdirSync(dirPath, { withFileTypes: true });
         const subdirectories = directories.filter((dirent) => dirent.isDirectory());
