@@ -46,4 +46,12 @@ CXX_REPLACE=-originalFlag:-replacementFlag -originalFlag2:-originalFlag2
 
 Notice the use of dashes(-) in both lines.
 
+## Extension download instruction 
+1. Download the .vsix file
+2. Navigate to extension panel 
+3. Under go to "Views and more action" click install VSIX
+4. Navigate to the .vsix file and install
+
+
+
 
