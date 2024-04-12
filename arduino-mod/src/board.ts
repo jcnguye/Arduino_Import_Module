@@ -232,9 +232,9 @@ export class Board {
         
         if (localArduinoPath) {
             //check if flag_override.txt exists
-            const fullPath = path.join(__dirname, "flag_override.txt");
+            const fullPath = path.join(path.resolve(__dirname, '..'), "flag_override.txt");
             try {
-                fs.accessSync(path.resolve(fullPath, '..'), fs.constants.F_OK);
+                fs.accessSync(fullPath, fs.constants.F_OK);
             } catch (err) {
                 vscode.window.showInformationMessage(`File flag_override.txt does not exist in the directory.`);
                 throw new Error(`File flag_override.txt does not exist in the directory.`);
