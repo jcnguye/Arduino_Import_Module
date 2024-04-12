@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import {FlagParser} from './flagParser';
 import { getLocalArduinoPath } from './extension';
+import {RECIPE} from './constants';
 
 export const UNO = "UNO"; //none 
 export const NANO = "Nano"; //ATmega328P or ATmega328P (Old Bootloader) 
@@ -204,18 +205,18 @@ export class Board {
 	        hardcodedFlags.set('includes','');
 	        hardcodedFlags.set('runtime.ide.version','10607');
 
-            this.flagParser = new FlagParser('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.flagParser = new FlagParser(RECIPE.C_COMBINE, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
             this.cFlagsLinker = this.flagParser.obtainFlags();
-            this.flagParser = new FlagParser('recipe.cpp.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.flagParser = new FlagParser(RECIPE.CPP_PATTERN, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
             this.cxxFlags = this.flagParser.obtainFlags();
-            this.flagParser = new FlagParser('recipe.c.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.flagParser = new FlagParser(RECIPE.C_PATTERN, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
             this.cFlags = this.flagParser.obtainFlags();
 
             // modify flags so they work with cmake
             this.cFlags = this.cFlags.replace('-c ', '');
-            this.cFlags = this.cFlags.replace('-fno-fat-lto-objects','-fno-fat-lto-objects -ffat-lto-objects');
+            this.cFlags = this.cFlags.replace(RECIPE.FNO_ORIG_C,RECIPE.FNO_REPLACE_C);
             this.cxxFlags = this.cxxFlags.replace('-c ', '');
-            this.cxxFlags = this.cxxFlags.replace('-flto','-flto -fno-fat-lto-objects -ffat-lto-objects');       
+            this.cxxFlags = this.cxxFlags.replace(RECIPE.FNO_ORIG_CPP,RECIPE.FNO_REPLACE_CPP);       
         }
 
     }
@@ -267,9 +268,9 @@ export class Board {
             hardcodedFlags.set('version',dxCoreVersion);
             
 
-            this.flagParser = new FlagParser('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
-            let Cflag = new FlagParser('recipe.c.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
-            let CXXflag = new FlagParser('recipe.cpp.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.flagParser = new FlagParser(RECIPE.C_COMBINE, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            let Cflag = new FlagParser(RECIPE.C_PATTERN, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            let CXXflag = new FlagParser(RECIPE.CPP_PATTERN, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
           
             this.cFlagsLinker = this.flagParser.obtainFlags();
 

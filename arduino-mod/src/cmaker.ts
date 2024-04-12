@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { Board } from './board';
+import {CMAKE} from './constants';
 
 
 /**
@@ -82,21 +83,21 @@ export class Cmaker {
 		this.resetCmake();
 		
 		//sets the cmake version
-		let cmakeHeader = "cmake_minimum_required(VERSION 3.28)\n";
+		let cmakeHeader = CMAKE.VERSION;
 		
 		const binPath = path.join(this.board.getPathToCompiler(), "bin");
-		cmakeHeader = cmakeHeader + 'set(CMAKE_C_COMPILER ' + path.join(binPath, "avr-gcc.exe").replace(/\\/g, '/') + ')\n';
-		cmakeHeader = cmakeHeader + 'set(CMAKE_CXX_COMPILER ' + path.join(binPath, "avr-g++.exe").replace(/\\/g, '/') +')\n';
-		cmakeHeader = cmakeHeader + 'set(CMAKE_SYSTEM_NAME Generic)\n\n';
+		cmakeHeader = cmakeHeader + CMAKE.SET_C_COMPILER + path.join(binPath, CMAKE.C_COMPILER).replace(/\\/g, '/') + ')\n';
+		cmakeHeader = cmakeHeader + CMAKE.SET_CXX_COMPILER + path.join(binPath, CMAKE.CXX_COMPILER).replace(/\\/g, '/') +')\n';
+		cmakeHeader = cmakeHeader + CMAKE.SET_SYSTEM;
 
-		cmakeHeader = cmakeHeader + 'project(' + this.projName + ' C CXX)\n\n';
+		cmakeHeader = cmakeHeader + CMAKE.PROJECT + this.projName + CMAKE.PROJECT_LANGUAGES;
 
-		cmakeHeader = cmakeHeader + 'set(CORE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/core)\n';
-		cmakeHeader = cmakeHeader + 'set(LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)\n\n';
+		cmakeHeader = cmakeHeader + CMAKE.SET_CORE_DIR;
+		cmakeHeader = cmakeHeader + CMAKE.SET_LIB_DIR;
 		
-		cmakeHeader = cmakeHeader + 'set(CMAKE_AR ' + path.join(binPath, "avr-gcc-ar.exe").replace(/\\/g, '/') +')\n';
-		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJCOPY ' + path.join(binPath, "avr-objcopy.exe").replace(/\\/g, '/') +')\n\n';
-		cmakeHeader = cmakeHeader + 'set(CMAKE_OBJDUMP ' + path.join(binPath, "avr-objdump.exe").replace(/\\/g, '/') +')\n\n';
+		cmakeHeader = cmakeHeader + CMAKE.SET_AR + path.join(binPath, CMAKE.AVR).replace(/\\/g, '/') +')\n';
+		cmakeHeader = cmakeHeader + CMAKE.SET_OBJ_COPY + path.join(binPath, CMAKE.OBJ_COPY).replace(/\\/g, '/') +')\n\n';
+		cmakeHeader = cmakeHeader + CMAKE.SET_OBJ_DUMP + path.join(binPath, CMAKE.OBJ_DUMP).replace(/\\/g, '/') +')\n\n';
 
 		let cFlags = this.board.getCFlags();
 		let cxxFlags = this.board.getCXXFlags();
@@ -105,58 +106,59 @@ export class Cmaker {
 			cxxFlags = cxxFlags.replace(this.codeSizeOptimizeFlag, this.debugOptimizeFlag);
 			cFlags = cFlags.replace(this.codeSizeOptimizeFlag, this.debugOptimizeFlag);
 		}
-		cmakeHeader = cmakeHeader + 'set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ' + cxxFlags + '")\n';
-		cmakeHeader = cmakeHeader + 'set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ' + cFlags + '")\n';
+		cmakeHeader = cmakeHeader +  CMAKE.SET_CXX_FLAGS + cxxFlags + '")\n';
+		cmakeHeader = cmakeHeader + CMAKE.SET_C_FLAGS + cFlags + '")\n';
 
-		cmakeHeader = cmakeHeader + 'set(CMAKE_STATIC_LIBRARY_FLAGS "rcs")\n';
-		cmakeHeader = cmakeHeader + 'set(CMAKE_C_FLAGS_LINKER "${CMAKE_C_FLAGS_LINKER} ' + this.board.getCFlagsLinker() +  '${CMAKE_CURRENT_SOURCE_DIR}/build/CMakeFiles/' + this.projName + '.dir/' + this.projName + 
-		'.elf ${CMAKE_CURRENT_SOURCE_DIR}/build/CMakeFiles/' + this.projName + '.dir/' + this.projName + '.cpp.o ${CMAKE_CURRENT_SOURCE_DIR}/build/libcore.a -L${CMAKE_CURRENT_SOURCE_DIR}/build -lm")\n\n';
+		cmakeHeader = cmakeHeader + CMAKE.SET_STATIC_LIBRARY_FLAGS
+		cmakeHeader = cmakeHeader + CMAKE.SET_C_LINKER_FLAGS + this.board.getCFlagsLinker() +  CMAKE.CMAKE_FILES_PATH + this.projName + '.dir/' + this.projName + 
+		CMAKE.ELF_BUILD_PATH + this.projName + '.dir/' + this.projName + CMAKE.LIB_CORE_PATH;
 
 		// map file generator
-		cmakeHeader = cmakeHeader + 'set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Map=${CMAKE_BINARY_DIR}/output/'+ this.projName +'.map")\n';
+		cmakeHeader = cmakeHeader + CMAKE.MAP_GEN + this.projName +'.map")\n';
 
 		//cmake  adding executable 
-		let cmakeSrcExecutable = "add_executable(" + this.projName + '.elf ' + this.srcFileName +")\n";
-		cmakeSrcExecutable = cmakeSrcExecutable + 'set_target_properties(' + this.projName + '.elf PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output)\n';
+		let cmakeSrcExecutable = CMAKE.ADD_EXECUTABLE + this.projName + '.elf ' + this.srcFileName +")\n";
+		cmakeSrcExecutable = cmakeSrcExecutable + CMAKE.SET_TARGET_PROPERTIES + this.projName + CMAKE.ELF_PROP;
 		
 		let cmakeDir = "";
 
 		if(this.board.boardName === "Nano") {
-			cmakeDir = 'include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core" "${CMAKE_CURRENT_SOURCE_DIR}/lib" "${CMAKE_CURRENT_SOURCE_DIR}/core/eightanaloginputs" "${CMAKE_CURRENT_SOURCE_DIR}/core/standard")\n';
+			cmakeDir = CMAKE.NANO_INCLUDE;
 		} else if(this.board.boardName === "DxCore") {
-			cmakeDir = 'set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)\n';
-			cmakeDir = cmakeDir + 'include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core" "${CMAKE_CURRENT_SOURCE_DIR}/lib")\n';
+			
+			cmakeDir = CMAKE.DXCORE_OPTIMIZATION;
+			cmakeDir = cmakeDir + CMAKE.DXCORE_INCLUDE;
 		} else {
 			console.error("Board type not defined");
 		}
 		
 		
-		cmakeDir = cmakeDir + 'file(GLOB CORE_SOURCES "${CORE_DIR}/*.cpp" "${CORE_DIR}/*.c")\n';
-		cmakeDir = cmakeDir + 'file(GLOB LIB_SOURCES "${LIB_DIR}/*.cpp" "${LIB_DIR}/*.c")\n';
+		cmakeDir = cmakeDir + CMAKE.CORE_SRC;
+		cmakeDir = cmakeDir + CMAKE.LIB_SRC;
 
 		if (this.includeUtilitiesDir) {
-			cmakeDir = cmakeDir + 'set(UTIL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/core/utility)\n';
-			cmakeDir = cmakeDir + 'file(GLOB UTIL_SOURCES "${UTIL_DIR}/*.cpp" "${UTIL_DIR}/*.c")\n';
-			cmakeDir = cmakeDir + 'add_library(core STATIC ${CORE_SOURCES} ${LIB_SOURCES} ${UTIL_SOURCES})\n'; 
+			cmakeDir = cmakeDir + CMAKE.UTIL_DIR;
+			cmakeDir = cmakeDir + CMAKE.UTIL_SRC;
+			cmakeDir = cmakeDir + CMAKE.ADD_LIB_UTIL; 
 		} else {
-			cmakeDir = cmakeDir + 'add_library(core STATIC ${CORE_SOURCES} ${LIB_SOURCES})\n'; 
+			cmakeDir = cmakeDir + CMAKE.ADD_LIB; 
 		}	
-		cmakeDir = cmakeDir + 'target_link_libraries(' +  this.projName + '.elf PRIVATE core)\n\n';
+		cmakeDir = cmakeDir + CMAKE.TARGET_LINK_LIBRARIES +  this.projName + CMAKE.ELF_CORE;
 		
 		// hex file generator
-		let hex = 'set(HEX_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/output/' + this.projName + '.hex")\n';
-		hex = hex + 'add_custom_command(TARGET ' + this.projName + '.elf POST_BUILD COMMAND ${CMAKE_OBJCOPY} -O ihex $<TARGET_FILE:' + this.projName + '.elf> ${HEX_FILE_OUTPUT_PATH} COMMENT "Generating HEX file")\n';
-		hex = hex + '\n\nadd_custom_target(GenerateHex ALL DEPENDS ${HEX_FILE_OUTPUT_PATH} COMMENT "Building HEX file")\n';
+		let hex = CMAKE.HEX_PATH + this.projName + '.hex")\n';
+		hex = hex + CMAKE.CUSTOM_TARGET + this.projName + CMAKE.ELF_POST_BUILD + this.projName + CMAKE.ELF_GEN;
+		hex = hex + CMAKE.HEX_GEN;
 
 		// set .elf and .map to go to output folder
-		let elf = 'set(ELF_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/output/' + this.projName + '.elf")\n';
-		let map = 'set(MAP_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/output/' + this.projName + '.map")\n';
+		let elf = CMAKE.ELF_DIR + this.projName + '.elf")\n';
+		let map = CMAKE.MAP_DIR + this.projName + '.map")\n';
 		
 		
 		// generate lst file
-		let lst = 'set(LST_FILE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/output/' + this.projName + '.lst")\n';
-		lst = lst + 'add_custom_command(TARGET ' + this.projName + '.elf POST_BUILD COMMAND ${CMAKE_OBJDUMP} --disassemble --source --line-numbers --demangle --section=.text $<TARGET_FILE:' + this.projName + '.elf> > ${LST_FILE_OUTPUT_PATH} COMMENT "Generating LST file")\n';
-		lst = lst + 'add_custom_target(GenerateLst ALL DEPENDS ${LST_FILE_OUTPUT_PATH} COMMENT "Building LST file")\n';
+		let lst = CMAKE.LST_DIR+ this.projName + '.lst")\n';
+		lst = lst + CMAKE.CUSTOM_TARGET + this.projName + CMAKE.ELF_POST_BUILD_COMMAND + this.projName + CMAKE.ELF_COMMENT;
+		lst = lst + CMAKE.GEN_LST;
 		
 		
 		
@@ -165,7 +167,7 @@ export class Cmaker {
 		if(process.platform !== "win32") {
 			output = output.replace(/\.exe/g, "");
 		}
-		fs.writeFileSync(this.projDir + "/CMakeLists.txt", output);
+		fs.writeFileSync(this.projDir + CMAKE.FILE_NAME, output);
 
 	}
 }
