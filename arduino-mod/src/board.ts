@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import {FlagParser} from './flagParser';
 import { getLocalArduinoPath } from './extension';
+import {RECIPE} from './constants';
 
 export const UNO = "UNO"; //none 
 export const NANO = "Nano"; //ATmega328P or ATmega328P (Old Bootloader) 
@@ -13,13 +14,30 @@ export const DXCORE = "DxCore";
 const dxCoreVariants = ["DA","DB","DD","EA"];
 
 
+/**
+ * Returns an array of board name strings
+ *
+ * @return String array containing all supported board names
+ */
 export function getAllBoards(): string[] {
     const result = [NANO, DXCORE];
     return result;
 }
 
+
 /**
- * Board class that stores hardcoded data for each board
+ * Returns a Board object.
+ *
+ * @param boardName The name of the board (DxCore, Nano) to create
+ * @returns A new Board object.
+ */
+export function getBoard(boardName: string): Board {
+    return new Board(boardName);
+}
+
+/**
+ * Class that holds information about the specified board and generates
+ * the core, library, and compiler paths for the board.
  */
 export class Board {
     boardName: string;
@@ -46,7 +64,16 @@ export class Board {
     private cFlags: string = "";
     private cxxFlags: string = "";
     private cFlagsLinker: string = "";
- 
+    
+    
+	/**
+	 * @param boardName The name of the board
+	 * @param pathToOverrideFlags The file containing flag overrides.
+	 * @param dxChip Optional string containing the DxCore chip variant (ex: "AVR64DD32")
+	 * @param dxPrintOption Optional string to enable other print options on DxCore boards. Possible values are "default", "full", "minimal", and ""
+	 * @param dxMvio Possible values are "Enabled", "Disabled", and ""
+	 *
+	 */
     constructor(boardName: string, pathToOverrideFlags: string, dxChip?: string, dxPrintOption?: string, dxMvio?: string) {
         this.boardName = boardName;
         this.pathToOverrideFlags = pathToOverrideFlags;
@@ -102,6 +129,7 @@ export class Board {
     setPathToHardware(hardwarePath: string) {
         this.pathToHardware = hardwarePath;
     }
+    
     setDxCoreOptions(dxChip: string, dxPrintOption: string, dxMvio?: string) {
         this.dxCoreVariant = dxChip;
         this.dxCorePrint = dxPrintOption;
@@ -116,8 +144,7 @@ export class Board {
             this.dxCoreEnableMvio = dxMvio;
         }
     }
-
-
+	
     getCFlags(): string {
         return this.cFlags;
     }
@@ -145,7 +172,13 @@ export class Board {
     setCXXFlags(cxxFlags: string): void{
         this.cxxFlags = cxxFlags;
     }
-
+	
+	
+	/**
+	 * Configures this board object with the correct paths based off the provided argument.
+	 * 
+	 * @param localArduinoPath The string location of the Arduino15 in the user's home directory.
+	 */
     nanoBuild(localArduinoPath:string): void { 
              
         if (localArduinoPath) {
@@ -172,23 +205,28 @@ export class Board {
 	        hardcodedFlags.set('includes','');
 	        hardcodedFlags.set('runtime.ide.version','10607');
 
-            this.flagParser = new FlagParser('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.flagParser = new FlagParser(RECIPE.C_COMBINE, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
             this.cFlagsLinker = this.flagParser.obtainFlags();
-            this.flagParser = new FlagParser('recipe.cpp.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.flagParser = new FlagParser(RECIPE.CPP_PATTERN, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
             this.cxxFlags = this.flagParser.obtainFlags();
-            this.flagParser = new FlagParser('recipe.c.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.flagParser = new FlagParser(RECIPE.C_PATTERN, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
             this.cFlags = this.flagParser.obtainFlags();
 
             // modify flags so they work with cmake
             this.cFlags = this.cFlags.replace('-c ', '');
-            this.cFlags = this.cFlags.replace('-fno-fat-lto-objects','-fno-fat-lto-objects -ffat-lto-objects');
+            this.cFlags = this.cFlags.replace(RECIPE.FNO_ORIG_C,RECIPE.FNO_REPLACE_C);
             this.cxxFlags = this.cxxFlags.replace('-c ', '');
-            this.cxxFlags = this.cxxFlags.replace('-flto','-flto -fno-fat-lto-objects -ffat-lto-objects');       
+            this.cxxFlags = this.cxxFlags.replace(RECIPE.FNO_ORIG_CPP,RECIPE.FNO_REPLACE_CPP);       
         }
 
     }
-
-    dxcoreBuild(localArduinoPath:string): void{
+	
+	/**
+	 * Configures this board object with the correct paths based off the provided argument.
+	 * 
+	 * @param localArduinoPath The string location of the Arduino15 in the user's home directory.
+	 */
+    dxcoreBuild(localArduinoPath:string): void {
         // this.setFlag("-DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L") ;
         this.chipName = "avrdd";
         
@@ -230,9 +268,9 @@ export class Board {
             hardcodedFlags.set('version',dxCoreVersion);
             
 
-            this.flagParser = new FlagParser('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
-            let Cflag = new FlagParser('recipe.c.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
-            let CXXflag = new FlagParser('recipe.cpp.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.flagParser = new FlagParser(RECIPE.C_COMBINE, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            let Cflag = new FlagParser(RECIPE.C_PATTERN, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            let CXXflag = new FlagParser(RECIPE.CPP_PATTERN, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
           
             this.cFlagsLinker = this.flagParser.obtainFlags();
 
@@ -292,14 +330,13 @@ export class Board {
 
         return overrideFlags;
     }
-
-
-/**
- * Helper function to determine which directory inside a given directory is the most recent
- * based on the modified stamp
- * @param dirPath Path to the directory that should be investigated
- * @returns The name of the directory inside dirPath that was most recently updated
- */
+	
+    /**
+	 * Helper function to determine which directory inside a given directory is the most recent
+	 * based on the modified stamp
+	 * @param dirPath Path to the directory that should be investigated
+	 * @returns The name of the directory inside dirPath that was most recently updated
+	 */
     mostRecentDirectory(dirPath: string) {
         const directories = fs.readdirSync(dirPath, { withFileTypes: true });
         const subdirectories = directories.filter((dirent) => dirent.isDirectory());

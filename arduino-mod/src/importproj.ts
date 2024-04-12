@@ -27,7 +27,7 @@ export function copyDirectory(src: string, dest: string): void {
 }
 
 
-/** Recursively copies a directory to each specified location
+/** Recursively copies each directory to each specified location
  * 
  * @param src[..][0] The source directory
  * @param src[..][1] The destination directory
