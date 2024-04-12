@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import {FlagParser} from './flagParser';
 import { getLocalArduinoPath } from './extension';
+import {RECIPE} from './constants';
 
 export const UNO = "UNO"; //none 
 export const NANO = "Nano"; //ATmega328P or ATmega328P (Old Bootloader) 
@@ -13,17 +14,30 @@ export const DXCORE = "DxCore";
 const dxCoreVariants = ["DA","DB","DD","EA"];
 
 
+/**
+ * Returns an array of board name strings
+ *
+ * @return String array containing all supported board names
+ */
 export function getAllBoards(): string[] {
     const result = [NANO, DXCORE];
     return result;
 }
 
+
+/**
+ * Returns a Board object.
+ *
+ * @param boardName The name of the board (DxCore, Nano) to create
+ * @returns A new Board object.
+ */
 export function getBoard(boardName: string): Board {
     return new Board(boardName);
 }
 
 /**
- * Board class that stores hardcoded data for each board
+ * Class that holds information about the specified board and generates
+ * the core, library, and compiler paths for the board.
  */
 export class Board {
     boardName: string;
@@ -39,9 +53,10 @@ export class Board {
     private dxCoreSeries: string = "";
     private dxCoreVariant: string = "";
     private dxCorePrint: string = "";
-    private dxCoreEnableMvio: boolean = false;
+    private dxCoreEnableMvio: string = "";
 
     private flagParser: FlagParser | undefined;
+    private pathToOverrideFlags: string = "";
 
     
 
@@ -49,9 +64,19 @@ export class Board {
     private cFlags: string = "";
     private cxxFlags: string = "";
     private cFlagsLinker: string = "";
- 
-    constructor(boardName: string, dxChip?: string, dxPrintOption?: string, dxMvio?: string) {
+    
+    
+	/**
+	 * @param boardName The name of the board
+	 * @param pathToOverrideFlags The file containing flag overrides.
+	 * @param dxChip Optional string containing the DxCore chip variant (ex: "AVR64DD32")
+	 * @param dxPrintOption Optional string to enable other print options on DxCore boards. Possible values are "default", "full", "minimal", and ""
+	 * @param dxMvio Possible values are "Enabled", "Disabled", and ""
+	 *
+	 */
+    constructor(boardName: string, pathToOverrideFlags: string, dxChip?: string, dxPrintOption?: string, dxMvio?: string) {
         this.boardName = boardName;
+        this.pathToOverrideFlags = pathToOverrideFlags;
         
         const localArduinoPath= getLocalArduinoPath();
 
@@ -104,6 +129,7 @@ export class Board {
     setPathToHardware(hardwarePath: string) {
         this.pathToHardware = hardwarePath;
     }
+    
     setDxCoreOptions(dxChip: string, dxPrintOption: string, dxMvio?: string) {
         this.dxCoreVariant = dxChip;
         this.dxCorePrint = dxPrintOption;
@@ -115,11 +141,10 @@ export class Board {
         }
         
         if(dxMvio) {
-            this.dxCoreEnableMvio = (dxMvio === "Enabled");
+            this.dxCoreEnableMvio = dxMvio;
         }
     }
-
-
+	
     getCFlags(): string {
         return this.cFlags;
     }
@@ -147,7 +172,13 @@ export class Board {
     setCXXFlags(cxxFlags: string): void{
         this.cxxFlags = cxxFlags;
     }
-
+	
+	
+	/**
+	 * Configures this board object with the correct paths based off the provided argument.
+	 * 
+	 * @param localArduinoPath The string location of the Arduino15 in the user's home directory.
+	 */
     nanoBuild(localArduinoPath:string): void { 
              
         if (localArduinoPath) {
@@ -169,28 +200,33 @@ export class Board {
             const platformPath = path.join(basepath, 'platform.txt');
 	        const boardPath = path.join(basepath, 'boards.txt');
             const boardOptionsAndName: string[] = ['nano.menu.cpu.atmega328.', 'nano.'];
-            const hardcodedFlags = new Map<string, string>();
+            const hardcodedFlags = this.getOverrideFlags();
 	        hardcodedFlags.set('build.arch','AVR');
 	        hardcodedFlags.set('includes','');
 	        hardcodedFlags.set('runtime.ide.version','10607');
 
-            this.flagParser = new FlagParser('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.flagParser = new FlagParser(RECIPE.C_COMBINE, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
             this.cFlagsLinker = this.flagParser.obtainFlags();
-            this.flagParser = new FlagParser('recipe.cpp.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.flagParser = new FlagParser(RECIPE.CPP_PATTERN, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
             this.cxxFlags = this.flagParser.obtainFlags();
-            this.flagParser = new FlagParser('recipe.c.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.flagParser = new FlagParser(RECIPE.C_PATTERN, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
             this.cFlags = this.flagParser.obtainFlags();
 
             // modify flags so they work with cmake
             this.cFlags = this.cFlags.replace('-c ', '');
-            this.cFlags = this.cFlags.replace('-fno-fat-lto-objects','-fno-fat-lto-objects -ffat-lto-objects');
+            this.cFlags = this.cFlags.replace(RECIPE.FNO_ORIG_C,RECIPE.FNO_REPLACE_C);
             this.cxxFlags = this.cxxFlags.replace('-c ', '');
-            this.cxxFlags = this.cxxFlags.replace('-flto','-flto -fno-fat-lto-objects -ffat-lto-objects');       
+            this.cxxFlags = this.cxxFlags.replace(RECIPE.FNO_ORIG_CPP,RECIPE.FNO_REPLACE_CPP);       
         }
 
     }
-
-    dxcoreBuild(localArduinoPath:string): void{
+	
+	/**
+	 * Configures this board object with the correct paths based off the provided argument.
+	 * 
+	 * @param localArduinoPath The string location of the Arduino15 in the user's home directory.
+	 */
+    dxcoreBuild(localArduinoPath:string): void {
         // this.setFlag("-DARDUINO_ARCH_MEGAAVR -DARDUINO=10607 -Wall -Wextra -DF_CPU=24000000L") ;
         this.chipName = "avrdd";
         
@@ -211,27 +247,30 @@ export class Board {
             
             this.pathToBoardFile = boardPath;
             this.pathToPlatformFile = platformPath;
-            //avrdd.menu.chip.avr64dd32.build.mcu
+            
+            // Add chip & board 
             const boardOptionsAndName: string[] = [this.dxCoreSeries + '.menu.chip.' + this.dxCoreVariant.toLowerCase() + '.', this.dxCoreSeries + '.'];
-            const hardcodedFlags = new Map<string, string>();
+            // Add printf options
+            boardOptionsAndName.push(this.dxCoreSeries + '.menu.printf.' + this.dxCorePrint + '.');   
+            //if mvio options exist, add them
+            if (this.dxCoreEnableMvio) {
+                boardOptionsAndName.push(this.dxCoreSeries + '.menu.mvio.' + this.dxCoreEnableMvio.toLowerCase() + '.');
+            }
+
+
+            
+            const hardcodedFlags = this.getOverrideFlags();
+
 	        hardcodedFlags.set('build.arch','MEGAAVR');
 	        hardcodedFlags.set('includes','');
 	        hardcodedFlags.set('runtime.ide.version','10607');
-            //hardcode flags for c flags
-            hardcodedFlags.set('build.f_cpu','24000000L');
-            //these flags below seems to be user defined from the menu option hard coded for now 
-            hardcodedFlags.set('build.clocksource','0');
-            hardcodedFlags.set('build.wiremode','MORS_SINGLE');
-            hardcodedFlags.set('build.millistimer','B2');
-            hardcodedFlags.set('build.attachmode','-DCORE_ATTACH_ALL');
-            hardcodedFlags.set('build.flmapopts','-DLOCK_FLMAP -DFLMAPSECTION1');
-            hardcodedFlags.set('bootloader.appspm','');
             hardcodedFlags.set('DOWNLOADED_FILE#"v"',dxCoreVersion);
             hardcodedFlags.set('version',dxCoreVersion);
+            
 
-            this.flagParser = new FlagParser('recipe.c.combine.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
-            let Cflag = new FlagParser('recipe.c.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
-            let CXXflag = new FlagParser('recipe.cpp.o.pattern', boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            this.flagParser = new FlagParser(RECIPE.C_COMBINE, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            let Cflag = new FlagParser(RECIPE.C_PATTERN, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
+            let CXXflag = new FlagParser(RECIPE.CPP_PATTERN, boardOptionsAndName, platformPath, boardPath, hardcodedFlags);
           
             this.cFlagsLinker = this.flagParser.obtainFlags();
 
@@ -251,98 +290,53 @@ export class Board {
         }
     }
 
-    /**
-     * Replaces a default CXX flag with a customized flag. If the flag to be replaced
-     * is not found, the replacement string is appended to the end of the cxx
-     * flag string (as long as it's not an empty string).
-     * 
-     * @param original : flag to be replaced
-     * @param replacement : replacement flag
-     */
-    replaceCXXFlag(original: string, replacement: string) {
-        replacement = replacement.trim();
-        let tempChange =  this.cxxFlags.replace(original, replacement);
-
-        if(tempChange !== this.cxxFlags) {
-            this.cxxFlags = tempChange;
-        } else if(replacement !== '') {
-            this.cxxFlags += ' ' + replacement;
+    getOverrideFlags(): Map<string, string>{
+        const overrideFlags = new Map<string, string>();
+        const filepath = path.join(this.pathToOverrideFlags, "flag_override.txt");
+        let overrideData = '';
+        try {
+            overrideData = fs.readFileSync(filepath, 'utf8');
+        } catch (err) {
+            if (err && typeof err === 'object' && 'code' in err) {
+                const error = err as NodeJS.ErrnoException;
+                // If the file is not found, only log an error for the DxCore. flag_override.txt is not 
+                // required for the Nano
+                if (error.code === 'ENOENT') {
+                    if (this.boardName === DXCORE) {
+                        console.error("The file 'flag_override.txt' must exist in the destination directory. Error: ", err);
+                    } 
+                } else {
+                    console.error('File system error:', error.code);
+                }
+            } else {
+                console.error('An unknown error occurred:', err);
+            }           
         }
-    }
 
-    /**
-     * Replaces a default c flag with a customized flag. If the flag to be replaced
-     * is not found, the replacement string is appended to the end of the cxx
-     * flag string (as long as it's not an empty string).
-     * 
-     * @param original : flag to be replaced
-     * @param replacement : replacement flag
-     */
-    replaceCFlag(original: string, replacement: string) {
-        replacement = replacement.trim();
-        
-        let tempChange =  this.cFlags.replace(original, replacement);
-
-        if(tempChange !== this.cFlags) {
-            this.cFlags = tempChange;
-        } else if(replacement !== '') {
-            this.cFlags += " " + replacement;
+        if (overrideData) {
+            const lines = overrideData.split('\n');
+            lines.forEach(line => {
+                if(line.includes('\r')) {
+                    line = line.replace('\r',''); //remove carriage returns if they exist
+                }
+                const index = line.indexOf('=');
+                if (index !== -1) {
+                    const key = line.substring(0, index);
+                    const value = line.substring(index + 1);
+                    overrideFlags.set(key, value);
+                }
+            });
         }
+
+        return overrideFlags;
     }
-
+	
     /**
-     * Replaces a default linker flag with a customized flag. If the flag to be replaced
-     * is not found, the replacement string is appended to the end of the cxx
-     * flag string (as long as it's not an empty string).
-     * 
-     * @param original : flag to be replaced
-     * @param replacement : replacement flag
-     */
-    replaceLinkerFlag(original: string, replacement: string) {
-        replacement = replacement.trim();
-
-        let tempChange = this.cFlagsLinker.replace(original, replacement);
-
-        if(tempChange !== this.cFlagsLinker) {
-            this.cFlagsLinker = tempChange;
-        } else if(replacement !== '') {
-            this.cFlagsLinker += " " + replacement;
-        }
-    }
-
-    /**
-     * Appends inputted flags to cxx flags
-     * @param flags flags to append
-     */
-    addCXXFlag(flags: string) {
-        flags = flags.trim();
-        this.cxxFlags += " " + flags;
-    }
-
-    /**
-     * Appends inputted flags to c flags
-     * @param flags flags to append
-     */
-    addCFlags(flags: string) {
-        flags = flags.trim();
-        this.cFlags += flags;
-    }
-
-    /**
-     * Appends inputted flags to linker flags
-     * @param flags flags to append
-     */
-    addLinkerFlags(flags: string) {
-        flags = flags.trim();
-        this.cFlagsLinker += flags;
-    }
-
-    /**
- * Helper function to determine which directory inside a given directory is the most recent
- * based on the modified stamp
- * @param dirPath Path to the directory that should be investigated
- * @returns The name of the directory inside dirPath that was most recently updated
- */
+	 * Helper function to determine which directory inside a given directory is the most recent
+	 * based on the modified stamp
+	 * @param dirPath Path to the directory that should be investigated
+	 * @returns The name of the directory inside dirPath that was most recently updated
+	 */
     mostRecentDirectory(dirPath: string) {
         const directories = fs.readdirSync(dirPath, { withFileTypes: true });
         const subdirectories = directories.filter((dirent) => dirent.isDirectory());
