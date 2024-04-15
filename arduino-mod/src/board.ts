@@ -32,7 +32,7 @@ export function getAllBoards(): string[] {
  * @returns A new Board object.
  */
 export function getBoard(boardName: string): Board {
-    return new Board(boardName);
+    return new Board(boardName, "");
 }
 
 /**
