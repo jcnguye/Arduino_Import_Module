@@ -13,6 +13,7 @@ import { copyDirectoriesPaired } from './importproj';
 import * as os from 'os';
 import { promisify } from 'util';
 import { manualtesting } from "./test/manualtests";
+import { exec } from 'child_process';
 
 
 /********************************************** INDIVIDUAL FILE METHODS*******************************************************/
@@ -370,6 +371,15 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
     if (!fs.existsSync(outputPath)) {
         fs.mkdirSync(outputPath);
     }
+    try {
+        const output = execSync('cmake --version').toString();
+        const outputarr = output.split(' ');
+        const filterOutput = [outputarr[0], outputarr[1], outputarr[2]].join(' ');
+        vscode.window.showInformationMessage(`CMake version installed: ${filterOutput}` );
+    } catch (error){
+        vscode.window.showInformationMessage('CMake is not installed.');
+    }
+
     vscode.window.showInformationMessage("Import complete! Building project...");
     try {
         execSync('cmake -G "Unix Makefiles" .', {cwd: destDir});
