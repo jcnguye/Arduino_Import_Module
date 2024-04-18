@@ -376,9 +376,7 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
         const outputarr = output.split(' ');
         const filterOutput = [outputarr[0], outputarr[1], outputarr[2]].join(' ');
         vscode.window.showInformationMessage(`CMake version installed: ${filterOutput}` );
-    } catch (error){
-        vscode.window.showInformationMessage('CMake is not installed.');
-    }
+    
 
     vscode.window.showInformationMessage("Import complete! Building project...");
     try {
@@ -396,6 +394,9 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
         console.error(error);
         vscode.window.showInformationMessage("Error opening project directory. See console for more info.");
     }
+        } catch (error){
+    vscode.window.showInformationMessage('CMake is not installed.');
+    }   
 
 }
 
