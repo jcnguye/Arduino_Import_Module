@@ -375,8 +375,10 @@ export async function startImport(sketchPath: string, destDir: string, board: Bo
         execSync('cmake -G "Unix Makefiles" .', {cwd: destDir});
         execSync('make', {cwd: destDir});    
     } catch (error) {
-        console.error('Error:', error);
-        vscode.window.showInformationMessage("Error using CMake. See console for more info.");
+        vscode.window.showErrorMessage("Error using CMake. Check the Output tab to see details.")
+        let errLog = vscode.window.createOutputChannel("CMake Error Log")
+        errLog.appendLine("" + error)
+        errLog.show()
     }
     
     try {
