@@ -56,13 +56,7 @@ Users are advised to be aware of the licensing terms of third-party libraries. A
 5. Press F5 to open a new VSCode instance with the extension running.
 6. Type "> Arduino Import Module" into the search bar at the top of the new VSCode window.
 
-## Contributors
-<a href="https://github.com/jcnguye/Arduino_Import_Module/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=jcnguye/Arduino_Import_Module" />
-</a>
 
-## License
-This extension is licensed under the MIT license. See [LICENSE](LICENSE) for further information.
 
 
 
