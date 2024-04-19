@@ -313,6 +313,7 @@ export class Board {
                 if (error.code === 'ENOENT') {
                     if (this.boardName === DXCORE) {
                         console.error("The file 'flag_override.txt' must exist in the destination directory. Error: ", err);
+                        vscode.window.showInformationMessage("DxCore projects must use flag_override.txt");
                     } 
                 } else {
                     console.error('File system error:', error.code);
