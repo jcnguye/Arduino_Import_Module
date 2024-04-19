@@ -1,71 +1,47 @@
-# arduino-mod README
+# Arduino_Import_Module
 
-This is the README for your extension "arduino-mod". After writing up a brief description, we recommend including the following sections.
+## Overview
+The project involves the design and implementation of a Visual Studio Code plugin module that will scan, analyze and create a CMake based self contained project out of a Arduino Sketch. This CMake project will copy not only the base sketch (.ino) file but all other peripheral and core support libraries. 
 
-## Features
+The plug in will also allow observation and setting of all compiler and linker build flags for the specified C++ tool tail in order to optimize for source level debugging or production level images. After the plug in has created the CMake version of the Arduino project into the target directory so specified the module will then compile the project to the resulting artifact specified by the user, be it a HEX or ELF file.
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+This project is currently only aiming to support the Windows operating system.
 
-For example if there is an image subfolder under your extension project workspace:
 
-\!\[feature X\]\(images/feature-x.png\)
+## Building
+1. Install npm
+2. Run `npm install -g yo generator-code typescript`
+3. Within arduino-mod/, run `tsc --watch`
+4. Open the project in VSCode
+5. Press F5 to open a new VSCode instance with the extension running.
+6. Type "> hello world" into the search bar at the top of the new VSCode window. (this should be changed to an appropriate command for building Arduino projects)
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## Dependencies
 
-## Requirements
+This project requires the following modules:
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
++ vscode
++ fs
++ path
++ readline
 
-## Extension Settings
+## Flag Override
+Flags can be overwritten by placing *flag_override.txt* in the destination directory of the project. The plugin will look for six potenial areas to overwrite:
++ LINKER_REPLACE
++ LINKER_ADDITIONAL
++ CXX_REPLACE
++ CXX_ADDITIONAL
++ C_REPLACE
++ C_ADDITIONAL
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+For additional flags, enter a list of flags separated by a space, e.g.
+```
+LINKER_ADDITIONAL=-flag1 -flag2 -flag3
+```
 
-For example:
+For replacement flags, the original flag should be followed by a colon (:) with the flag it will replace, with a space separating each entry, e.g.
+```
+CXX_REPLACE=-originalFlag:-replacementFlag -originalFlag2:-originalFlag2
+```
 
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Notice the use of dashes(-) in both lines.
