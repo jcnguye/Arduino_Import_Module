@@ -231,6 +231,15 @@ export class Board {
         this.chipName = "avrdd";
         
         if (localArduinoPath) {
+            //check if flag_override.txt exists
+            const fullPath = path.join(path.resolve(__dirname, '..'), "flag_override.txt");
+            try {
+                fs.accessSync(fullPath, fs.constants.F_OK);
+            } catch (err) {
+                vscode.window.showInformationMessage(`File flag_override.txt does not exist in the directory.`);
+                throw new Error(`File flag_override.txt does not exist in the directory.`);
+            }
+
             this.pathToCompiler = path.join(localArduinoPath,"packages","DxCore","tools","avr-gcc");
             const compilerVersion = this.mostRecentDirectory(this.pathToCompiler);
             this.pathToCompiler = path.join(this.pathToCompiler, compilerVersion);
@@ -304,6 +313,7 @@ export class Board {
                 if (error.code === 'ENOENT') {
                     if (this.boardName === DXCORE) {
                         console.error("The file 'flag_override.txt' must exist in the destination directory. Error: ", err);
+                        vscode.window.showInformationMessage("DxCore projects must use flag_override.txt");
                     } 
                 } else {
                     console.error('File system error:', error.code);
