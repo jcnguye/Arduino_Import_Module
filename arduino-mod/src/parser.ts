@@ -2,7 +2,11 @@ import * as vscode from 'vscode';
 import * as readline from 'readline';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Board } from './boardsInfo';
+import { Board } from './board';
+import { getLocalArduinoPath } from './extension';
+
+
+/************************************************PARSING********************************************************************/
 
 /**
  * Parses the platform.txt file and pulls out all the compiler flags
@@ -77,28 +81,6 @@ function parseBoards(filepath: string, boardName: string): Promise<Map<string, s
     });
 }
 
-/**
- * Gets the compiler flags out of the platform.txt file
- */
-export async function getCompileFlags() {
-    // get platform.txt file to parse
-    const filePath = await vscode.window.showInputBox({
-        placeHolder: "Compiler Flags",
-        prompt: "Enter path to 'platform.txt' file",
-    });
-    if (filePath){
-        // make sure file is valid
-        var flagArr = await parsePlatform(filePath);
-        var flagStr = "";
-        for (var i = 0; i < flagArr.length; i++) {
-            flagStr += flagArr[i] + ',\n';
-        }
-        vscode.window.showInformationMessage(flagStr, {modal: true});
-    } else {
-        vscode.window.showInformationMessage("Not a valid path or directory does not contain platform.txt file.");
-    }
-}
-
 
 /**
  * Gets all flags for specified platform by matching key-value pairs in board.txt and 
@@ -112,16 +94,17 @@ export async function getAllFlags(board: Board): Promise<string> {
     try {
         //initalize some variables
         const platform = board.getChipName();
-        const hardCodedFlags = board.getHardcodedFlags();
+        const hardCodedFlags = board.getFlags();
 
         //getting map for boards.txt
-        const localAppData = process.env.LOCALAPPDATA;
+        const localAppData = getLocalArduinoPath();
+
         const version = getDXCoreVersion();
-        const libraryFilePath = path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version,"boards.txt");
+        const libraryFilePath = path.join(localAppData, "packages", "DxCore","hardware","megaavr",version,"boards.txt");
         const map = await parseBoards(libraryFilePath, platform);
 
         //getting array of platform.txt
-        let platformFolder = path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr",version);
+        let platformFolder = path.join(localAppData, "packages", "DxCore","hardware","megaavr",version);
         let array = await parsePlatform(platformFolder);
 
         let cppPatternIndex = 0;
@@ -183,8 +166,8 @@ export async function getAllFlags(board: Board): Promise<string> {
                             const match = opt.match(/{(.*?)}/);
                             flagAndVariables.push(opt);
                         
-                            if(match[1] !== null) {
-                                variables.push(match[1]);
+                            if(match![1] !== null) {
+                                variables.push(match![1]);
                             }   
                         }
                     //new variable
@@ -215,7 +198,7 @@ export async function getAllFlags(board: Board): Promise<string> {
 
                             const match = flagAndVariables[x].match(/{(.*?)}/);
     
-                            indexRemove.push(match[1]);
+                            indexRemove.push(match![1]);
                             fPlusVariablesToRemove.push(flagAndVariables[x]);
                             standAloneFlags.push(getFlag(flagAndVariables[x],value));
                         }
@@ -242,7 +225,7 @@ export async function getAllFlags(board: Board): Promise<string> {
 
                             const match = flagAndVariables[x].match(/{(.*?)}/);
     
-                            indexRemove.push(match[1]);
+                            indexRemove.push(match![1]);
                             fPlusVariablesToRemove.push(flagAndVariables[x]);
                             standAloneFlags.push(getFlag(flagAndVariables[x],value));
                         }
@@ -256,7 +239,7 @@ export async function getAllFlags(board: Board): Promise<string> {
 
                             const match = flagAndVariables[x].match(/{(.*?)}/);
     
-                            indexRemove.push(match[1]);
+                            indexRemove.push(match![1]);
                             fPlusVariablesToRemove.push(flagAndVariables[x]);
                             standAloneFlags.push(getFlag(flagAndVariables[x],value));
                         }
@@ -270,7 +253,7 @@ export async function getAllFlags(board: Board): Promise<string> {
                             const match = flagAndVariables[x].match(/{(.*?)}/);
 
 
-                            indexRemove.push(match[1]);
+                            indexRemove.push(match![1]);
                             fPlusVariablesToRemove.push(flagAndVariables[x]);
                             standAloneFlags.push(getFlag(flagAndVariables[x],value));
                         }
@@ -281,7 +264,7 @@ export async function getAllFlags(board: Board): Promise<string> {
                 for(let i = 0; i < flagAndVariables.length; i++) {
                     const match = flagAndVariables[i].match(/{(.*?)}/);
 
-                    if(key.includes(match[1])) {
+                    if(key.includes(match![1])) {
                         let str = getFlag(flagAndVariables[i],value);
 
                         if(!str.includes("{") && !str.includes(" ") && !str.includes("}")) {
@@ -382,23 +365,35 @@ function getFlag(flagAndVariable: string, value: string): string {
     return flag;
 }
 
+/*******************************************************OTHER GETTERS***********************************************************888*/
+
 /**
  * Helper function that returns the version of DxCore installed. May not be fail-proof: uses
- * the name of the folder in the DxCore/hardware/megaavr to determine the version.
+ * the most recent name of the folder in the DxCore/hardware/megaavr to determine the version.
  * 
  * @returns string with version of DxCore (ex. "1.5.11")
  */
 export function getDXCoreVersion(): string {
     let result = '';
-    const localAppData = process.env.LOCALAPPDATA;
-    if (localAppData) {
-        const versionFilePath = path.join(localAppData, "Arduino15", "packages", "DxCore","hardware","megaavr");
-        const items = fs.readdirSync(versionFilePath);
-        const firstItem = items[0];
-        //const stats = fs.statSync(`${versionFilePath}/${firstItem}`);
-        result = firstItem;
-    }
-    return result;
+    var localAppData = "";
+	if(process.platform === "win32") {
+		localAppData = path.join(process.env.LOCALAPPDATA!, "Arduino15");
+	} else if(process.platform === "darwin") {
+		localAppData = path.join(process.env.HOME!, "Library", "Arduino15");
+	} else if(process.platform === "linux") {
+		localAppData = path.join(process.env.HOME!, ".arduino15");
+	}
+    const versionFilePath = path.join(localAppData, "packages", "DxCore","hardware","megaavr");
+    const directories = fs.readdirSync(versionFilePath, { withFileTypes: true });
+	const subdirectories = directories.filter((dirent) => dirent.isDirectory());
+	const mostRecentDirectory = subdirectories.reduce((prev, current) => {
+	    const prevPath = `${path}/${prev.name}`;
+	    const currentPath = `${path}/${current.name}`;
+
+	    const prevStat = fs.statSync(prevPath);
+	    const currentStat = fs.statSync(currentPath);
+
+	    return prevStat.mtimeMs > currentStat.mtimeMs ? prev : current;
+	});
+	return mostRecentDirectory.name;
 }
-
-

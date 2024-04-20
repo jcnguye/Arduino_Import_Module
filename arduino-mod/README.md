@@ -1,71 +1,63 @@
-# arduino-mod README
+# Arduino Importer Extension
+We created a VS Code Extension with a simple GUI that allows users to generate self-contained Cmake projects from pre-existing Arduino projects. Our extension allows users to select board-specific compilation flags, such as optimization flags. Advanced users can override default flags through a customizable configuration file. After the user finishes their selections, our extension imports the required core libraries and any third-party libraries used by the original project. The default compilation flags are dynamically generated from platform.txt and boards.txt for the board specified.
 
-This is the README for your extension "arduino-mod". After writing up a brief description, we recommend including the following sections.
+After the CMake project is created, our extension automatically compiles the project and opens the build directory, which include a .elf, .hex, .lst, and .map file. After being generated, the generated Cmake project can then be imported into professional IDEs.
 
-## Features
+This project  only supports the Windows operating system.
+## User Guide
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+### Extension Requirements
++ The selected Arduino project must be contained within a single .ino sketch file
++ The selected Arduino project must compile within the Arduino IDE
++ Arduino projects using the DxCore family must include flag_overide.txt in their destination folder.
++ Arduino 2.0 or greater must be installed
++ Cmake and Make must be installed
++ Board-specific core libraries must be installed (E.g. DxCore library)
 
-For example if there is an image subfolder under your extension project workspace:
+### Supported Boards
+This extension only supports projects for the DxCore Family and the Arduino Nano Family
 
-\!\[feature X\]\(images/feature-x.png\)
+### Flag Override
+Flags can be overwritten by creating *flag_override.txt* and placing the file in the destination directory of the project. This functionality is intended for advanced users that desire to customize the flag options used to compile their embedded project. Most users may not need to customize compile options to this extent and can use the default options.
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+The process of setting flags is similar to the structure of boards.txt for the Arduino IDE. Users can choose specific compiler options that they wish for their project to use.
 
-## Requirements
+DxCore users must use flag_override.txt to set clock speed, clock source, wire mode, millisecond timer, attach mode, and flash mapping. Below is an example of the default configuration that a user may use:
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+```
+build.speed=24         //set clock speed to 24 MHz
+build.clocksource=0    //set default clock source
+build.wiremode=MORS_SINGLE    //set wire mode to MORS_SINGLE
+build.millistimer=B2          //set timer B2 for millis()
+build.attachmode=-DCORE_ATTACH_ALL    //Attach interrupts to all available pins
+build.flmapopts=-DLOCK_FLMAP -DFLMAPSECTION1   //flash memory mapping options
+```
+The use of flag_override.txt is optional for Nano users. Nano-compatible boards typically have default settings handled by the extension.
 
-## Extension Settings
+NOTE: The 'flag_override.txt' file should only contain flag assignments. Comments are not permitted within the file.
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+### Error Handling
+Error pop-up windows will be displayed for issues that prevent the extension from running correctly (like not having Cmake installed). Compilation issues with the imported project will put outputted in the extension console. You may need to separately run the generated Cmake project or makefile in order to detect the issue.
 
-For example:
+### Extension Usage Instruction 
+1. Download the .vsix file
+2. Navigate to extension panel
+3. Under go to "Views and more action" click install VSIX
+4. Navigate to the .vsix file and install
 
-This extension contributes the following settings:
+### Notice Regarding Third-Party Libraries
+Users are advised to be aware of the licensing terms of third-party libraries. All third-party libraries are compiled into a single static library file (.a) and are statically linked to source code at run time.
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+## Building
+1. Install npm
+2. Run `npm install -g yo generator-code typescript`
+3. Within arduino-mod/, run `tsc --watch`
+4. Open the project in VSCode
+5. Press F5 to open a new VSCode instance with the extension running.
+6. Type "> Arduino Import Module" into the search bar at the top of the new VSCode window.
 
-## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
 
-## Release Notes
 
-Users appreciate release notes as you update your extension.
 
-### 1.0.0
 
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**

@@ -1,57 +1,62 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { Board } from './board';
+import {CMAKE} from './constants';
 
+
+/**
+ * This class configures and writes the CMakeLists.txt file to build
+ * an arduino project using the Arduino IDE's compiler with cmake.
+ */
 export class Cmaker {
 	public projDir: string;
 	public projName: string;
 	public srcFileName: string;
 	public compilerflags: string;
-	public linkerflags: string;
+	private board: Board;
+	private debuggingOptimization: boolean; 
+	private includeUtilitiesDir: boolean = false; 
+	//CONSTANTS
+	private debugOptimizeFlag: string = "-Og -g2";
+	private codeSizeOptimizeFlag: string = "-Os";
 	
-	constructor(){
+	/**
+	 * Constructs a CMaker.
+	 *
+	 * @param board The board to configure CMake for,
+	 * @debuggingOptimization Whether or not to enable debugging optimization
+	 */
+	constructor(board: Board, debuggingOptimization: boolean){
 		this.projDir = "";
 		this.projName = "";
 		this.srcFileName = "";
 		this.compilerflags = "";
-		this.linkerflags = "";
+		this.board = board; 
+		this.debuggingOptimization = debuggingOptimization;
 	}
+	
 	public setProjectDirectory(projectDirectory:string){
 		this.projDir = projectDirectory;
 	}
+	
 	public setProjectName(projectName:string){
 		this.projName = projectName;
 	}
+	
 	public setSourceName(sourceFileName:string){
 		this.srcFileName = sourceFileName;
 	}
-	public setCompilerFlags(compileFlag:string){
-		this.compilerflags = compileFlag;
+	
+	public setIncludeUtilitiesDir(includeUtilitiesDir:boolean){
+		this.includeUtilitiesDir = includeUtilitiesDir;
 	}
-	public setLinkerFlags(linkerFlags:string){
-		this.linkerflags = linkerFlags;
-	}
-
-
-	public build(): void{
-
-		//sets the cmake version
-		let cmakeHeader = "cmake_minimum_required(VERSION 3.0)";
-		cmakeHeader = cmakeHeader + '\nset(CMAKE_C_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-gcc")';
-		cmakeHeader = cmakeHeader + '\nset(CMAKE_CXX_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-g++")';
-		cmakeHeader = cmakeHeader + "\nproject(" + this.projName + ")";
-		//cmake  adding executable 
-		let cmakeSrcExecutable = "\nadd_executable(" + this.projName + " " + this.srcFileName +")";
-		// cmake adding compile option
-		let cmakeSrcCompileOpt = "\ntarget_compile_options(" + this.projName + " PRIVATE " + this.compilerflags +")";
-		// cmake link libary
-		let cmakeSrcLinkLib = "\ntarget_link_libraries(" + this.projName + " " + this.linkerflags +")";
-		// hex file generator
-		let hex = "add_custom_command(TARGET " + this.projName + " POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O ihex -R .eeprom " + this.projName + " " + this.projName + ".hex)\n";
-		// bin file generator
-		let bin = "add_custom_command(TARGET " + this.projName + " POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler/bin/avr-objcopy -O binary -R .eeprom " + this.projName + " " + this.projName + ".bin)\n";
-
-		//resets Cmake File
+	
+	/**
+	 * Resets all project directory contents related to CMake. Does not remove compiled files.
+	 *
+	 */
+	public resetCmake(): void {
 		if (fs.existsSync(this.projDir + "/CMakeLists.txt")) {
 			fs.unlinkSync(this.projDir + "/CMakeLists.txt");
 		}
@@ -67,35 +72,104 @@ export class Cmaker {
 		if (fs.existsSync(this.projDir + "/CMakeFiles")) {
 			fs.rmSync(this.projDir + "/CMakeFiles", { recursive: true, force: true });
 		}
+	}
+	
+	/**
+	 * Creates the CMakeLists.txt file within the project directory.
+	 *
+	 */
+	public build(): void{
+		// reset all cmake files before creating the new file
+		this.resetCmake();
+		
+		//sets the cmake version
+		let cmakeHeader = CMAKE.VERSION;
+		
+		const binPath = path.join(this.board.getPathToCompiler(), "bin");
+		cmakeHeader = cmakeHeader + CMAKE.SET_C_COMPILER + path.join(binPath, CMAKE.C_COMPILER).replace(/\\/g, '/') + ')\n';
+		cmakeHeader = cmakeHeader + CMAKE.SET_CXX_COMPILER + path.join(binPath, CMAKE.CXX_COMPILER).replace(/\\/g, '/') +')\n';
+		cmakeHeader = cmakeHeader + CMAKE.SET_SYSTEM;
 
-		fs.writeFileSync(this.projDir + "/CMakeLists.txt", cmakeHeader);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeSrcExecutable);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeSrcCompileOpt);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", cmakeSrcLinkLib);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", hex);
-		fs.appendFileSync(this.projDir + "/CMakeLists.txt", bin);
+		cmakeHeader = cmakeHeader + CMAKE.PROJECT + this.projName + CMAKE.PROJECT_LANGUAGES;
 
-		// use fs.appendFileSync(projDir + "/CMakeLists.txt", data); for future appends
+		cmakeHeader = cmakeHeader + CMAKE.SET_CORE_DIR;
+		cmakeHeader = cmakeHeader + CMAKE.SET_LIB_DIR;
+		
+		cmakeHeader = cmakeHeader + CMAKE.SET_AR + path.join(binPath, CMAKE.AVR).replace(/\\/g, '/') +')\n';
+		cmakeHeader = cmakeHeader + CMAKE.SET_OBJ_COPY + path.join(binPath, CMAKE.OBJ_COPY).replace(/\\/g, '/') +')\n\n';
+		cmakeHeader = cmakeHeader + CMAKE.SET_OBJ_DUMP + path.join(binPath, CMAKE.OBJ_DUMP).replace(/\\/g, '/') +')\n\n';
+
+		let cFlags = this.board.getCFlags();
+		let cxxFlags = this.board.getCXXFlags();
+
+		if(this.debuggingOptimization) {
+			cxxFlags = cxxFlags.replace(this.codeSizeOptimizeFlag, this.debugOptimizeFlag);
+			cFlags = cFlags.replace(this.codeSizeOptimizeFlag, this.debugOptimizeFlag);
+		}
+		cmakeHeader = cmakeHeader +  CMAKE.SET_CXX_FLAGS + cxxFlags + '")\n';
+		cmakeHeader = cmakeHeader + CMAKE.SET_C_FLAGS + cFlags + '")\n';
+
+		cmakeHeader = cmakeHeader + CMAKE.SET_STATIC_LIBRARY_FLAGS
+		cmakeHeader = cmakeHeader + CMAKE.SET_C_LINKER_FLAGS + this.board.getCFlagsLinker() +  CMAKE.CMAKE_FILES_PATH + this.projName + '.dir/' + this.projName + 
+		CMAKE.ELF_BUILD_PATH + this.projName + '.dir/' + this.projName + CMAKE.LIB_CORE_PATH;
+
+		// map file generator
+		cmakeHeader = cmakeHeader + CMAKE.MAP_GEN + this.projName +'.map")\n';
+
+		//cmake  adding executable 
+		let cmakeSrcExecutable = CMAKE.ADD_EXECUTABLE + this.projName + '.elf ' + this.srcFileName +")\n";
+		cmakeSrcExecutable = cmakeSrcExecutable + CMAKE.SET_TARGET_PROPERTIES + this.projName + CMAKE.ELF_PROP;
+		
+		let cmakeDir = "";
+
+		if(this.board.boardName === "Nano") {
+			cmakeDir = CMAKE.NANO_INCLUDE;
+		} else if(this.board.boardName === "DxCore") {
+			
+			cmakeDir = CMAKE.DXCORE_OPTIMIZATION;
+			cmakeDir = cmakeDir + CMAKE.DXCORE_INCLUDE;
+		} else {
+			console.error("Board type not defined");
+		}
+		
+		
+		cmakeDir = cmakeDir + CMAKE.CORE_SRC;
+		cmakeDir = cmakeDir + CMAKE.LIB_SRC;
+
+		if (this.includeUtilitiesDir) {
+			cmakeDir = cmakeDir + CMAKE.UTIL_DIR;
+			cmakeDir = cmakeDir + CMAKE.UTIL_SRC;
+			cmakeDir = cmakeDir + CMAKE.ADD_LIB_UTIL; 
+		} else {
+			cmakeDir = cmakeDir + CMAKE.ADD_LIB; 
+		}	
+		cmakeDir = cmakeDir + CMAKE.TARGET_LINK_LIBRARIES +  this.projName + CMAKE.ELF_CORE;
+		
+		// hex file generator
+		let hex = CMAKE.HEX_PATH + this.projName + '.hex")\n';
+		hex = hex + CMAKE.CUSTOM_TARGET + this.projName + CMAKE.ELF_POST_BUILD + this.projName + CMAKE.ELF_GEN;
+		hex = hex + CMAKE.HEX_GEN;
+
+		// set .elf and .map to go to output folder
+		let elf = CMAKE.ELF_DIR + this.projName + '.elf")\n';
+		let map = CMAKE.MAP_DIR + this.projName + '.map")\n';
+		
+		
+		// generate lst file
+		let lst = CMAKE.LST_DIR+ this.projName + '.lst")\n';
+		lst = lst + CMAKE.CUSTOM_TARGET + this.projName + CMAKE.ELF_POST_BUILD_COMMAND + this.projName + CMAKE.ELF_COMMENT;
+		lst = lst + CMAKE.GEN_LST;
+		
+		
+		
+		// write final output
+		let output = cmakeHeader + cmakeSrcExecutable + cmakeDir + hex + elf + map + lst;
+		if(process.platform !== "win32") {
+			output = output.replace(/\.exe/g, "");
+		}
+		fs.writeFileSync(this.projDir + CMAKE.FILE_NAME, output);
 
 	}
 }
-
-
-/*
-
-Listing out the order cmake needs to run things in:
-
- - (other stuff)
- Archiver:
- - Archive all libraries to the core.a file
- Linker:
- - create .elf file, linking to core.a (already happens during the linker command)
- - create bin
- - create eeprom
- - create hex (addHexBuilder)
- - lst
- - map
-*/
-
 
 export default Cmaker;
